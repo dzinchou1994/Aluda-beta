@@ -10,12 +10,12 @@ export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma) as any,
   providers: [
     GoogleProvider({
-      clientId: process.env.GOOGLE_CLIENT_ID || "",
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
+      clientId: process.env.ALUDAAI_GOOGLE_CLIENT_ID || "",
+      clientSecret: process.env.ALUDAAI_GOOGLE_CLIENT_SECRET || "",
     }),
     AppleProvider({
-      clientId: process.env.APPLE_ID || "",
-      clientSecret: process.env.APPLE_SECRET || "",
+      clientId: process.env.ALUDAAI_APPLE_ID || "",
+      clientSecret: process.env.ALUDAAI_APPLE_SECRET || "",
     }),
     CredentialsProvider({
       name: "credentials",
@@ -68,5 +68,5 @@ export const authOptions: NextAuthOptions = {
       return session
     }
   },
-  secret: process.env.NEXTAUTH_SECRET,
+  secret: process.env.ALUDAAI_NEXTAUTH_SECRET,
 }
