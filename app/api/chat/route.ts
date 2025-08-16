@@ -109,7 +109,7 @@ export async function POST(request: NextRequest) {
       console.error("Flowise context:", { hasFile: Boolean(uploadedFile), contentType, selectedModel })
       const hint = error?.message || 'Unknown error'
       flowiseResponse = {
-        text: `ბოდიში, ამ მომენტში ვერ შეგიძლიათ მიმართოთ. 💡 ${hint}`
+        text: `ბოდიში, ამ მომენტში ვერ შეგიძლიათ მიმართოთ. 💡 ${hint?.slice(0, 200)}`
       }
     }
 

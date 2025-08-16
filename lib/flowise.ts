@@ -125,6 +125,11 @@ export async function sendToFlowise({
       throw new Error(errorData.message || `HTTP ${response.status}`);
     }
 
+    const contentType = response.headers.get('content-type') || ''
+    if (!contentType.includes('application/json')) {
+      const nonJson = await response.text().catch(() => '')
+      throw new Error(`Non-JSON response (status ${response.status}): ${nonJson.slice(0, 200)}`)
+    }
     const data = await response.json();
     
     // Extract the text response from Flowise
