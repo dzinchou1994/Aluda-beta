@@ -48,8 +48,11 @@ export async function sendToFlowise({
     throw new Error('Flowise configuration missing');
   }
 
-  const predictionUrl = `${flowiseHost}/api/v1/prediction/${chatflowId}`
-  const chatbotUrl = `${flowiseHost}/api/v1/chatbot/${chatflowId}`
+  // Normalize host: ensure protocol and no trailing slash
+  const hostWithProtocol = /^(http|https):\/\//i.test(flowiseHost) ? flowiseHost : `https://${flowiseHost}`
+  const normalizedHost = hostWithProtocol.replace(/\/+$/, '')
+  const predictionUrl = `${normalizedHost}/api/v1/prediction/${chatflowId}`
+  const chatbotUrl = `${normalizedHost}/api/v1/chatbot/${chatflowId}`
   
   const headers: Record<string, string> = {};
 
