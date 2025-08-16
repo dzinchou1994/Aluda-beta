@@ -314,11 +314,18 @@ export function useChats() {
     console.log('useChats: Selecting chat:', chatId);
     console.log('useChats: Available chats:', chats.map(c => ({ id: c.id, title: c.title })));
     
-    // Verify the chat exists before selecting it
+    // If chat not found locally (e.g., after hard refresh), create it on the fly
     const chatExists = chats.find(chat => chat.id === chatId);
     if (!chatExists) {
-      console.error('useChats: Chat not found:', chatId);
-      return;
+      console.warn('useChats: Chat not found, creating stub:', chatId);
+      const stub = {
+        id: chatId,
+        title: 'ახალი საუბარი',
+        messages: [],
+        createdAt: new Date().toISOString(),
+        titleLocked: false,
+      }
+      dispatch({ type: 'CREATE_CHAT', payload: stub })
     }
     
     dispatch({ type: 'SET_CURRENT_CHAT_ID', payload: chatId });
