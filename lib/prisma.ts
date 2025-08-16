@@ -5,7 +5,12 @@ declare global {
   var prisma: PrismaClient | undefined
 }
 
-const databaseUrl = process.env.DATABASE_URL || process.env.ALUDAAI_DATABASE_URL
+const databaseUrl =
+  process.env.DATABASE_URL ||
+  process.env.POSTGRES_PRISMA_URL ||
+  process.env.POSTGRES_URL ||
+  process.env.POSTGRES_URL_NON_POOLING ||
+  process.env.ALUDAAI_DATABASE_URL
 const prismaOptions = databaseUrl
   ? ({ datasources: { db: { url: databaseUrl } } } as const)
   : ({} as const)
