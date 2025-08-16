@@ -5,6 +5,17 @@ import { rateLimit } from "@/lib/rateLimit"
 
 export async function POST(request: NextRequest) {
   try {
+    // Check database connection first
+    try {
+      await prisma.$connect()
+    } catch (dbError) {
+      console.error("Database connection failed:", dbError)
+      return NextResponse.json(
+        { error: "Database connection failed. Please try again later." },
+        { status: 503 }
+      )
+    }
+
     // Rate limit signup requests by IP
     await rateLimit({ key: `signup_${request.ip || 'unknown'}`, windowMs: 60_000, max: 10 })
     const { name, email, password } = await request.json()
@@ -25,9 +36,18 @@ export async function POST(request: NextRequest) {
     }
 
     // Check existing by email only
-    const existing = await prisma.user.findFirst({
-      where: { email: email.toLowerCase() }
-    })
+    let existing
+    try {
+      existing = await prisma.user.findFirst({
+        where: { email: email.toLowerCase() }
+      })
+    } catch (dbError) {
+      console.error("Database query failed:", dbError)
+      return NextResponse.json(
+        { error: "Database error. Please try again later." },
+        { status: 503 }
+      )
+    }
 
     if (existing) {
       return NextResponse.json(
@@ -57,24 +77,41 @@ export async function POST(request: NextRequest) {
     // Cap attempts to avoid infinite loop in pathological cases
     // eslint-disable-next-line no-constant-condition
     while (true) {
-      const exists = await prisma.user.findUnique({ where: { username: candidate } })
-      if (!exists) break
-      counter += 1
-      candidate = `${baseUsername}-${counter}`
-      if (counter > 1000) {
-        throw new Error('Could not generate a unique username')
+      try {
+        const exists = await prisma.user.findUnique({ where: { username: candidate } })
+        if (!exists) break
+        counter += 1
+        candidate = `${baseUsername}-${counter}`
+        if (counter > 1000) {
+          throw new Error('Could not generate a unique username')
+        }
+      } catch (dbError) {
+        console.error("Database query failed during username check:", dbError)
+        return NextResponse.json(
+          { error: "Database error. Please try again later." },
+          { status: 503 }
+        )
       }
     }
 
-    const user = await prisma.user.create({
-      data: {
-        name,
-        email: email.toLowerCase(),
-        username: candidate,
-        password: hashed,
-      },
-      select: { id: true, name: true, email: true, username: true }
-    })
+    let user
+    try {
+      user = await prisma.user.create({
+        data: {
+          name,
+          email: email.toLowerCase(),
+          username: candidate,
+          password: hashed,
+        },
+        select: { id: true, name: true, email: true, username: true }
+      })
+    } catch (dbError) {
+      console.error("Database user creation failed:", dbError)
+      return NextResponse.json(
+        { error: "Failed to create user. Please try again later." },
+        { status: 503 }
+      )
+    }
 
     return NextResponse.json(
       { 
