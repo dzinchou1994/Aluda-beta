@@ -68,5 +68,9 @@ export const authOptions: NextAuthOptions = {
       return session
     }
   },
-  secret: process.env.ALUDAAI_NEXTAUTH_SECRET,
+  jwt: {
+    secret: process.env.ALUDAAI_NEXTAUTH_SECRET || process.env.NEXTAUTH_SECRET,
+  },
+  secret: process.env.ALUDAAI_NEXTAUTH_SECRET || process.env.NEXTAUTH_SECRET,
+  debug: process.env.NODE_ENV === 'development',
 }
