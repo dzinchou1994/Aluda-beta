@@ -127,49 +127,56 @@ export default function ChatComposer({ currentChatId, onChatCreated, session }: 
     }
 
     const lines = content.split(/\r?\n/)
-    return (
-      <div className="space-y-3">
-        {lines.map((line, idx) => {
-          const mdHeading = line.match(/^\s*#{3,}\s*(.+?)\s*[:：]?\s*$/)
-          if (mdHeading) {
-            const title = mdHeading[1]
-            return (
-              <div key={idx}>
-                <div className="font-bold text-lg leading-snug">{title}</div>
-              </div>
-            )
-          }
+    const blocks: JSX.Element[] = []
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i]
+      const mdHeading = line.match(/^\s*#{3,}\s*(.+?)\s*[:：]?\s*$/)
+      if (mdHeading) {
+        const title = mdHeading[1]
+        blocks.push(
+          <div key={`h-${i}`}>
+            <div className="font-bold text-lg leading-snug">{title}</div>
+          </div>
+        )
+        continue
+      }
 
-          // Numbered list where item is a markdown link: "1. [Label](url)"
-          const mdListLink = line.match(/^\s*(\d+)\.\s*\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)\s*$/)
-          if (mdListLink) {
-            const [, number, label, href] = mdListLink
-            return (
-              <div key={idx} className="text-sm leading-relaxed whitespace-normal break-words">
-                <span className="font-semibold mr-1">{number}.</span>
-                <a href={href} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline break-all">{label}</a>
-              </div>
-            )
-          }
+      // Numbered list where item is a markdown link: allow optional spaces around ()
+      const mdListLink = line.match(/^\s*(\d+)\.\s*\[([^\]]+)\]\s*\(\s*(https?:\/\/[^\s)]+)\s*\)\s*$/)
+      if (mdListLink) {
+        const [, number, label, href] = mdListLink
+        const next = lines[i + 1]
+        const desc = next && next.match(/^\s*-\s+(.+)\s*$/)
+        blocks.push(
+          <div key={`li-${i}`} className="text-sm leading-relaxed whitespace-normal break-words">
+            <span className="font-semibold mr-1">{number}.</span>
+            <a href={href} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline break-all">{label}</a>
+            {desc ? <div className="mt-1 text-xs text-gray-600 dark:text-gray-300">{renderInline(desc[1])}</div> : null}
+          </div>
+        )
+        if (desc) i += 1
+        continue
+      }
 
-          // Numbered list with bold title pattern remains
-          const match = line.match(/^\s*(\d+)\.\s*\*\*(.+?)\*\*\s*:??\s*(.*)\s*$/)
-          if (match) {
-            const [, number, title, rest] = match
-            const cleanedRest = (rest || '').replace(/^\s*[:：]\s*/, '')
-            return (
-              <div key={idx}>
-                <div className="font-bold text-lg leading-snug">{`${number}. ${title}`}</div>
-                {cleanedRest && <div className="mt-1 text-sm leading-relaxed whitespace-normal break-words">{renderInline(cleanedRest)}</div>}
-              </div>
-            )
-          }
-          return (
-            <p key={idx} className="text-sm leading-relaxed whitespace-normal break-words">{renderInline(line)}</p>
-          )
-        })}
-      </div>
-    )
+      // Numbered list with bold title pattern remains
+      const match = line.match(/^\s*(\d+)\.\s*\*\*(.+?)\*\*\s*:??\s*(.*)\s*$/)
+      if (match) {
+        const [, number, title, rest] = match
+        const cleanedRest = (rest || '').replace(/^\s*[:：]\s*/, '')
+        blocks.push(
+          <div key={`b-${i}`}>
+            <div className="font-bold text-lg leading-snug">{`${number}. ${title}`}</div>
+            {cleanedRest && <div className="mt-1 text-sm leading-relaxed whitespace-normal break-words">{renderInline(cleanedRest)}</div>}
+          </div>
+        )
+        continue
+      }
+
+      blocks.push(
+        <p key={`p-${i}`} className="text-sm leading-relaxed whitespace-normal break-words">{renderInline(line)}</p>
+      )
+    }
+    return <div className="space-y-3">{blocks}</div>
   }
   
   // Use the prop currentChatId if provided, otherwise use the hook's currentChatId
