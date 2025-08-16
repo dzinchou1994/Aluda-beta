@@ -97,7 +97,7 @@ export async function POST(request: NextRequest) {
       const effectiveMessage = (uploadedFile && (!message || message.trim().length === 0))
         ? ''
         : (message || '')
-      console.log('Flowise selection:', { selectedModel, chatflowIdOverride })
+      console.log('Flowise selection:', { selectedModel, chatflowIdOverride, envMini: process.env.ALUDAAI_FLOWISE_CHATFLOW_ID || process.env.FLOWISE_CHATFLOW_ID, envA2: process.env.ALUDAAI_FLOWISE_CHATFLOW_ID_ALUDAA2 })
       flowiseResponse = await sendToFlowiseWithRetry({
         message: effectiveMessage,
         history: [],

@@ -303,7 +303,7 @@ export default function Sidebar({
               }
               setModel(v)
             }}
-            disabledAluda2={false}
+            disabledAluda2={!session}
           />
         </div>
       </div>
