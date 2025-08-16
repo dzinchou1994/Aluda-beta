@@ -2,7 +2,7 @@
   "version": 2,
   "framework": "nextjs",
   "installCommand": "npm ci",
-  "buildCommand": "npx prisma migrate deploy && next build"
+  "buildCommand": "npx prisma db push && next build"
 }
 
 
