@@ -95,12 +95,25 @@ export async function sendToFlowise({
         response = backup
       }
     } else {
+      // Try prediction first with JSON
       response = await fetch(predictionUrl, {
         method: 'POST',
         headers: { ...headers, 'Content-Type': 'application/json' },
         body: JSON.stringify(requestBody),
         signal: AbortSignal.timeout(30000),
       })
+
+      // If prediction fails or returns non-JSON, try chatbot as a fallback
+      if (!response.ok) {
+        const errText = await response.text().catch(() => '')
+        console.warn('Prediction endpoint failed:', response.status, errText?.slice(0, 200))
+        response = await fetch(chatbotUrl, {
+          method: 'POST',
+          headers: { ...headers, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ question: requestBody.question, overrideConfig: requestBody.overrideConfig }),
+          signal: AbortSignal.timeout(30000),
+        })
+      }
     }
 
     if (!response.ok) {
