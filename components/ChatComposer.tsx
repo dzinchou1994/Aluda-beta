@@ -311,6 +311,7 @@ export default function ChatComposer({ currentChatId, onChatCreated, session }: 
       }
 
       const data = await response.json()
+      console.log('API result meta:', data.__meta)
       // Optional: if backend returns usage updates in future, sync here
       
       // Add assistant message

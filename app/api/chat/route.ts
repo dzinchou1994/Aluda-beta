@@ -92,12 +92,19 @@ export async function POST(request: NextRequest) {
     try {
       // Choose chatflow by model (force explicit IDs for both models)
       const chatflowIdOverride = selectedModel === 'aluda2'
-        ? (process.env.ALUDAAI_FLOWISE_CHATFLOW_ID_ALUDAA2)
+        ? (process.env.ALUDAAI_FLOWISE_CHATFLOW_ID_ALUDAA2
+          || process.env.FLOWISE_CHATFLOW_ID_ALUDAA2
+          || (process.env as any).ALUDAAI_FLOWISE_CHATFLOW_ID_ALUDA2)
         : (process.env.ALUDAAI_FLOWISE_CHATFLOW_ID || process.env.FLOWISE_CHATFLOW_ID)
       const effectiveMessage = (uploadedFile && (!message || message.trim().length === 0))
         ? ''
         : (message || '')
-      console.log('Flowise selection:', { selectedModel, chatflowIdOverride, envMini: process.env.ALUDAAI_FLOWISE_CHATFLOW_ID || process.env.FLOWISE_CHATFLOW_ID, envA2: process.env.ALUDAAI_FLOWISE_CHATFLOW_ID_ALUDAA2 })
+      console.log('Flowise selection:', {
+        selectedModel,
+        chatflowIdOverride,
+        envMini: process.env.ALUDAAI_FLOWISE_CHATFLOW_ID || process.env.FLOWISE_CHATFLOW_ID,
+        envA2: process.env.ALUDAAI_FLOWISE_CHATFLOW_ID_ALUDAA2 || process.env.FLOWISE_CHATFLOW_ID_ALUDAA2 || (process.env as any).ALUDAAI_FLOWISE_CHATFLOW_ID_ALUDA2,
+      })
       flowiseResponse = await sendToFlowiseWithRetry({
         message: effectiveMessage,
         history: [],
@@ -139,7 +146,7 @@ export async function POST(request: NextRequest) {
       sources: flowiseResponse.sources,
       chatId: currentChatId,
       aiTitle,
-      __meta: flowiseResponse.__meta || null,
+      __meta: { ...(flowiseResponse.__meta || {}), selectedModel, usedOverride: chatflowIdOverride || null },
     })
 
   } catch (error: any) {
