@@ -17,6 +17,7 @@ export default function SignInPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState("")
+  const [providers, setProviders] = useState<Record<string, any> | null>(null)
   const router = useRouter()
 
   // If already authenticated, redirect to chat
@@ -25,6 +26,20 @@ export default function SignInPage() {
       router.replace("/chat")
     }
   }, [status, router])
+
+  // Load configured OAuth providers so we render only enabled ones
+  useEffect(() => {
+    const loadProviders = async () => {
+      try {
+        const res = await fetch("/api/auth/providers")
+        if (res.ok) {
+          const data = await res.json()
+          setProviders(data)
+        }
+      } catch (_) {}
+    }
+    loadProviders()
+  }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -184,23 +199,26 @@ export default function SignInPage() {
           </div>
         </div>
 
-        {/* Social Buttons */}
+        {/* Social Buttons (render only if configured) */}
         <div className="space-y-3">
-          <button
-            onClick={handleGoogleSignIn}
-            className="w-full flex items-center justify-center px-4 py-3 border border-gray-300 rounded-lg text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200"
-          >
-            <FcGoogle className="h-5 w-5 mr-3" />
-            გაგრძელება Google-ით
-          </button>
-          
-          <button
-            onClick={handleAppleSignIn}
-            className="w-full flex items-center justify-center px-4 py-3 border border-gray-300 rounded-lg text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200"
-          >
-            <FaApple className="h-5 w-5 mr-3" />
-            გაგრძელება Apple-ით
-          </button>
+          {providers?.google && (
+            <button
+              onClick={handleGoogleSignIn}
+              className="w-full flex items-center justify-center px-4 py-3 border border-gray-300 rounded-lg text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200"
+            >
+              <FcGoogle className="h-5 w-5 mr-3" />
+              გაგრძელება Google-ით
+            </button>
+          )}
+          {providers?.apple && (
+            <button
+              onClick={handleAppleSignIn}
+              className="w-full flex items-center justify-center px-4 py-3 border border-gray-300 rounded-lg text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200"
+            >
+              <FaApple className="h-5 w-5 mr-3" />
+              გაგრძელება Apple-ით
+            </button>
+          )}
         </div>
 
         {/* Toggle Sign In/Sign Up */}
