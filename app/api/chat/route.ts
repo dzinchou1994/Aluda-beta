@@ -25,8 +25,8 @@ export async function POST(request: NextRequest) {
       message = String(form.get('message') || form.get('question') || '')
       chatId = form.get('chatId') ? String(form.get('chatId')) : undefined
       model = form.get('model') ? String(form.get('model')) : undefined
-      // Flowise expects 'files' for prediction multipart
-      const f = form.get('files') || form.get('file') || form.get('upload') || form.get('image') || form.get('images') || form.get('files[]')
+      // Flowise expects 'files' for prediction multipart, but support multiple common aliases
+      const f = form.get('files') || form.get('file') || form.get('files[]') || form.get('upload') || form.get('image') || form.get('images')
       if (f instanceof File) {
         uploadedFile = f
       }
@@ -94,9 +94,9 @@ export async function POST(request: NextRequest) {
       const chatflowIdOverride = selectedModel === 'aluda2'
         ? process.env.ALUDAAI_FLOWISE_CHATFLOW_ID_ALUDAA2
         : undefined
-      const effectiveMessage = (message && message.trim().length > 0)
-        ? message
-        : 'გთხოვ გამიწოდე ანალიზი ატვირთული სურათის შესახებ'
+      const effectiveMessage = (uploadedFile && (!message || message.trim().length === 0))
+        ? 'გთხოვ გამიწოდე ანალიზი ატვირთული სურათის შესახებ'
+        : (message || '')
       flowiseResponse = await sendToFlowiseWithRetry({
         message: effectiveMessage,
         history: [], // You can implement chat history here

@@ -78,7 +78,18 @@ export async function sendToFlowise({
         const filename = (file as any)?.name || 'upload'
         // @ts-ignore
         form.append('files', file as any, filename)
+        // Some Flowise setups expect alternative field names; send duplicates for compatibility
+        // @ts-ignore
+        form.append('files[]', file as any, filename)
+        // @ts-ignore
+        form.append('file', file as any, filename)
+        // @ts-ignore
+        form.append('image', file as any, filename)
+        // @ts-ignore
+        form.append('images', file as any, filename)
       }
+      // Pass overrideConfig too for session stickiness
+      try { form.append('overrideConfig', JSON.stringify(requestBody.overrideConfig || {})) } catch {}
       // Try chatbot endpoint first (like widget), then fallback to prediction with same form
       response = await fetch(chatbotUrl, {
         method: 'POST',

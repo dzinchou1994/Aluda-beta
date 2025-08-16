@@ -176,6 +176,10 @@ export default function ChatComposer({ currentChatId, onChatCreated, session }: 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
+    // If image is attached for Aluda 2.0 and user also typed text, ensure image is ready first
+    if (model === 'aluda2' && attachedImage && !attachedPreviewUrl) {
+      await new Promise((r) => setTimeout(r, 50))
+    }
     // Allow image-only request for Aluda 2.0
     if (!(message.trim().length > 0 || (model === 'aluda2' && attachedImage))) return
 
@@ -221,7 +225,12 @@ export default function ChatComposer({ currentChatId, onChatCreated, session }: 
           form.append('message', messageToSend)
           form.append('chatId', activeChatId!)
           form.append('model', model)
+          // Add multiple aliases to maximize compatibility with Flowise prediction endpoints
           form.append('files', attachedImage as Blob)
+          form.append('file', attachedImage as Blob)
+          form.append('files[]', attachedImage as Blob)
+          form.append('image', attachedImage as Blob)
+          form.append('images', attachedImage as Blob)
           return fetch("/api/chat", {
             method: "POST",
             body: form,
