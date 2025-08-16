@@ -85,31 +85,51 @@ export default function ChatComposer({ currentChatId, onChatCreated, session }: 
   const [attachedImage, setAttachedImage] = useState<File | null>(null)
   const [attachedPreviewUrl, setAttachedPreviewUrl] = useState<string | null>(null)
   
-  // Render assistant content with special formatting for lines like:
-  // "1. **Title**: details" → Title becomes bold, larger, and details go on a new line
+  // Render assistant content with special formatting; support markdown links [text](url)
   function renderAssistantContent(content: string) {
-    // Helper to convert URLs into clickable links
-    const renderWithLinks = (text: string) => {
+    // Plain URL linkifier
+    const renderPlainLinks = (text: string) => {
       const urlSplitRegex = /(https?:\/\/[^\s)]+|www\.[^\s)]+)/gi
       return text.split(urlSplitRegex).map((part, i) => {
         const isUrl = /^(https?:\/\/|www\.)/i.test(part)
         if (isUrl) {
           const href = part.startsWith('http') ? part : `https://${part}`
           return (
-            <a key={i} href={href} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline break-all">
+            <a key={`url-${i}`} href={href} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline break-all">
               {part}
             </a>
           )
         }
-        return <span key={i}>{part}</span>
+        return <span key={`txt-${i}`}>{part}</span>
       })
+    }
+
+    // Markdown [text](url) + fallback to plain URLs
+    const renderInline = (text: string) => {
+      const mdRegex = /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g
+      const elements: any[] = []
+      let lastIndex = 0
+      let match: RegExpExecArray | null
+      while ((match = mdRegex.exec(text)) !== null) {
+        const [full, label, href] = match
+        const before = text.slice(lastIndex, match.index)
+        if (before) elements.push(<span key={`b-${lastIndex}`}>{renderPlainLinks(before)}</span>)
+        elements.push(
+          <a key={`a-${match.index}`} href={href} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline break-all">
+            {label}
+          </a>
+        )
+        lastIndex = match.index + full.length
+      }
+      const tail = text.slice(lastIndex)
+      if (tail) elements.push(<span key={`t-${lastIndex}`}>{renderPlainLinks(tail)}</span>)
+      return elements
     }
 
     const lines = content.split(/\r?\n/)
     return (
       <div className="space-y-3">
         {lines.map((line, idx) => {
-          // Markdown-style heading: lines starting with ### (or more)
           const mdHeading = line.match(/^\s*#{3,}\s*(.+?)\s*[:：]?\s*$/)
           if (mdHeading) {
             const title = mdHeading[1]
@@ -120,6 +140,19 @@ export default function ChatComposer({ currentChatId, onChatCreated, session }: 
             )
           }
 
+          // Numbered list where item is a markdown link: "1. [Label](url)"
+          const mdListLink = line.match(/^\s*(\d+)\.\s*\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)\s*$/)
+          if (mdListLink) {
+            const [, number, label, href] = mdListLink
+            return (
+              <div key={idx} className="text-sm leading-relaxed whitespace-normal break-words">
+                <span className="font-semibold mr-1">{number}.</span>
+                <a href={href} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline break-all">{label}</a>
+              </div>
+            )
+          }
+
+          // Numbered list with bold title pattern remains
           const match = line.match(/^\s*(\d+)\.\s*\*\*(.+?)\*\*\s*:??\s*(.*)\s*$/)
           if (match) {
             const [, number, title, rest] = match
@@ -127,12 +160,12 @@ export default function ChatComposer({ currentChatId, onChatCreated, session }: 
             return (
               <div key={idx}>
                 <div className="font-bold text-lg leading-snug">{`${number}. ${title}`}</div>
-                {cleanedRest && <div className="mt-1 text-sm leading-relaxed whitespace-normal break-words">{cleanedRest}</div>}
+                {cleanedRest && <div className="mt-1 text-sm leading-relaxed whitespace-normal break-words">{renderInline(cleanedRest)}</div>}
               </div>
             )
           }
           return (
-            <p key={idx} className="text-sm leading-relaxed whitespace-normal break-words">{renderWithLinks(line)}</p>
+            <p key={idx} className="text-sm leading-relaxed whitespace-normal break-words">{renderInline(line)}</p>
           )
         })}
       </div>
