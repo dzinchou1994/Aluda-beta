@@ -45,7 +45,10 @@ export async function sendToFlowise({
   const apiKey = process.env.ALUDAAI_FLOWISE_API_KEY || process.env.FLOWISE_API_KEY;
   
   if (!flowiseHost || !chatflowId) {
-    throw new Error('Flowise configuration missing');
+    const missing: string[] = []
+    if (!flowiseHost) missing.push('ALUDAAI_FLOWISE_HOST (or FLOWISE_HOST)')
+    if (!chatflowId) missing.push(chatflowIdOverride ? 'chatflowIdOverride' : 'ALUDAAI_FLOWISE_CHATFLOW_ID')
+    throw new Error(`Flowise configuration missing: ${missing.join(', ')}`)
   }
 
   // Normalize host: ensure protocol and no trailing slash
