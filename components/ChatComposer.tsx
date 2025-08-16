@@ -196,58 +196,42 @@ export default function ChatComposer({ currentChatId, onChatCreated, session }: 
       activeChatId = newChatId
     }
 
-    // Add user message to chat
-    const userMessage: Omit<Message, 'timestamp'> = {
+    // Prepare to send and only add message to UI after the request is started
+    const pendingUserMessage: Omit<Message, 'timestamp'> = {
       id: `user_${Date.now()}`,
       role: "user",
       content: messageToSend,
     }
-    
-    console.log('ChatComposer: Adding user message:', userMessage)
-    addMessageToChat(activeChatId, userMessage)
-    
-    // Notify parent about new chat creation
-    onChatCreated(activeChatId)
-    
-    // Wait for the state to update and force selection
-    setTimeout(() => {
-      setCurrentChatId(activeChatId)
-    }, 50)
-    
-    // Clear input
-    setMessage("")
     setIsLoading(true)
     
     try {
       const useMultipart = model === 'aluda2' && attachedImage
-      const response = await (async () => {
-        if (useMultipart) {
-          const form = new FormData()
-          if (messageToSend) form.append('message', messageToSend)
-          form.append('chatId', activeChatId!)
-          form.append('model', model)
-          // Add multiple aliases to maximize compatibility with Flowise prediction endpoints
-          form.append('files', attachedImage as Blob)
-          form.append('file', attachedImage as Blob)
-          form.append('files[]', attachedImage as Blob)
-          form.append('image', attachedImage as Blob)
-          form.append('images', attachedImage as Blob)
-          return fetch("/api/chat", {
-            method: "POST",
-            body: form,
-          })
-        } else {
-          return fetch("/api/chat", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ 
-              message: messageToSend, 
-              chatId: activeChatId,
-              model,
-            }),
-          })
-        }
-      })()
+      let response: Response
+      if (useMultipart) {
+        const form = new FormData()
+        if (messageToSend) form.append('message', messageToSend)
+        form.append('chatId', activeChatId!)
+        form.append('model', model)
+        // Add multiple aliases to maximize compatibility with Flowise prediction endpoints
+        form.append('files', attachedImage as Blob)
+        form.append('file', attachedImage as Blob)
+        form.append('files[]', attachedImage as Blob)
+        form.append('image', attachedImage as Blob)
+        form.append('images', attachedImage as Blob)
+        response = await fetch("/api/chat", { method: "POST", body: form })
+      } else {
+        response = await fetch("/api/chat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ message: messageToSend, chatId: activeChatId, model }),
+        })
+      }
+
+      // Record the user's message in UI only after request is initiated
+      addMessageToChat(activeChatId, pendingUserMessage)
+      onChatCreated(activeChatId)
+      setTimeout(() => setCurrentChatId(activeChatId), 50)
+      setMessage("")
 
       if (response.status === 402) {
         const data = await response.json().catch(() => ({}))
