@@ -85,20 +85,20 @@ export async function sendToFlowise({
 
       const mpHeaders: Record<string, string> = { ...headers, Accept: 'application/json' }
 
-      // Try prediction first for images
-      response = await fetch(predictionUrl, {
+      // Try chatbot first for image uploads (Flowise chatbot supports files)
+      response = await fetch(chatbotUrl, {
         method: 'POST',
         headers: mpHeaders,
         body: form as any,
         signal: AbortSignal.timeout(30000),
       })
 
-      // Fallback to chatbot if prediction fails/non-JSON
+      // Fallback to prediction if chatbot fails/non-JSON
       let ct = response.headers.get('content-type') || ''
       if (!response.ok || !ct.includes('application/json')) {
         const errText = await response.text().catch(() => '')
-        console.warn('Prediction(multipart) non-json/failed:', response.status, errText?.slice(0, 200))
-        response = await fetch(chatbotUrl, {
+        console.warn('Chatbot(multipart) non-json/failed:', response.status, errText?.slice(0, 200))
+        response = await fetch(predictionUrl, {
           method: 'POST',
           headers: mpHeaders,
           body: form as any,
