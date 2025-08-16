@@ -92,7 +92,7 @@ export async function POST(request: NextRequest) {
     try {
       // Choose chatflow by model
       const chatflowIdOverride = selectedModel === 'aluda2'
-        ? 'ed45f6f4-88bd-4f11-9fa5-019103b542d2'
+        ? process.env.FLOWISE_CHATFLOW_ID_ALUDAA2
         : undefined
       const effectiveMessage = (message && message.trim().length > 0)
         ? message
