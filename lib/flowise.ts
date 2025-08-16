@@ -74,6 +74,8 @@ export async function sendToFlowise({
     if (isMultipart) {
       const form = new FormData()
       form.append('question', requestBody.question)
+      // Many Flowise flows use chatId to persist context
+      try { form.append('chatId', requestBody.overrideConfig?.sessionId || '') } catch {}
       if (file) {
         const filename = (file as any)?.name || 'upload'
         // @ts-ignore
@@ -83,20 +85,20 @@ export async function sendToFlowise({
 
       const mpHeaders: Record<string, string> = { ...headers, Accept: 'application/json' }
 
-      // Try chatbot first
-      response = await fetch(chatbotUrl, {
+      // Try prediction first for images
+      response = await fetch(predictionUrl, {
         method: 'POST',
         headers: mpHeaders,
         body: form as any,
         signal: AbortSignal.timeout(30000),
       })
 
-      // Fallback if not OK or not JSON
+      // Fallback to chatbot if prediction fails/non-JSON
       let ct = response.headers.get('content-type') || ''
       if (!response.ok || !ct.includes('application/json')) {
         const errText = await response.text().catch(() => '')
-        console.warn('Chatbot endpoint non-json/failed:', response.status, errText?.slice(0, 200))
-        response = await fetch(predictionUrl, {
+        console.warn('Prediction(multipart) non-json/failed:', response.status, errText?.slice(0, 200))
+        response = await fetch(chatbotUrl, {
           method: 'POST',
           headers: mpHeaders,
           body: form as any,
