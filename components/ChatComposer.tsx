@@ -10,6 +10,47 @@ import ModelSwitcher from '@/components/ModelSwitcher';
 import { useModel } from '@/context/ModelContext';
 import { Session } from 'next-auth';
 
+function Suggestions({ onPick }: { onPick: (s: string) => void }) {
+  const [topics, setTopics] = useState<string[] | null>(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    let isMounted = true
+    ;(async () => {
+      try {
+        const res = await fetch('/api/suggestions', { cache: 'no-store' })
+        const data = await res.json().catch(() => ({ suggestions: [] }))
+        const list: string[] = Array.isArray(data?.suggestions) ? data.suggestions : []
+        if (isMounted) setTopics((list || []).slice(0, 4))
+      } catch {
+        if (isMounted) setTopics([])
+      } finally {
+        if (isMounted) setLoading(false)
+      }
+    })()
+    return () => { isMounted = false }
+  }, [])
+
+  const fallback = ['მირჩიე ფილმი საღამოსთვის', 'რა ხდება საქართველოში?', 'მასწავლე საინტერესო ფაქტი', 'მირჩიე ადგილი ტურიზმისთვის']
+  const items = (topics && topics.length > 0 ? topics : fallback).slice(0, 4)
+
+  return (
+    <div className="mt-6 flex flex-wrap gap-3 justify-center">
+      {items.map((suggestion, index) => (
+        <button
+          key={`${suggestion}-${index}`}
+          onClick={() => onPick(suggestion)}
+          className="px-4 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-full text-sm text-gray-600 dark:text-gray-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:border-blue-200 dark:hover:border-blue-600 hover:text-blue-600 dark:hover:text-blue-400 transition-all duration-200 shadow-sm hover:shadow-md animate-fade-in-up"
+          style={{ animationDelay: `${index * 100}ms` }}
+          disabled={loading}
+        >
+          {suggestion}
+        </button>
+      ))}
+    </div>
+  )
+}
+
 interface ChatComposerProps {
   currentChatId?: string
   onChatCreated: (chatId: string) => void
@@ -336,27 +377,7 @@ export default function ChatComposer({ currentChatId, onChatCreated, session }: 
               დაწერეთ რაიმე და დაიწყეთ საუბარი ჩვენს AI ასისტენტთან. 
               ჩვენ ვპასუხობთ ქართულ ენაზე!
             </p>
-            <div className="mt-6 flex flex-wrap gap-3 justify-center">
-              {[
-                'რა ახალია მსოფლიოში დღეს?',
-                'მირჩიე ფილმი ან სერიალი საღამოსთვის',
-                'მირჩიე ადგილი სანახავად',
-                'მომიყევი საინტერესო ისტორია',
-                'მასწავლე რამე ახალი და საინტერესო ფაქტი',
-                'მომეცი მოტივაციური ფრაზა დღისთვის',
-                'მირჩიე ჯანსაღი საჭმელი ან რეცეპტი',
-                'გამიცანი უცნაური ტრადიცია რომელიმე ქვეყნიდან'
-              ].map((suggestion, index) => (
-                <button
-                  key={suggestion}
-                  onClick={() => setMessage(suggestion)}
-                  className="px-4 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-full text-sm text-gray-600 dark:text-gray-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:border-blue-200 dark:hover:border-blue-600 hover:text-blue-600 dark:hover:text-blue-400 transition-all duration-200 shadow-sm hover:shadow-md animate-fade-in-up"
-                  style={{ animationDelay: `${index * 100}ms` }}
-                >
-                  {suggestion}
-                </button>
-              ))}
-            </div>
+            <Suggestions onPick={(s) => setMessage(s)} />
           </div>
         ) : (
           <div className="space-y-4">
