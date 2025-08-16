@@ -72,48 +72,33 @@ export async function sendToFlowise({
     const isMultipart = Boolean(file);
     let response: Response
     if (isMultipart) {
-      const form = new FormData()
-      form.append('question', requestBody.question)
-      // Many Flowise flows use chatId to persist context
-      try { form.append('chatId', requestBody.overrideConfig?.sessionId || '') } catch {}
-      if (file) {
-        const filename = (file as any)?.name || 'upload'
-        // Send under multiple common field names to maximize compatibility
-        // @ts-ignore
-        form.append('files', file as any, filename)
-        // @ts-ignore
-        form.append('file', file as any, filename)
-        // @ts-ignore
-        form.append('files[]', file as any, filename)
-        // @ts-ignore
-        form.append('image', file as any, filename)
-        // @ts-ignore
-        form.append('images', file as any, filename)
+      // Flowise prediction endpoint can accept base64 JSON uploads
+      const filename = (file as any)?.name || 'upload'
+      const mime = (file as any)?.type || 'application/octet-stream'
+      const arrayBuffer = await (file as any).arrayBuffer()
+      const base64 = Buffer.from(arrayBuffer).toString('base64')
+      const dataUrl = `data:${mime};base64,${base64}`
+
+      const jsonBody: any = {
+        question: requestBody.question || '',
+        chatId: requestBody.overrideConfig?.sessionId || '',
+        uploads: [
+          {
+            data: dataUrl,
+            name: filename,
+            mime,
+          },
+        ],
+        overrideConfig: requestBody.overrideConfig || {},
+        streaming: false,
       }
-      try { form.append('overrideConfig', JSON.stringify(requestBody.overrideConfig || {})) } catch {}
 
-      const mpHeaders: Record<string, string> = { ...headers, Accept: 'application/json' }
-
-      // Try chatbot first for image uploads (Flowise chatbot supports files)
-      response = await fetch(chatbotUrl, {
+      response = await fetch(predictionUrl, {
         method: 'POST',
-        headers: mpHeaders,
-        body: form as any,
+        headers: { ...headers, 'Content-Type': 'application/json', Accept: 'application/json' },
+        body: JSON.stringify(jsonBody),
         signal: AbortSignal.timeout(30000),
       })
-
-      // Fallback to prediction if chatbot fails/non-JSON
-      let ct = response.headers.get('content-type') || ''
-      if (!response.ok || !ct.includes('application/json')) {
-        const errText = await response.text().catch(() => '')
-        console.warn('Chatbot(multipart) non-json/failed:', response.status, errText?.slice(0, 200))
-        response = await fetch(predictionUrl, {
-          method: 'POST',
-          headers: mpHeaders,
-          body: form as any,
-          signal: AbortSignal.timeout(30000),
-        })
-      }
     } else {
       // JSON mode: try prediction first
       response = await fetch(predictionUrl, {
