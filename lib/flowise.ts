@@ -78,52 +78,48 @@ export async function sendToFlowise({
         const filename = (file as any)?.name || 'upload'
         // @ts-ignore
         form.append('files', file as any, filename)
-        // Some Flowise setups expect alternative field names; send duplicates for compatibility
-        // @ts-ignore
-        form.append('files[]', file as any, filename)
-        // @ts-ignore
-        form.append('file', file as any, filename)
-        // @ts-ignore
-        form.append('image', file as any, filename)
-        // @ts-ignore
-        form.append('images', file as any, filename)
       }
-      // Pass overrideConfig too for session stickiness
       try { form.append('overrideConfig', JSON.stringify(requestBody.overrideConfig || {})) } catch {}
-      // Try chatbot endpoint first (like widget), then fallback to prediction with same form
+
+      const mpHeaders: Record<string, string> = { ...headers, Accept: 'application/json' }
+
+      // Try chatbot first
       response = await fetch(chatbotUrl, {
         method: 'POST',
-        headers,
+        headers: mpHeaders,
         body: form as any,
         signal: AbortSignal.timeout(30000),
       })
-      if (!response.ok) {
+
+      // Fallback if not OK or not JSON
+      let ct = response.headers.get('content-type') || ''
+      if (!response.ok || !ct.includes('application/json')) {
         const errText = await response.text().catch(() => '')
-        console.warn('Chatbot endpoint failed:', response.status, errText?.slice(0, 200))
-        const backup = await fetch(predictionUrl, {
+        console.warn('Chatbot endpoint non-json/failed:', response.status, errText?.slice(0, 200))
+        response = await fetch(predictionUrl, {
           method: 'POST',
-          headers,
+          headers: mpHeaders,
           body: form as any,
           signal: AbortSignal.timeout(30000),
         })
-        response = backup
       }
     } else {
-      // Try prediction first with JSON
+      // JSON mode: try prediction first
       response = await fetch(predictionUrl, {
         method: 'POST',
-        headers: { ...headers, 'Content-Type': 'application/json' },
+        headers: { ...headers, 'Content-Type': 'application/json', Accept: 'application/json' },
         body: JSON.stringify(requestBody),
         signal: AbortSignal.timeout(30000),
       })
 
-      // If prediction fails or returns non-JSON, try chatbot as a fallback
-      if (!response.ok) {
+      // Fallback if not OK or not JSON
+      let ct = response.headers.get('content-type') || ''
+      if (!response.ok || !ct.includes('application/json')) {
         const errText = await response.text().catch(() => '')
-        console.warn('Prediction endpoint failed:', response.status, errText?.slice(0, 200))
+        console.warn('Prediction endpoint non-json/failed:', response.status, errText?.slice(0, 200))
         response = await fetch(chatbotUrl, {
           method: 'POST',
-          headers: { ...headers, 'Content-Type': 'application/json' },
+          headers: { ...headers, 'Content-Type': 'application/json', Accept: 'application/json' },
           body: JSON.stringify({ question: requestBody.question, overrideConfig: requestBody.overrideConfig }),
           signal: AbortSignal.timeout(30000),
         })
