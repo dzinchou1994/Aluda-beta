@@ -1,0 +1,43 @@
+# Exclude local/build/test artifacts from Vercel upload
+node_modules/
+.next/
+out/
+.cache/
+coverage/
+
+# Git & editor
+.git/
+.gitignore
+.vscode/
+*.log
+
+# Tests & e2e
+__tests__/
+tests/
+playwright-report/
+playwright.config.ts
+
+# Local databases or large assets
+prisma/dev.db
+prisma/prisma/dev.db
+*.sqlite
+*.db
+*.zip
+*.tar
+*.tar.gz
+*.tgz
+*.mp4
+*.mov
+*.avi
+*.mkv
+
+# Env files (set in Vercel Dashboard instead)
+.env
+.env.*
+.env.local
+
+# Docs and misc
+README_assets/
+.docs/
+examples/
+
