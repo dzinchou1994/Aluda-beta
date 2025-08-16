@@ -95,7 +95,7 @@ export async function POST(request: NextRequest) {
         ? process.env.ALUDAAI_FLOWISE_CHATFLOW_ID_ALUDAA2
         : undefined
       const effectiveMessage = (uploadedFile && (!message || message.trim().length === 0))
-        ? 'გთხოვ გამიწოდე ანალიზი ატვირთული სურათის შესახებ'
+        ? ''
         : (message || '')
       flowiseResponse = await sendToFlowiseWithRetry({
         message: effectiveMessage,

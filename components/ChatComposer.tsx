@@ -183,7 +183,8 @@ export default function ChatComposer({ currentChatId, onChatCreated, session }: 
     // Allow image-only request for Aluda 2.0
     if (!(message.trim().length > 0 || (model === 'aluda2' && attachedImage))) return
 
-    const messageToSend = message.trim().length > 0 ? message : 'გთხოვ გამიწოდე ანალიზი ატვირთული სურათის შესახებ'
+    const isImageOnly = model === 'aluda2' && attachedImage && message.trim().length === 0
+    const messageToSend = isImageOnly ? '' : message.trim()
 
     console.log('ChatComposer: Submitting message, currentChatId:', currentChatId)
 
@@ -199,7 +200,7 @@ export default function ChatComposer({ currentChatId, onChatCreated, session }: 
     const userMessage: Omit<Message, 'timestamp'> = {
       id: `user_${Date.now()}`,
       role: "user",
-      content: messageToSend,
+      content: messageToSend || (isImageOnly ? '📷 სურათი' : ''),
     }
     
     console.log('ChatComposer: Adding user message:', userMessage)
@@ -222,7 +223,7 @@ export default function ChatComposer({ currentChatId, onChatCreated, session }: 
       const response = await (async () => {
         if (useMultipart) {
           const form = new FormData()
-          form.append('message', messageToSend)
+          if (messageToSend) form.append('message', messageToSend)
           form.append('chatId', activeChatId!)
           form.append('model', model)
           // Add multiple aliases to maximize compatibility with Flowise prediction endpoints
