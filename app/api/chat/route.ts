@@ -139,6 +139,7 @@ export async function POST(request: NextRequest) {
       sources: flowiseResponse.sources,
       chatId: currentChatId,
       aiTitle,
+      __meta: flowiseResponse.__meta || null,
     })
 
   } catch (error: any) {

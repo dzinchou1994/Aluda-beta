@@ -75,6 +75,7 @@ export async function sendToFlowise({
   try {
     const isMultipart = Boolean(file);
     let response: Response
+    let endpointUsed: 'prediction' | 'chatbot' | 'unknown' = 'unknown'
     if (isMultipart) {
       // First try EXACTLY the same shape as Flowise widget: multipart to /chatbot with 'files'
       const form = new FormData()
@@ -89,6 +90,7 @@ export async function sendToFlowise({
         body: form as any,
         signal: AbortSignal.timeout(60000),
       })
+      endpointUsed = 'chatbot'
 
       // If chatbot multipart doesn't return JSON, fall back to prediction with base64 JSON uploads
       let ctMultipart = response.headers.get('content-type') || ''
@@ -117,6 +119,7 @@ export async function sendToFlowise({
           body: JSON.stringify(jsonBody),
           signal: AbortSignal.timeout(60000),
         })
+        endpointUsed = 'prediction'
       }
     } else {
       // JSON mode: try prediction first
@@ -126,6 +129,7 @@ export async function sendToFlowise({
         body: JSON.stringify(requestBody),
         signal: AbortSignal.timeout(60000),
       })
+      endpointUsed = 'prediction'
 
       // Fallback if not OK or not JSON
       let ct = response.headers.get('content-type') || ''
@@ -138,6 +142,7 @@ export async function sendToFlowise({
           body: JSON.stringify({ question: requestBody.question, overrideConfig: requestBody.overrideConfig }),
           signal: AbortSignal.timeout(60000),
         })
+        endpointUsed = 'chatbot'
       }
     }
 
@@ -171,6 +176,7 @@ export async function sendToFlowise({
         text,
         sources: data.sources || data.documents || [],
         ...data,
+        __meta: { chatflowId, host: normalizedHost, endpoint: endpointUsed },
       };
     }
     if (contentType.includes('text/event-stream')) {
@@ -192,11 +198,11 @@ export async function sendToFlowise({
       }
       const combined = pieces.join('').trim()
       if (combined.length > 0) {
-        return { text: combined, sources: lastPayload?.sources || lastPayload?.documents || [], ...lastPayload }
+        return { text: combined, sources: lastPayload?.sources || lastPayload?.documents || [], ...lastPayload, __meta: { chatflowId, host: normalizedHost, endpoint: endpointUsed } }
       }
       if (lastPayload) {
         const text = lastPayload.text || lastPayload.response || lastPayload.answer || lastPayload.message || 'No response received'
-        return { text, sources: lastPayload.sources || lastPayload.documents || [], ...lastPayload }
+        return { text, sources: lastPayload.sources || lastPayload.documents || [], ...lastPayload, __meta: { chatflowId, host: normalizedHost, endpoint: endpointUsed } }
       }
       throw new Error(`SSE with no parsable data: ${raw.slice(0, 200)}`)
     }
