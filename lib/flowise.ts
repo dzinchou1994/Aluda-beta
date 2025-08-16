@@ -72,38 +72,55 @@ export async function sendToFlowise({
     const isMultipart = Boolean(file);
     let response: Response
     if (isMultipart) {
-      // Flowise prediction endpoint can accept base64 JSON uploads
-      const filename = (file as any)?.name || 'upload'
-      const mime = (file as any)?.type || 'application/octet-stream'
-      const arrayBuffer = await (file as any).arrayBuffer()
-      const base64 = Buffer.from(arrayBuffer).toString('base64')
-      const dataUrl = `data:${mime};base64,${base64}`
+      // First try EXACTLY the same shape as Flowise widget: multipart to /chatbot with 'files'
+      const form = new FormData()
+      form.append('question', requestBody.question || '')
+      form.append('files', file as any)
+      form.append('chatId', requestBody.overrideConfig?.sessionId || '')
+      form.append('overrideConfig', JSON.stringify(requestBody.overrideConfig || {}))
 
-      const jsonBody: any = {
-        question: requestBody.question || '',
-        chatId: requestBody.overrideConfig?.sessionId || '',
-        uploads: [ { data: dataUrl, name: filename, mime } ],
-        // add compatibility aliases some flows expect
-        files: [ { data: dataUrl, name: filename, mime } ],
-        images: [ dataUrl ],
-        image: dataUrl,
-        overrideConfig: requestBody.overrideConfig || {},
-        streaming: true,
-      }
-
-      response = await fetch(predictionUrl, {
+      response = await fetch(chatbotUrl, {
         method: 'POST',
-        headers: { ...headers, 'Content-Type': 'application/json', Accept: 'text/event-stream, application/json' },
-        body: JSON.stringify(jsonBody),
-        signal: AbortSignal.timeout(30000),
+        headers: { ...headers, Accept: 'application/json' },
+        body: form as any,
+        signal: AbortSignal.timeout(60000),
       })
+
+      // If chatbot multipart doesn't return JSON, fall back to prediction with base64 JSON uploads
+      let ctMultipart = response.headers.get('content-type') || ''
+      if (!response.ok || !ctMultipart.includes('application/json')) {
+        const filename = (file as any)?.name || 'upload'
+        const mime = (file as any)?.type || 'application/octet-stream'
+        const arrayBuffer = await (file as any).arrayBuffer()
+        const base64 = Buffer.from(arrayBuffer).toString('base64')
+        const dataUrl = `data:${mime};base64,${base64}`
+
+        const jsonBody: any = {
+          question: requestBody.question || '',
+          chatId: requestBody.overrideConfig?.sessionId || '',
+          uploads: [ { data: dataUrl, name: filename, mime } ],
+          // compatibility aliases
+          files: [ { data: dataUrl, name: filename, mime } ],
+          images: [ dataUrl ],
+          image: dataUrl,
+          overrideConfig: requestBody.overrideConfig || {},
+          streaming: true,
+        }
+
+        response = await fetch(predictionUrl, {
+          method: 'POST',
+          headers: { ...headers, 'Content-Type': 'application/json', Accept: 'text/event-stream, application/json' },
+          body: JSON.stringify(jsonBody),
+          signal: AbortSignal.timeout(60000),
+        })
+      }
     } else {
       // JSON mode: try prediction first
       response = await fetch(predictionUrl, {
         method: 'POST',
         headers: { ...headers, 'Content-Type': 'application/json', Accept: 'text/event-stream, application/json' },
         body: JSON.stringify(requestBody),
-        signal: AbortSignal.timeout(30000),
+        signal: AbortSignal.timeout(60000),
       })
 
       // Fallback if not OK or not JSON
@@ -115,7 +132,7 @@ export async function sendToFlowise({
           method: 'POST',
           headers: { ...headers, 'Content-Type': 'application/json', Accept: 'application/json' },
           body: JSON.stringify({ question: requestBody.question, overrideConfig: requestBody.overrideConfig }),
-          signal: AbortSignal.timeout(30000),
+          signal: AbortSignal.timeout(60000),
         })
       }
     }
