@@ -88,6 +88,7 @@ export async function POST(request: NextRequest) {
     // Send to Flowise
     const startTime = Date.now()
     let flowiseResponse
+    let usedOverride: string | undefined
     
     try {
       // Choose chatflow by model (force explicit IDs for both models)
@@ -99,6 +100,7 @@ export async function POST(request: NextRequest) {
       const effectiveMessage = (uploadedFile && (!message || message.trim().length === 0))
         ? ''
         : (message || '')
+      usedOverride = chatflowIdOverride
       console.log('Flowise selection:', {
         selectedModel,
         chatflowIdOverride,
@@ -153,7 +155,7 @@ export async function POST(request: NextRequest) {
       sources: flowiseResponse.sources,
       chatId: currentChatId,
       aiTitle,
-      __meta: { ...(flowiseResponse.__meta || {}), selectedModel, usedOverride: chatflowIdOverride || null },
+      __meta: { ...(flowiseResponse.__meta || {}), selectedModel, usedOverride: usedOverride || null },
     })
 
   } catch (error: any) {
