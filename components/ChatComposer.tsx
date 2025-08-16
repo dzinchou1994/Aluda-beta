@@ -18,7 +18,7 @@ function Suggestions({ onPick }: { onPick: (s: string) => void }) {
     let isMounted = true
     ;(async () => {
       try {
-        const res = await fetch('/api/suggestions', { cache: 'no-store' })
+        const res = await fetch(`/api/suggestions?ts=${Date.now()}`, { cache: 'no-store' })
         const data = await res.json().catch(() => ({ suggestions: [] }))
         const list: string[] = Array.isArray(data?.suggestions) ? data.suggestions : []
         if (isMounted) setTopics((list || []).slice(0, 4))

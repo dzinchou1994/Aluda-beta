@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server"
 
 export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
 
 export async function GET(_req: NextRequest) {
   try {
@@ -19,10 +21,11 @@ export async function GET(_req: NextRequest) {
     const headers: Record<string, string> = { 'Content-Type': 'application/json' }
     if (apiKey) headers['Authorization'] = `Bearer ${apiKey}`
 
+    const seed = Math.floor(Math.random() * 1_000_000_000)
     const body = {
-      question: 'Suggest exactly 4 short Georgian chat topics as a JSON array of strings. No extra text.',
+      question: `Suggest exactly 4 short Georgian chat topics as a JSON array of strings. No extra text. Vary topics on each request. Seed: ${seed}`,
       history: [],
-      overrideConfig: { sessionId: `suggest_${Date.now()}` }
+      overrideConfig: { sessionId: `suggest_${Date.now()}_${seed}`, temperature: 0.9 }
     }
 
     const res = await fetch(url, {
@@ -57,9 +60,15 @@ export async function GET(_req: NextRequest) {
     // Final safety: clamp to 4 and clean
     suggestions = (suggestions || []).map((s) => String(s).trim()).filter(Boolean).slice(0, 4)
 
-    return NextResponse.json({ suggestions }, { status: 200 })
+    return NextResponse.json(
+      { suggestions },
+      { status: 200, headers: { 'Cache-Control': 'no-store, no-cache, max-age=0, must-revalidate' } }
+    )
   } catch {
-    return NextResponse.json({ suggestions: [] }, { status: 200 })
+    return NextResponse.json(
+      { suggestions: [] },
+      { status: 200, headers: { 'Cache-Control': 'no-store, no-cache, max-age=0, must-revalidate' } }
+    )
   }
 }
 
