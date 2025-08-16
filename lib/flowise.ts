@@ -41,13 +41,14 @@ export async function sendToFlowise({
 }): Promise<FlowiseResponse> {
   // Read Flowise configuration from environment
   const flowiseHost = process.env.ALUDAAI_FLOWISE_HOST || process.env.FLOWISE_HOST;
-  const chatflowId = chatflowIdOverride || process.env.ALUDAAI_FLOWISE_CHATFLOW_ID;
+  // Backward-compatible default for mini: allow FLOWISE_CHATFLOW_ID fallback
+  const chatflowId = chatflowIdOverride || process.env.ALUDAAI_FLOWISE_CHATFLOW_ID || process.env.FLOWISE_CHATFLOW_ID;
   const apiKey = process.env.ALUDAAI_FLOWISE_API_KEY || process.env.FLOWISE_API_KEY;
   
   if (!flowiseHost || !chatflowId) {
     const missing: string[] = []
     if (!flowiseHost) missing.push('ALUDAAI_FLOWISE_HOST (or FLOWISE_HOST)')
-    if (!chatflowId) missing.push(chatflowIdOverride ? 'chatflowIdOverride' : 'ALUDAAI_FLOWISE_CHATFLOW_ID')
+    if (!chatflowId) missing.push(chatflowIdOverride ? 'chatflowIdOverride' : 'ALUDAAI_FLOWISE_CHATFLOW_ID or FLOWISE_CHATFLOW_ID')
     throw new Error(`Flowise configuration missing: ${missing.join(', ')}`)
   }
 

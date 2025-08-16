@@ -93,7 +93,7 @@ export async function POST(request: NextRequest) {
       // Choose chatflow by model (force explicit IDs for both models)
       const chatflowIdOverride = selectedModel === 'aluda2'
         ? (process.env.ALUDAAI_FLOWISE_CHATFLOW_ID_ALUDAA2)
-        : (process.env.ALUDAAI_FLOWISE_CHATFLOW_ID)
+        : (process.env.ALUDAAI_FLOWISE_CHATFLOW_ID || process.env.FLOWISE_CHATFLOW_ID)
       const effectiveMessage = (uploadedFile && (!message || message.trim().length === 0))
         ? ''
         : (message || '')
