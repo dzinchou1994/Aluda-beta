@@ -300,6 +300,17 @@ export default function ChatComposer({ currentChatId, onChatCreated, session }: 
       setError(err.message || "შეცდომა მოხდა")
     } finally {
       setIsLoading(false)
+      // Always reset file input so user can reattach without page refresh
+      try {
+        if (fileInputRef.current) fileInputRef.current.value = ''
+        if (attachedImage) {
+          setAttachedImage(null)
+        }
+        if (attachedPreviewUrl) {
+          URL.revokeObjectURL(attachedPreviewUrl)
+          setAttachedPreviewUrl(null)
+        }
+      } catch {}
     }
   }
 

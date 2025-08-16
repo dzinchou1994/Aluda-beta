@@ -156,15 +156,21 @@ export async function sendToFlowise({
     }
     if (contentType.includes('text/event-stream')) {
       const raw = await response.text().catch(() => '')
-      // Extract last data: line JSON
-      const lines = raw.split(/\n+/).filter(l => l.startsWith('data:'))
+      // Extract last non-empty data: line JSON
+      const lines = raw.split(/\n+/).map(l => l.trim()).filter(l => l.startsWith('data:') && l.length > 5)
       let payload: any = null
       for (const l of lines) {
         const jsonPart = l.replace(/^data:\s*/, '')
         try { payload = JSON.parse(jsonPart) } catch {}
       }
       if (payload) {
-        const text = payload.text || payload.response || payload.answer || payload.message || 'No response received'
+        const text = payload.text || payload.response || payload.answer || payload.message || ''
+        if (!text || String(text).trim().length === 0) {
+          // Some flows send { event: 'end' } or chunks under choices[].delta/content
+          const fallback = payload?.choices?.map((c: any) => c?.delta?.content).join('')?.trim()
+          const finalText = (fallback && fallback.length > 0) ? fallback : 'No response received'
+          return { text: finalText, sources: payload.sources || payload.documents || [], ...payload }
+        }
         return { text, sources: payload.sources || payload.documents || [], ...payload }
       }
       throw new Error(`SSE with no parsable data: ${raw.slice(0, 200)}`)
