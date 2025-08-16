@@ -40,9 +40,9 @@ export async function sendToFlowise({
   file?: Blob | File | null;
 }): Promise<FlowiseResponse> {
   // Read Flowise configuration from environment
-  const flowiseHost = process.env.ALUDAAI_FLOWISE_HOST;
-  const chatflowId = chatflowIdOverride || process.env.ALUDAAI_FLOWISE_CHATFLOW_ID;
-  const apiKey = process.env.ALUDAAI_FLOWISE_API_KEY;
+  const flowiseHost = process.env.ALUDAAI_FLOWISE_HOST || process.env.FLOWISE_HOST;
+  const chatflowId = chatflowIdOverride || process.env.ALUDAAI_FLOWISE_CHATFLOW_ID || process.env.FLOWISE_CHATFLOW_ID;
+  const apiKey = process.env.ALUDAAI_FLOWISE_API_KEY || process.env.FLOWISE_API_KEY;
   
   if (!flowiseHost || !chatflowId) {
     throw new Error('Flowise configuration missing');

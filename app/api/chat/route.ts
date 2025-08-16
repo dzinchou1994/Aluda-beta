@@ -104,12 +104,12 @@ export async function POST(request: NextRequest) {
         chatflowIdOverride,
         file: selectedModel === 'aluda2' ? uploadedFile : undefined,
       })
-    } catch (error) {
+    } catch (error: any) {
       console.error("Flowise API error:", error)
       console.error("Flowise context:", { hasFile: Boolean(uploadedFile), contentType, selectedModel })
-      // Fallback response
+      const hint = error?.message || 'Unknown error'
       flowiseResponse = {
-        text: "ბოდიში, ამ მომენტში ვერ შეგიძლიათ მიმართოთ. გთხოვთ სცადოთ მოგვიანებით."
+        text: `ბოდიში, ამ მომენტში ვერ შეგიძლიათ მიმართოთ. 💡 ${hint}`
       }
     }
 
