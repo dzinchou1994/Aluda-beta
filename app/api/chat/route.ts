@@ -111,7 +111,11 @@ export async function POST(request: NextRequest) {
       // If Aluda2 chosen but no override configured, fail early instead of silently falling back to mini
       if (selectedModel === 'aluda2' && !chatflowIdOverride) {
         return NextResponse.json({
-          error: 'ALUDAAI_FLOWISE_CHATFLOW_ID_ALUDAA2 is not configured in env',
+          error: 'Aluda 2.0 disabled: set ALUDAAI_FLOWISE_CHATFLOW_ID_ALUDAA2 in Vercel envs',
+          debug: {
+            selectedModel,
+            envA2: process.env.ALUDAAI_FLOWISE_CHATFLOW_ID_ALUDAA2 || process.env.FLOWISE_CHATFLOW_ID_ALUDAA2 || (process.env as any).ALUDAAI_FLOWISE_CHATFLOW_ID_ALUDA2 || null,
+          }
         }, { status: 500 })
       }
       flowiseResponse = await sendToFlowiseWithRetry({

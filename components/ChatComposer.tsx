@@ -307,7 +307,12 @@ export default function ChatComposer({ currentChatId, onChatCreated, session }: 
       }
 
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
+        let serverMsg = ''
+        try {
+          const errJson = await response.json()
+          serverMsg = errJson?.error || errJson?.message || ''
+        } catch {}
+        throw new Error(serverMsg || `HTTP error! status: ${response.status}`)
       }
 
       const data = await response.json()
