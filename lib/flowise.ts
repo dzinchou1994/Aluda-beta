@@ -154,22 +154,28 @@ export async function sendToFlowise({
     }
     if (contentType.includes('text/event-stream')) {
       const raw = await response.text().catch(() => '')
-      // Extract last non-empty data: line JSON
       const lines = raw.split(/\n+/).map(l => l.trim()).filter(l => l.startsWith('data:') && l.length > 5)
-      let payload: any = null
+      let lastPayload: any = null
+      const pieces: string[] = []
       for (const l of lines) {
         const jsonPart = l.replace(/^data:\s*/, '')
-        try { payload = JSON.parse(jsonPart) } catch {}
+        try {
+          const p = JSON.parse(jsonPart)
+          lastPayload = p
+          const token = typeof p === 'string' ? p
+            : p.text || p.message || p.answer || p.content
+            || (p.data && (p.data.text || p.data.message || p.data.answer || p.data.content))
+            || (Array.isArray(p.choices) ? p.choices.map((c: any) => c?.delta?.content || c?.message?.content || '').join('') : '')
+          if (token) pieces.push(String(token))
+        } catch {}
       }
-      if (payload) {
-        const text = payload.text || payload.response || payload.answer || payload.message || ''
-        if (!text || String(text).trim().length === 0) {
-          // Some flows send { event: 'end' } or chunks under choices[].delta/content
-          const fallback = payload?.choices?.map((c: any) => c?.delta?.content).join('')?.trim()
-          const finalText = (fallback && fallback.length > 0) ? fallback : 'No response received'
-          return { text: finalText, sources: payload.sources || payload.documents || [], ...payload }
-        }
-        return { text, sources: payload.sources || payload.documents || [], ...payload }
+      const combined = pieces.join('').trim()
+      if (combined.length > 0) {
+        return { text: combined, sources: lastPayload?.sources || lastPayload?.documents || [], ...lastPayload }
+      }
+      if (lastPayload) {
+        const text = lastPayload.text || lastPayload.response || lastPayload.answer || lastPayload.message || 'No response received'
+        return { text, sources: lastPayload.sources || lastPayload.documents || [], ...lastPayload }
       }
       throw new Error(`SSE with no parsable data: ${raw.slice(0, 200)}`)
     }
