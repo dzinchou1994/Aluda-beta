@@ -12,12 +12,12 @@ export function getPeriodKeys(date = new Date()) {
 
 export function getLimits(actor: Actor) {
   if (actor.type === 'guest') {
-    return { daily: 300, monthly: 2000 }
+    return { daily: 1500, monthly: 10000 }
   }
   if (actor.plan === 'PREMIUM') {
-    return { daily: 5000, monthly: 60000 }
+    return { daily: 25000, monthly: 300000 }
   }
-  return { daily: 1500, monthly: 12000 }
+  return { daily: 7500, monthly: 60000 }
 }
 
 export async function getUsage(actor: Actor) {
