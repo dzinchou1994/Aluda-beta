@@ -88,6 +88,23 @@ export default function ChatComposer({ currentChatId, onChatCreated, session }: 
   // Render assistant content with special formatting for lines like:
   // "1. **Title**: details" → Title becomes bold, larger, and details go on a new line
   function renderAssistantContent(content: string) {
+    // Helper to convert URLs into clickable links
+    const renderWithLinks = (text: string) => {
+      const urlSplitRegex = /(https?:\/\/[^\s)]+|www\.[^\s)]+)/gi
+      return text.split(urlSplitRegex).map((part, i) => {
+        const isUrl = /^(https?:\/\/|www\.)/i.test(part)
+        if (isUrl) {
+          const href = part.startsWith('http') ? part : `https://${part}`
+          return (
+            <a key={i} href={href} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline break-all">
+              {part}
+            </a>
+          )
+        }
+        return <span key={i}>{part}</span>
+      })
+    }
+
     const lines = content.split(/\r?\n/)
     return (
       <div className="space-y-3">
@@ -115,7 +132,7 @@ export default function ChatComposer({ currentChatId, onChatCreated, session }: 
             )
           }
           return (
-            <p key={idx} className="text-sm leading-relaxed whitespace-normal break-words">{line}</p>
+            <p key={idx} className="text-sm leading-relaxed whitespace-normal break-words">{renderWithLinks(line)}</p>
           )
         })}
       </div>
@@ -206,7 +223,7 @@ export default function ChatComposer({ currentChatId, onChatCreated, session }: 
     
     try {
       const useMultipart = model === 'aluda2' && attachedImage
-      let response: Response
+      let responsePromise: Promise<Response>
       if (useMultipart) {
         const form = new FormData()
         if (messageToSend) form.append('message', messageToSend)
@@ -218,20 +235,22 @@ export default function ChatComposer({ currentChatId, onChatCreated, session }: 
         form.append('files[]', attachedImage as Blob)
         form.append('image', attachedImage as Blob)
         form.append('images', attachedImage as Blob)
-        response = await fetch("/api/chat", { method: "POST", body: form })
+        responsePromise = fetch("/api/chat", { method: "POST", body: form })
       } else {
-        response = await fetch("/api/chat", {
+        responsePromise = fetch("/api/chat", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ message: messageToSend, chatId: activeChatId, model }),
         })
       }
 
-      // Record the user's message in UI only after request is initiated
+      // Immediately render the user's message without waiting for server reply
       addMessageToChat(activeChatId, pendingUserMessage)
       onChatCreated(activeChatId)
       setTimeout(() => setCurrentChatId(activeChatId), 50)
       setMessage("")
+
+      const response = await responsePromise
 
       if (response.status === 402) {
         const data = await response.json().catch(() => ({}))
@@ -417,7 +436,22 @@ export default function ChatComposer({ currentChatId, onChatCreated, session }: 
                   }`}>
                     {msg.role === 'assistant' 
                       ? renderAssistantContent(msg.content)
-                      : <p className="text-sm leading-relaxed whitespace-normal break-words">{msg.content}</p>
+                      : (
+                        <p className="text-sm leading-relaxed whitespace-normal break-words">
+                          {/* linkify user content */}
+                          {(() => {
+                            const urlSplitRegex = /(https?:\/\/[^\s)]+|www\.[^\s)]+)/gi
+                            return msg.content.split(urlSplitRegex).map((part, i) => {
+                              const isUrl = /^(https?:\/\/|www\.)/i.test(part)
+                              if (isUrl) {
+                                const href = part.startsWith('http') ? part : `https://${part}`
+                                return <a key={i} href={href} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline break-all">{part}</a>
+                              }
+                              return <span key={i}>{part}</span>
+                            })
+                          })()}
+                        </p>
+                      )
                     }
                   </div>
                   <div className={`message-timestamp ${
