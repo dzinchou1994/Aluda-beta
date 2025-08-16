@@ -90,12 +90,12 @@ export async function sendToFlowise({
           },
         ],
         overrideConfig: requestBody.overrideConfig || {},
-        streaming: false,
+        streaming: true,
       }
 
       response = await fetch(predictionUrl, {
         method: 'POST',
-        headers: { ...headers, 'Content-Type': 'application/json', Accept: 'application/json' },
+        headers: { ...headers, 'Content-Type': 'application/json', Accept: 'text/event-stream, application/json' },
         body: JSON.stringify(jsonBody),
         signal: AbortSignal.timeout(30000),
       })
@@ -103,7 +103,7 @@ export async function sendToFlowise({
       // JSON mode: try prediction first
       response = await fetch(predictionUrl, {
         method: 'POST',
-        headers: { ...headers, 'Content-Type': 'application/json', Accept: 'application/json' },
+        headers: { ...headers, 'Content-Type': 'application/json', Accept: 'text/event-stream, application/json' },
         body: JSON.stringify(requestBody),
         signal: AbortSignal.timeout(30000),
       })
@@ -145,20 +145,35 @@ export async function sendToFlowise({
     }
 
     const contentType = response.headers.get('content-type') || ''
-    if (!contentType.includes('application/json')) {
-      const nonJson = await response.text().catch(() => '')
-      throw new Error(`Non-JSON response (status ${response.status}): ${nonJson.slice(0, 200)}`)
+    if (contentType.includes('application/json')) {
+      const data = await response.json();
+      const text = data.text || data.response || data.answer || data.message || 'No response received';
+      return {
+        text,
+        sources: data.sources || data.documents || [],
+        ...data,
+      };
     }
-    const data = await response.json();
+    if (contentType.includes('text/event-stream')) {
+      const raw = await response.text().catch(() => '')
+      // Extract last data: line JSON
+      const lines = raw.split(/\n+/).filter(l => l.startsWith('data:'))
+      let payload: any = null
+      for (const l of lines) {
+        const jsonPart = l.replace(/^data:\s*/, '')
+        try { payload = JSON.parse(jsonPart) } catch {}
+      }
+      if (payload) {
+        const text = payload.text || payload.response || payload.answer || payload.message || 'No response received'
+        return { text, sources: payload.sources || payload.documents || [], ...payload }
+      }
+      throw new Error(`SSE with no parsable data: ${raw.slice(0, 200)}`)
+    }
+    const nonJson = await response.text().catch(() => '')
+    throw new Error(`Unexpected content-type ${contentType}: ${nonJson.slice(0, 200)}`)
     
     // Extract the text response from Flowise
-    const text = data.text || data.response || data.answer || data.message || 'No response received';
-    
-    return {
-      text,
-      sources: data.sources || data.documents || [],
-      ...data, // Include all other fields for debugging
-    };
+    // Unreachable: return kept above per branch
   } catch (error) {
     if (error instanceof Error) {
       if (error.name === 'AbortError') {
