@@ -82,13 +82,11 @@ export async function sendToFlowise({
       const jsonBody: any = {
         question: requestBody.question || '',
         chatId: requestBody.overrideConfig?.sessionId || '',
-        uploads: [
-          {
-            data: dataUrl,
-            name: filename,
-            mime,
-          },
-        ],
+        uploads: [ { data: dataUrl, name: filename, mime } ],
+        // add compatibility aliases some flows expect
+        files: [ { data: dataUrl, name: filename, mime } ],
+        images: [ dataUrl ],
+        image: dataUrl,
         overrideConfig: requestBody.overrideConfig || {},
         streaming: true,
       }
