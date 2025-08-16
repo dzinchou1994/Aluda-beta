@@ -78,8 +78,17 @@ export async function sendToFlowise({
       try { form.append('chatId', requestBody.overrideConfig?.sessionId || '') } catch {}
       if (file) {
         const filename = (file as any)?.name || 'upload'
+        // Send under multiple common field names to maximize compatibility
         // @ts-ignore
         form.append('files', file as any, filename)
+        // @ts-ignore
+        form.append('file', file as any, filename)
+        // @ts-ignore
+        form.append('files[]', file as any, filename)
+        // @ts-ignore
+        form.append('image', file as any, filename)
+        // @ts-ignore
+        form.append('images', file as any, filename)
       }
       try { form.append('overrideConfig', JSON.stringify(requestBody.overrideConfig || {})) } catch {}
 

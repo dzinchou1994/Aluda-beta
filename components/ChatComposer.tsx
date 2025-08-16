@@ -200,7 +200,7 @@ export default function ChatComposer({ currentChatId, onChatCreated, session }: 
     const userMessage: Omit<Message, 'timestamp'> = {
       id: `user_${Date.now()}`,
       role: "user",
-      content: messageToSend || (isImageOnly ? '📷 სურათი' : ''),
+      content: messageToSend,
     }
     
     console.log('ChatComposer: Adding user message:', userMessage)

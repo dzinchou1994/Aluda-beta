@@ -99,10 +99,10 @@ export async function POST(request: NextRequest) {
         : (message || '')
       flowiseResponse = await sendToFlowiseWithRetry({
         message: effectiveMessage,
-        history: [], // You can implement chat history here
+        history: [],
         sessionId: currentChatId,
         chatflowIdOverride,
-        file: selectedModel === 'aluda2' ? uploadedFile : undefined,
+        file: uploadedFile && selectedModel === 'aluda2' ? uploadedFile : undefined,
       })
     } catch (error: any) {
       console.error("Flowise API error:", error)
