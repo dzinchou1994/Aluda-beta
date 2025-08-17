@@ -318,6 +318,7 @@ export default function ChatComposer({ currentChatId, onChatCreated, session }: 
       id: `user_${Date.now()}`,
       role: "user",
       content: messageToSend,
+      imageUrl: attachedPreviewUrl || undefined,
     }
     setIsLoading(true)
     
@@ -546,20 +547,27 @@ export default function ChatComposer({ currentChatId, onChatCreated, session }: 
                     {msg.role === 'assistant' 
                       ? renderAssistantContent(msg.content)
                       : (
-                        <p className="text-sm leading-relaxed whitespace-normal break-words">
-                          {/* linkify user content */}
-                          {(() => {
-                            const urlSplitRegex = /(https?:\/\/[^\s)]+|www\.[^\s)]+)/gi
-                            return msg.content.split(urlSplitRegex).map((part, i) => {
-                              const isUrl = /^(https?:\/\/|www\.)/i.test(part)
-                              if (isUrl) {
-                                const href = part.startsWith('http') ? part : `https://${part}`
-                                return <a key={i} href={href} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline break-all">{part}</a>
-                              }
-                              return <span key={i}>{part}</span>
-                            })
-                          })()}
-                        </p>
+                        <div className="space-y-2">
+                          {msg.imageUrl && (
+                            <img src={msg.imageUrl} alt="attachment" className="rounded-md border border-gray-200 dark:border-gray-700 max-w-full" />
+                          )}
+                          {msg.content && (
+                            <p className="text-sm leading-relaxed whitespace-normal break-words">
+                              {/* linkify user content */}
+                              {(() => {
+                                const urlSplitRegex = /(https?:\/\/[^\s)]+|www\.[^\s)]+)/gi
+                                return msg.content.split(urlSplitRegex).map((part, i) => {
+                                  const isUrl = /^(https?:\/\/|www\.)/i.test(part)
+                                  if (isUrl) {
+                                    const href = part.startsWith('http') ? part : `https://${part}`
+                                    return <a key={i} href={href} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline break-all">{part}</a>
+                                  }
+                                  return <span key={i}>{part}</span>
+                                })
+                              })()}
+                            </p>
+                          )}
+                        </div>
                       )
                     }
                   </div>

@@ -14,6 +14,7 @@ export interface Message {
   role: 'user' | 'assistant'
   content: string
   timestamp: string // Changed from Date to string since localStorage stores strings
+  imageUrl?: string // Optional inline image reference for user messages
 }
 
 // Function to generate intelligent chat title based on first user message
