@@ -293,13 +293,17 @@ export async function sendToFlowise({
           const jsonBody: any = {
             question: requestBody.question || '',
             chatId: requestBody.overrideConfig?.sessionId || '',
-            uploads: [{ data: dataUrl, name: fnameAlt, mime }],
+            uploads: [{ data: dataUrl, name: fnameAlt, mime, type: 'file' }],
+            // Include common aliases some Flowise nodes accept
+            files: [{ data: dataUrl, name: fnameAlt, mime, type: 'file' }],
+            images: [dataUrl],
+            image: dataUrl,
             overrideConfig: requestBody.overrideConfig || {},
-            streaming: false,
+            streaming: true,
           }
           const r3 = await fetch(`${normalizedHost}/api/v1/prediction/${chatflowId}`, {
             method: 'POST',
-            headers: { ...headers, 'Content-Type': 'application/json', Accept: 'application/json' },
+            headers: { ...headers, 'Content-Type': 'application/json', Accept: 'text/event-stream, application/json' },
             body: JSON.stringify(jsonBody),
             signal: AbortSignal.timeout(60000),
           })
