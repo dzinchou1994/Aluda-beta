@@ -34,8 +34,9 @@ export default function ChatPage() {
   }, [])
 
   const handleNewChat = () => {
-    const newChatId = createNewChat()
-    selectChat(newChatId)
+    // Creating a chat already sets currentChatId in the reducer.
+    // Avoid immediately calling selectChat to prevent a duplicate stub chat.
+    createNewChat()
   }
 
   const handleSelectChat = (chatId: string) => {
