@@ -53,6 +53,14 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Reject overly large files early with a clear error to avoid upstream 413
+    if (uploadedFile && uploadedFile.size > 2_500_000) {
+      return NextResponse.json(
+        { error: 'სურათი ძალიან დიდია (მაქს. ~2.5MB). გთხოვთ ატვირთოთ უფრო მცირე ან დაიწიეთ ხარისხი.' },
+        { status: 413 }
+      )
+    }
+
     // Identify actor
     const session = await getServerSession(authOptions)
     const cookieSess = getOrCreateSession()

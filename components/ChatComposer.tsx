@@ -114,6 +114,37 @@ export default function ChatComposer({ currentChatId, onChatCreated, session }: 
   const [attachedImage, setAttachedImage] = useState<File | null>(null)
   const [attachedPreviewUrl, setAttachedPreviewUrl] = useState<string | null>(null)
   
+  // Compress large images on the client before uploading to avoid 413 Payload Too Large
+  async function compressImageIfNeeded(original: File): Promise<Blob> {
+    try {
+      const sizeLimitBytes = 1.5 * 1024 * 1024 // ~1.5MB
+      if (original.size <= sizeLimitBytes) return original
+      const objectUrl = URL.createObjectURL(original)
+      const img = await new Promise<HTMLImageElement>((resolve, reject) => {
+        const i = new Image()
+        i.onload = () => resolve(i)
+        i.onerror = reject
+        i.src = objectUrl
+      })
+      const maxDim = 1280
+      const ratio = Math.min(1, maxDim / Math.max(img.width, img.height))
+      const targetW = Math.max(1, Math.round(img.width * ratio))
+      const targetH = Math.max(1, Math.round(img.height * ratio))
+      const canvas = document.createElement('canvas')
+      canvas.width = targetW
+      canvas.height = targetH
+      const ctx = canvas.getContext('2d')!
+      ctx.drawImage(img, 0, 0, targetW, targetH)
+      const blob: Blob = await new Promise((resolve) => {
+        canvas.toBlob((b) => resolve(b || original), 'image/jpeg', 0.82)
+      })
+      URL.revokeObjectURL(objectUrl)
+      return blob
+    } catch {
+      return original
+    }
+  }
+
   // Render assistant content with special formatting; support markdown links [text](url)
   function renderAssistantContent(content: string) {
     // Plain URL linkifier
@@ -298,12 +329,15 @@ export default function ChatComposer({ currentChatId, onChatCreated, session }: 
         if (messageToSend) form.append('message', messageToSend)
         form.append('chatId', activeChatId!)
         form.append('model', model)
+        // Compress large images to prevent 413 and reduce latency
+        const blobToSend = await compressImageIfNeeded(attachedImage as File)
+        const filename = (attachedImage as File).name || 'upload.jpg'
         // Add multiple aliases to maximize compatibility with Flowise prediction endpoints
-        form.append('files', attachedImage as Blob)
-        form.append('file', attachedImage as Blob)
-        form.append('files[]', attachedImage as Blob)
-        form.append('image', attachedImage as Blob)
-        form.append('images', attachedImage as Blob)
+        form.append('files', blobToSend, filename)
+        form.append('file', blobToSend, filename)
+        form.append('files[]', blobToSend, filename)
+        form.append('image', blobToSend, filename)
+        form.append('images', blobToSend, filename)
         responsePromise = fetch("/api/chat", { method: "POST", body: form })
       } else {
         responsePromise = fetch("/api/chat", {
