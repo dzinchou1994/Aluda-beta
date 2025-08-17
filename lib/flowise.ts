@@ -264,8 +264,42 @@ export async function sendToFlowise({
       }
       throw new Error(`SSE with no parsable data: ${raw.slice(0, 200)}`)
     }
-    const nonJson = await response.text().catch(() => '')
-    throw new Error(`Unexpected content-type ${contentType}: ${nonJson.slice(0, 200)}`)
+    // Generic fallback: attempt to parse the body as text, try JSON, then try SSE-like lines, finally return raw text
+    const rawFallback = await response.text().catch(() => '')
+    if (rawFallback) {
+      try {
+        const asJson = JSON.parse(rawFallback)
+        const txt = asJson?.text || asJson?.response || asJson?.answer || asJson?.message || ''
+        if (txt && String(txt).trim().length > 0) {
+          return { text: txt, sources: asJson?.sources || asJson?.documents || [], ...asJson, __meta: { chatflowId, host: normalizedHost, endpoint: endpointUsed } }
+        }
+      } catch {}
+      // Try SSE-like parse even if header not marked as event-stream
+      const lines = rawFallback.split(/\n+/).map(l => l.trim()).filter(l => l.startsWith('data:') && l.length > 5)
+      if (lines.length > 0) {
+        const tokens: string[] = []
+        let lastPayload: any = null
+        for (const l of lines) {
+          const jsonPart = l.replace(/^data:\s*/, '')
+          try {
+            const p = JSON.parse(jsonPart)
+            lastPayload = p
+            const token = typeof p === 'string' ? p
+              : p.text || p.message || p.answer || p.content
+              || (p.data && (p.data.text || p.data.message || p.data.answer || p.data.content))
+              || (Array.isArray(p.choices) ? p.choices.map((c: any) => c?.delta?.content || c?.message?.content || '').join('') : '')
+            if (token) tokens.push(String(token))
+          } catch {}
+        }
+        const combined = tokens.join('').trim()
+        if (combined.length > 0) {
+          return { text: combined, sources: lastPayload?.sources || lastPayload?.documents || [], ...lastPayload, __meta: { chatflowId, host: normalizedHost, endpoint: endpointUsed } }
+        }
+      }
+      // If still nothing useful, return raw snippet instead of throwing so UI shows something
+      return { text: rawFallback.slice(0, 400) || 'No response received', __meta: { chatflowId, host: normalizedHost, endpoint: endpointUsed, rawSnippet: rawFallback.slice(0, 400) } as any } as any
+    }
+    throw new Error(`Unexpected content-type ${contentType} with empty body`)
     
     // Extract the text response from Flowise
     // Unreachable: return kept above per branch
