@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { Send, Loader2, User, Bot, MessageSquare, Plus, Image as ImageIcon, X } from 'lucide-react';
 import { useChats, Message } from '@/hooks/useChats';
@@ -13,10 +13,11 @@ import { Session } from 'next-auth';
 function Suggestions({ onPick }: { onPick: (s: string) => void }) {
   const [topics, setTopics] = useState<string[] | null>(null)
   const [loading, setLoading] = useState(true)
+  const refreshTimerRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
   useEffect(() => {
     let isMounted = true
-    ;(async () => {
+    const load = async () => {
       try {
         const res = await fetch(`/api/suggestions?ts=${Date.now()}`, { cache: 'no-store' })
         const data = await res.json().catch(() => ({ suggestions: [] }))
@@ -27,12 +28,40 @@ function Suggestions({ onPick }: { onPick: (s: string) => void }) {
       } finally {
         if (isMounted) setLoading(false)
       }
-    })()
-    return () => { isMounted = false }
+    }
+    // initial load
+    load()
+    // refresh every 10 minutes
+    refreshTimerRef.current = setInterval(load, 10 * 60 * 1000)
+    return () => { 
+      isMounted = false
+      if (refreshTimerRef.current) clearInterval(refreshTimerRef.current)
+    }
   }, [])
 
-  const fallback = ['მირჩიე ფილმი საღამოსთვის', 'რა ხდება საქართველოში?', 'მასწავლე საინტერესო ფაქტი', 'მირჩიე ადგილი ტურიზმისთვის']
-  const items = (topics && topics.length > 0 ? topics : fallback).slice(0, 4)
+  const fallbackPool = useMemo(() => [
+    'მირჩიე ფილმი საღამოსთვის',
+    'რა ხდება საქართველოში?',
+    'მასწავლე საინტერესო ფაქტი',
+    'მირჩიე ადგილი ტურიზმისთვის',
+    'როგორ გავაუმჯობესო ძილის ხარისხი?',
+    'რას მირჩევ კარიერულ განვითარებაში?',
+    'მასწავლე ახალი ქართული ანდაზა',
+    'რა მოვამზადო სწრაფად და გემრიელად?',
+    'მირჩიე სასარგებლო წიგნი',
+    'მასწავლე რაღაცა ტექნოლოგიებზე',
+    'მირჩიე ექსკურსიის მარშრუტი',
+    'რა ვარჯიშები გავაკეთო სახლში?'
+  ], [])
+  const randomizedFallback = useMemo(() => {
+    const arr = [...fallbackPool]
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1))
+      ;[arr[i], arr[j]] = [arr[j], arr[i]]
+    }
+    return arr.slice(0, 4)
+  }, [fallbackPool])
+  const items = (topics && topics.length > 0 ? topics : randomizedFallback).slice(0, 4)
 
   return (
     <div className="mt-6 flex flex-wrap gap-3 justify-center">

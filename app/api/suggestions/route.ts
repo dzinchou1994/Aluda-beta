@@ -40,21 +40,48 @@ export async function GET(_req: NextRequest) {
     }
 
     const contentType = res.headers.get('content-type') || ''
-    const text = await (contentType.includes('application/json') ? res.json().then((d) => d?.text ?? d) : res.text())
     let suggestions: string[] = []
 
-    try {
-      const parsed = typeof text === 'string' ? JSON.parse(text) : JSON.parse(text?.text ?? '[]')
-      if (Array.isArray(parsed)) suggestions = parsed
-      else if (typeof parsed === 'object' && Array.isArray(parsed.suggestions)) suggestions = parsed.suggestions
-    } catch {
-      // Try to split by lines and take first 4
-      const str = typeof text === 'string' ? text : String(text || '')
-      suggestions = str
-        .split(/\r?\n+/)
-        .map((s) => s.replace(/^[-*\d.\s]+/, '').trim())
-        .filter(Boolean)
-        .slice(0, 4)
+    const extractSuggestions = (payload: any): string[] => {
+      if (!payload) return []
+      // If payload itself is an array
+      if (Array.isArray(payload)) return payload
+      // Common shapes: { suggestions: [...] }
+      if (Array.isArray(payload.suggestions)) return payload.suggestions
+      // { text: [...] }
+      if (Array.isArray(payload.text)) return payload.text
+      // { text: "[ ... ]" } or plain string JSON
+      const textField = typeof payload === 'string' ? payload : payload.text
+      if (typeof textField === 'string') {
+        try {
+          const parsed = JSON.parse(textField)
+          if (Array.isArray(parsed)) return parsed
+        } catch {}
+      }
+      return []
+    }
+
+    if (contentType.includes('application/json')) {
+      try {
+        const json = await res.json()
+        suggestions = extractSuggestions(json)
+      } catch {
+        suggestions = []
+      }
+    } else {
+      // text response
+      const raw = await res.text()
+      try {
+        const parsed = JSON.parse(raw)
+        suggestions = extractSuggestions(parsed)
+      } catch {
+        // Fallback: split lines
+        suggestions = (raw || '')
+          .split(/\r?\n+/)
+          .map((s) => s.replace(/^[-*\d.\s]+/, '').trim())
+          .filter(Boolean)
+          .slice(0, 4)
+      }
     }
 
     // Final safety: clamp to 4 and clean
