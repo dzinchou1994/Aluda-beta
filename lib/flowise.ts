@@ -76,6 +76,13 @@ export async function sendToFlowise({
     const isMultipart = Boolean(file);
     let response: Response
     let endpointUsed: 'prediction' | 'chatbot' | 'unknown' = 'unknown'
+    const isImageMissingText = (t: string) => {
+      const s = (t || '').toLowerCase()
+      return (
+        /no\s+image/.test(s) || /image\s+not\s+received/.test(s) || /no\s+file/.test(s)
+        || /სურათ/i.test(s) && /არ/i.test(s) && (/მისულ/i.test(s) || /მივიღე მხოლოდ ტექსტ/i.test(s))
+      )
+    }
     if (isMultipart) {
       // First try EXACTLY the same shape as Flowise widget: multipart to /chatbot with 'files'
       const form = new FormData()
@@ -239,6 +246,47 @@ export async function sendToFlowise({
       }
 
       if (!text || String(text).trim().length === 0) text = 'No response received'
+
+      // If multipart to prediction produced a "missing image" style reply, retry once using alternate field name 'file'
+      if (isMultipart && endpointUsed === 'prediction' && isImageMissingText(text)) {
+        try {
+          const formPred2 = new FormData()
+          const fnameAlt = (file as any)?.name || 'upload.jpg'
+          formPred2.append('question', requestBody.question || '')
+          formPred2.append('file', file as any, fnameAlt)
+          formPred2.append('chatId', requestBody.overrideConfig?.sessionId || '')
+          formPred2.append('overrideConfig', JSON.stringify(requestBody.overrideConfig || {}))
+          const r2 = await fetch(`${normalizedHost}/api/v1/prediction/${chatflowId}`, {
+            method: 'POST',
+            headers: { ...headers, Accept: 'text/event-stream, application/json' },
+            body: formPred2 as any,
+            signal: AbortSignal.timeout(60000),
+          })
+          const ct2 = r2.headers.get('content-type') || ''
+          if (r2.ok && ct2.includes('application/json')) {
+            const d2 = await r2.json().catch(() => null)
+            if (d2) {
+              const nested2 = (path: string[]): any => path.reduce((acc, key) => (acc && typeof acc === 'object') ? acc[key] : undefined, d2)
+              const choicesJoined2 = Array.isArray(d2?.choices) ? d2.choices.map((c: any) => c?.delta?.content || c?.message?.content || c?.text || '').join('') : ''
+              const t2 = (
+                d2.text || d2.response || d2.answer || d2.message ||
+                nested2(['data','text']) || nested2(['data','message']) || nested2(['data','answer']) || nested2(['data','content']) ||
+                nested2(['response','text']) || nested2(['response','message']) || nested2(['response','answer']) ||
+                choicesJoined2 ||
+                ''
+              ) || ''
+              if (t2 && !isImageMissingText(String(t2))) {
+                return {
+                  text: t2,
+                  sources: d2.sources || d2.documents || nested2(['data','sources']) || nested2(['data','documents']) || [],
+                  ...d2,
+                  __meta: { chatflowId, host: normalizedHost, endpoint: 'prediction' },
+                }
+              }
+            }
+          }
+        } catch {}
+      }
 
       return {
         text,
