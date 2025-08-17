@@ -92,35 +92,16 @@ export async function sendToFlowise({
       })
       endpointUsed = 'chatbot'
 
-      // If chatbot multipart doesn't return JSON or SSE, fall back to prediction with base64 JSON uploads
+      // If chatbot multipart doesn't return JSON or SSE, do NOT fall back to base64 prediction
+      // because that explodes token counts and can trigger 429s on upstream models.
       let ctMultipart = response.headers.get('content-type') || ''
       const isJsonOrSSE = ctMultipart.includes('application/json') || ctMultipart.includes('text/event-stream')
       if (!response.ok || !isJsonOrSSE) {
-        const filename = (file as any)?.name || 'upload'
-        const mime = (file as any)?.type || 'application/octet-stream'
-        const arrayBuffer = await (file as any).arrayBuffer()
-        const base64 = Buffer.from(arrayBuffer).toString('base64')
-        const dataUrl = `data:${mime};base64,${base64}`
-
-        const jsonBody: any = {
-          question: requestBody.question || '',
-          chatId: requestBody.overrideConfig?.sessionId || '',
-          uploads: [ { data: dataUrl, name: filename, mime } ],
-          // compatibility aliases
-          files: [ { data: dataUrl, name: filename, mime } ],
-          images: [ dataUrl ],
-          image: dataUrl,
-          overrideConfig: requestBody.overrideConfig || {},
-          streaming: true,
+        if (response.status === 429) {
+          throw new Error('Rate limit exceeded. Please try again later.')
         }
-
-        response = await fetch(predictionUrl, {
-          method: 'POST',
-          headers: { ...headers, 'Content-Type': 'application/json', Accept: 'text/event-stream, application/json' },
-          body: JSON.stringify(jsonBody),
-          signal: AbortSignal.timeout(60000),
-        })
-        endpointUsed = 'prediction'
+        const errText = await response.text().catch(() => '')
+        throw new Error(`Flowise /chatbot multipart failed (${response.status} ${ctMultipart}): ${errText.slice(0, 200)}`)
       }
     } else {
       // JSON mode: try prediction first
