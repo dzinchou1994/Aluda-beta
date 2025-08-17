@@ -34,10 +34,8 @@ export default function AboutPage() {
         <div className="max-w-7xl mx-auto text-center">
           <h2 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6">
             <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-              ხელოვნური ინტელექტი
+              პირველი ქართული ხელოვნური ინტელექტი - გაიცანი ალუდა
             </span>
-            <br />
-            <span className="text-gray-700">ქართულ ენაზე</span>
           </h2>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-10 leading-relaxed">
             AludaAI არის თანამედროვე AI ჩატბოტი, რომელიც განკუთვნილია ქართველი მომხმარებლებისთვის. 
@@ -52,10 +50,10 @@ export default function AboutPage() {
               <MessageSquare className="w-5 h-5 mr-2" />
               დაიწყეთ საუბარი
             </Link>
-            <button className="inline-flex items-center px-8 py-4 border-2 border-gray-300 text-gray-700 font-semibold rounded-xl hover:border-gray-400 hover:bg-gray-50 transition-all duration-200 text-lg">
+            <Link href="/buy" className="inline-flex items-center px-8 py-4 border-2 border-gray-300 text-gray-700 font-semibold rounded-xl hover:border-gray-400 hover:bg-gray-50 transition-all duration-200 text-lg">
               <Zap className="w-5 h-5 mr-2" />
               ფუნქციები
-            </button>
+            </Link>
           </div>
         </div>
       </section>
@@ -68,7 +66,7 @@ export default function AboutPage() {
           </h3>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
             {/* Feature 1 */}
-            <div className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-200 border border-gray-100">
+            <Link href="/buy" className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-200 border border-gray-100 block">
               <div className="w-14 h-14 bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl flex items-center justify-center mb-6">
                 <Globe className="w-7 h-7 text-white" />
               </div>
@@ -77,10 +75,10 @@ export default function AboutPage() {
                 ჩვენი AI სრულად ფლობს ქართულ ენას და შეუძლია ბუნებრივად ისაუბროს 
                 ქართველ მომხმარებლებთან.
               </p>
-            </div>
+            </Link>
 
             {/* Feature 2 */}
-            <div className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-200 border border-gray-100">
+            <Link href="/buy" className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-200 border border-gray-100 block">
               <div className="w-14 h-14 bg-gradient-to-r from-purple-500 to-purple-600 rounded-xl flex items-center justify-center mb-6">
                 <Brain className="w-7 h-7 text-white" />
               </div>
@@ -89,10 +87,10 @@ export default function AboutPage() {
                 ვიყენებთ უახლეს AI ტექნოლოგიებს, რომელიც უზრუნველყოფს ზუსტ და 
                 სასარგებლო პასუხებს.
               </p>
-            </div>
+            </Link>
 
             {/* Feature 3 */}
-            <div className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-200 border border-gray-100">
+            <Link href="/buy" className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-200 border border-gray-100 block">
               <div className="w-14 h-14 bg-gradient-to-r from-green-500 to-green-600 rounded-xl flex items-center justify-center mb-6">
                 <Zap className="w-7 h-7 text-white" />
               </div>
@@ -101,10 +99,10 @@ export default function AboutPage() {
                 მყისიერი პასუხები და უწყვეტი საუბარი, რომელიც საშუალებას გაძლევთ 
                 ეფექტურად მუშაობდეთ.
               </p>
-            </div>
+            </Link>
 
             {/* Feature 4 */}
-            <div className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-200 border border-gray-100">
+            <Link href="/buy" className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-200 border border-gray-100 block">
               <div className="w-14 h-14 bg-gradient-to-r from-red-500 to-red-600 rounded-xl flex items-center justify-center mb-6">
                 <Shield className="w-7 h-7 text-white" />
               </div>
@@ -113,10 +111,10 @@ export default function AboutPage() {
                 თქვენი მონაცემები დაცულია და ჩვენ ვიყენებთ უმაღლესი უსაფრთხოების 
                 სტანდარტებს.
               </p>
-            </div>
+            </Link>
 
             {/* Feature 5 */}
-            <div className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-200 border border-gray-100">
+            <Link href="/buy" className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-200 border border-gray-100 block">
               <div className="w-14 h-14 bg-gradient-to-r from-orange-500 to-orange-600 rounded-xl flex items-center justify-center mb-6">
                 <Users className="w-7 h-7 text-white" />
               </div>
@@ -125,10 +123,10 @@ export default function AboutPage() {
                 ინტუიციური ინტერფეისი, რომელიც საშუალებას გაძლევთ მარტივად 
                 ისაუბროთ AI-თან.
               </p>
-            </div>
+            </Link>
 
             {/* Feature 6 */}
-            <div className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-200 border border-gray-100">
+            <Link href="/buy" className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-200 border border-gray-100 block">
               <div className="w-14 h-14 bg-gradient-to-r from-indigo-500 to-indigo-600 rounded-xl flex items-center justify-center mb-6">
                 <MessageSquare className="w-7 h-7 text-white" />
               </div>
@@ -136,7 +134,7 @@ export default function AboutPage() {
               <p className="text-gray-600 leading-relaxed">
                 ყველა თქვენი საუბარი ინახება და შეგიძლიათ მათი ნახვა ნებისმიერ დროს.
               </p>
-            </div>
+            </Link>
           </div>
         </div>
       </section>
