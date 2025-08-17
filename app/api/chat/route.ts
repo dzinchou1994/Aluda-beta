@@ -97,8 +97,12 @@ export async function POST(request: NextRequest) {
           || process.env.FLOWISE_CHATFLOW_ID_ALUDAA2
           || (process.env as any).ALUDAAI_FLOWISE_CHATFLOW_ID_ALUDA2)
         : (process.env.ALUDAAI_FLOWISE_CHATFLOW_ID || process.env.FLOWISE_CHATFLOW_ID)
+      // Flowise often ignores image-only requests if the 'question' is empty.
+      // Provide a concise default in ka-GE when an image is sent without text for Aluda 2.0.
       const effectiveMessage = (uploadedFile && (!message || message.trim().length === 0))
-        ? ''
+        ? (selectedModel === 'aluda2' 
+            ? 'გაანალიზე ეს სურათი და განმიმარტე ქართულად რა არის მასზე ნაჩვენები.'
+            : '')
         : (message || '')
       usedOverride = chatflowIdOverride
       console.log('Flowise selection:', {
