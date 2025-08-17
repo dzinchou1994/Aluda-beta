@@ -27,8 +27,9 @@ export async function POST(request: NextRequest) {
       model = form.get('model') ? String(form.get('model')) : undefined
       // Flowise expects 'files' for prediction multipart, but support multiple common aliases
       const f = form.get('files') || form.get('file') || form.get('files[]') || form.get('upload') || form.get('image') || form.get('images')
-      if (f instanceof File) {
-        uploadedFile = f
+      // Be permissive: in some runtimes the object may be a Blob, not strictly a File
+      if (f && typeof f === 'object' && 'arrayBuffer' in (f as any)) {
+        uploadedFile = f as unknown as File
       }
       console.log('API multipart debug:', {
         contentType,
