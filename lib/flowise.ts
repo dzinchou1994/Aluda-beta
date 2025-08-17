@@ -177,13 +177,59 @@ export async function sendToFlowise({
       const choicesJoined = Array.isArray(data?.choices)
         ? data.choices.map((c: any) => c?.delta?.content || c?.message?.content || c?.text || '').join('')
         : ''
-      const text = (
+      let text = (
         data.text || data.response || data.answer || data.message ||
         nested(['data','text']) || nested(['data','message']) || nested(['data','answer']) || nested(['data','content']) ||
         nested(['response','text']) || nested(['response','message']) || nested(['response','answer']) ||
         choicesJoined ||
         ''
-      ) || 'No response received'
+      ) || ''
+
+      // If still empty, deep-scan common providers (LangChain/OpenAI/LLM) structures
+      if (!text || String(text).trim().length === 0) {
+        const isStringCandidate = (s: any) => typeof s === 'string' && s.trim().length > 0 && !/^data:[^;]+;base64,/i.test(s)
+        const preferredKeys = new Set(['text','message','content','answer','response','output_text','result'])
+        const scan = (node: any): string | null => {
+          if (!node) return null
+          if (Array.isArray(node)) {
+            for (const item of node) {
+              const found = scan(item)
+              if (found) return found
+            }
+            return null
+          }
+          if (typeof node === 'object') {
+            // Prefer specific keys first
+            for (const key of Object.keys(node)) {
+              if (preferredKeys.has(key) && isStringCandidate((node as any)[key])) return (node as any)[key]
+            }
+            // Then traverse typical containers
+            const containers = ['data','response','output','outputs','messages','message','choices','result']
+            for (const key of containers) {
+              if (key in node) {
+                const found = scan((node as any)[key])
+                if (found) return found
+              }
+            }
+            // Finally traverse everything
+            for (const key of Object.keys(node)) {
+              const val = (node as any)[key]
+              if (isStringCandidate(val)) return val
+              const found = scan(val)
+              if (found) return found
+            }
+          }
+          return null
+        }
+        const deep = scan(data)
+        if (deep) text = deep
+        else {
+          console.warn('Flowise JSON contained no obvious text. Keys:', Object.keys(data || {}).slice(0, 20))
+        }
+      }
+
+      if (!text || String(text).trim().length === 0) text = 'No response received'
+
       return {
         text,
         sources: data.sources || data.documents || nested(['data','sources']) || nested(['data','documents']) || [],
