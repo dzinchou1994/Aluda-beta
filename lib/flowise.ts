@@ -86,15 +86,16 @@ export async function sendToFlowise({
 
       response = await fetch(chatbotUrl, {
         method: 'POST',
-        headers: { ...headers, Accept: 'application/json' },
+        headers: { ...headers, Accept: 'text/event-stream, application/json' },
         body: form as any,
         signal: AbortSignal.timeout(60000),
       })
       endpointUsed = 'chatbot'
 
-      // If chatbot multipart doesn't return JSON, fall back to prediction with base64 JSON uploads
+      // If chatbot multipart doesn't return JSON or SSE, fall back to prediction with base64 JSON uploads
       let ctMultipart = response.headers.get('content-type') || ''
-      if (!response.ok || !ctMultipart.includes('application/json')) {
+      const isJsonOrSSE = ctMultipart.includes('application/json') || ctMultipart.includes('text/event-stream')
+      if (!response.ok || !isJsonOrSSE) {
         const filename = (file as any)?.name || 'upload'
         const mime = (file as any)?.type || 'application/octet-stream'
         const arrayBuffer = await (file as any).arrayBuffer()
