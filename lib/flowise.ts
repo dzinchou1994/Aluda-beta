@@ -58,6 +58,8 @@ export async function sendToFlowise({
   const predictionUrl = `${normalizedHost}/api/v1/prediction/${chatflowId}`
   const internalPredictionUrl = `${normalizedHost}/api/v1/internal-prediction/${chatflowId}`
   const chatbotUrl = `${normalizedHost}/api/v1/chatbot/${chatflowId}`
+  // Flowise UI uses this endpoint for chat with files
+  const chatflowChatUrl = `${normalizedHost}/api/v1/chatflows/${chatflowId}/chat`
   
   const headers: Record<string, string> = {};
 
@@ -86,16 +88,15 @@ export async function sendToFlowise({
       )
     }
     if (isMultipart) {
-      // First try EXACTLY the same shape as Flowise widget: multipart to /chatbot with 'files'
+      // First try EXACTLY the same shape as Flowise UI: multipart to /chatflows/{id}/chat
       const form = new FormData()
       const fname = (file as any)?.name || 'upload.jpg'
       form.append('question', requestBody.question || '')
-      // Keep only 'files' because some Flowise routes reject unknown fields (Unexpected field)
       form.append('files', file as any, fname)
       form.append('chatId', requestBody.overrideConfig?.sessionId || '')
       form.append('overrideConfig', JSON.stringify(requestBody.overrideConfig || {}))
 
-      response = await fetch(chatbotUrl, {
+      response = await fetch(chatflowChatUrl, {
         method: 'POST',
         headers: { ...headers, Accept: 'text/event-stream, application/json' },
         body: form as any,
@@ -103,43 +104,77 @@ export async function sendToFlowise({
       })
       endpointUsed = 'chatbot'
 
-      // If chatbot multipart doesn't return JSON or SSE, first try multipart against prediction endpoint
-      // (many Flowise deployments expose prediction but not chatbot). Avoid base64 to keep payload small.
+      // If chatflow chat doesn't work, try the old chatbot endpoint
       let ctMultipart = response.headers.get('content-type') || ''
       const isJsonOrSSE = ctMultipart.includes('application/json') || ctMultipart.includes('text/event-stream')
       if (!response.ok || !isJsonOrSSE) {
         const snapshot = await response.text().catch(() => '')
 
-        const formPred = new FormData()
+        const formChatbot = new FormData()
         const fname2 = (file as any)?.name || 'upload.jpg'
-        formPred.append('question', requestBody.question || '')
-        formPred.append('files', file as any, fname2)
-        formPred.append('chatId', requestBody.overrideConfig?.sessionId || '')
-        formPred.append('overrideConfig', JSON.stringify(requestBody.overrideConfig || {}))
+        formChatbot.append('question', requestBody.question || '')
+        formChatbot.append('files', file as any, fname2)
+        formChatbot.append('chatId', requestBody.overrideConfig?.sessionId || '')
+        formChatbot.append('overrideConfig', JSON.stringify(requestBody.overrideConfig || {}))
 
-        const tryPrediction = await fetch(predictionUrl, {
+        const tryChatbot = await fetch(chatbotUrl, {
           method: 'POST',
           headers: { ...headers, Accept: 'text/event-stream, application/json' },
-          body: formPred as any,
+          body: formChatbot as any,
           signal: AbortSignal.timeout(60000),
         })
-        endpointUsed = 'prediction'
+        endpointUsed = 'chatbot'
 
-        const ct2 = tryPrediction.headers.get('content-type') || ''
-        if (!tryPrediction.ok || !(ct2.includes('application/json') || ct2.includes('text/event-stream'))) {
-          if (tryPrediction.status === 429) {
+        const ct2 = tryChatbot.headers.get('content-type') || ''
+        if (!tryChatbot.ok || !(ct2.includes('application/json') || ct2.includes('text/event-stream'))) {
+          if (tryChatbot.status === 429) {
             throw new Error('Rate limit exceeded. Please try again later.')
           }
           let errText2 = ''
           let errJson2: any = null
           try {
-            errText2 = await tryPrediction.text()
+            errText2 = await tryChatbot.text()
             try { errJson2 = JSON.parse(errText2) } catch {}
           } catch {}
           const msg = errJson2?.message || errJson2?.error || errJson2?.stack || errText2
-          throw new Error(`Flowise multipart failed. chatbot(${response.status} ${ctMultipart})→pred(${tryPrediction.status} ${ct2}). Error: ${String(msg).slice(0,200)}`)
+          throw new Error(`Flowise multipart failed. chatflow(${response.status} ${ctMultipart})→chatbot(${tryChatbot.status} ${ct2}). Error: ${String(msg).slice(0,200)}`)
         }
-        response = tryPrediction
+        response = tryChatbot
+        
+        // If both chatflow and chatbot fail, try prediction endpoint as last resort
+        const ct3 = response.headers.get('content-type') || ''
+        if (!response.ok || !(ct3.includes('application/json') || ct3.includes('text/event-stream'))) {
+          const formPred = new FormData()
+          const fname3 = (file as any)?.name || 'upload.jpg'
+          formPred.append('question', requestBody.question || '')
+          formPred.append('files', file as any, fname3)
+          formPred.append('chatId', requestBody.overrideConfig?.sessionId || '')
+          formPred.append('overrideConfig', JSON.stringify(requestBody.overrideConfig || {}))
+
+          const tryPrediction = await fetch(predictionUrl, {
+            method: 'POST',
+            headers: { ...headers, Accept: 'text/event-stream, application/json' },
+            body: formPred as any,
+            signal: AbortSignal.timeout(60000),
+          })
+          endpointUsed = 'prediction'
+          
+          const ct4 = tryPrediction.headers.get('content-type') || ''
+          if (!tryPrediction.ok || !(ct4.includes('application/json') || ct4.includes('text/event-stream'))) {
+            if (tryPrediction.status === 429) {
+              throw new Error('Rate limit exceeded. Please try again later.')
+            }
+            let errText3 = ''
+            let errJson3: any = null
+            try {
+              errText3 = await tryPrediction.text()
+              try { errJson3 = JSON.parse(errText3) } catch {}
+            } catch {}
+            const msg3 = errJson3?.message || errJson3?.error || errJson3?.stack || errText3
+            throw new Error(`Flowise multipart failed. chatflow(${response.status} ${ctMultipart})→chatbot(${tryChatbot.status} ${ct2})→pred(${tryPrediction.status} ${ct4}). Error: ${String(msg3).slice(0,200)}`)
+          }
+          response = tryPrediction
+        }
       }
     } else {
       // JSON mode: try prediction first
@@ -339,7 +374,7 @@ export async function sendToFlowise({
         text,
         sources: data.sources || data.documents || nested(['data','sources']) || nested(['data','documents']) || [],
         ...data,
-        __meta: { chatflowId, host: normalizedHost, endpoint: endpointUsed },
+        __meta: { chatflowId, host: normalizedHost, endpoint: endpointUsed, debug: `Used ${endpointUsed} endpoint` },
       };
     }
     if (contentType.includes('text/event-stream')) {
