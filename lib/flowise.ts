@@ -56,6 +56,7 @@ export async function sendToFlowise({
   const hostWithProtocol = /^(http|https):\/\//i.test(flowiseHost) ? flowiseHost : `https://${flowiseHost}`
   const normalizedHost = hostWithProtocol.replace(/\/+$/, '')
   const predictionUrl = `${normalizedHost}/api/v1/prediction/${chatflowId}`
+  const internalPredictionUrl = `${normalizedHost}/api/v1/internal-prediction/${chatflowId}`
   const chatbotUrl = `${normalizedHost}/api/v1/chatbot/${chatflowId}`
   
   const headers: Record<string, string> = {};
@@ -141,7 +142,8 @@ export async function sendToFlowise({
       }
     } else {
       // JSON mode: try prediction first
-      response = await fetch(predictionUrl, {
+      // Prefer internal-prediction when available for better SSE token stream
+      response = await fetch(internalPredictionUrl, {
         method: 'POST',
         headers: { ...headers, 'Content-Type': 'application/json', Accept: 'text/event-stream, application/json' },
         body: JSON.stringify(requestBody),
@@ -154,13 +156,13 @@ export async function sendToFlowise({
       if (!response.ok || !ct.includes('application/json')) {
         const errText = await response.text().catch(() => '')
         console.warn('Prediction endpoint non-json/failed:', response.status, errText?.slice(0, 200))
-        response = await fetch(chatbotUrl, {
+        response = await fetch(predictionUrl, {
           method: 'POST',
-          headers: { ...headers, 'Content-Type': 'application/json', Accept: 'application/json' },
-          body: JSON.stringify({ question: requestBody.question, overrideConfig: requestBody.overrideConfig }),
+          headers: { ...headers, 'Content-Type': 'application/json', Accept: 'text/event-stream, application/json' },
+          body: JSON.stringify(requestBody),
           signal: AbortSignal.timeout(60000),
         })
-        endpointUsed = 'chatbot'
+        endpointUsed = 'prediction'
       }
     }
 
@@ -350,8 +352,9 @@ export async function sendToFlowise({
           const p = JSON.parse(jsonPart)
           lastPayload = p
           const token = typeof p === 'string' ? p
+            : (p.event === 'token' && typeof p.data === 'string') ? p.data
             : p.text || p.message || p.answer || p.content
-            || (p.data && (p.data.text || p.data.message || p.data.answer || p.data.content))
+            || (p.data && (typeof p.data === 'string' ? p.data : (p.data.text || p.data.message || p.data.answer || p.data.content)))
             || (Array.isArray(p.choices) ? p.choices.map((c: any) => c?.delta?.content || c?.message?.content || '').join('') : '')
           if (token) pieces.push(String(token))
         } catch {}
