@@ -81,7 +81,8 @@ export async function sendToFlowise({
       const s = (t || '').toLowerCase()
       return (
         /no\s+image/.test(s) || /image\s+not\s+received/.test(s) || /no\s+file/.test(s)
-        || /სურათ/i.test(s) && /არ/i.test(s) && (/მისულ/i.test(s) || /მივიღე მხოლოდ ტექსტ/i.test(s))
+        || (/სურათ/i.test(s) && (/არ/i.test(s) || /ვერ/i.test(s) || /ვერა/i.test(s)))
+        || /მხოლოდ\s+ტექსტ/i.test(s)
       )
     }
     if (isMultipart) {
