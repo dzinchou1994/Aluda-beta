@@ -88,93 +88,56 @@ export async function sendToFlowise({
       )
     }
     if (isMultipart) {
-      // First try EXACTLY the same shape as Flowise UI: multipart to /chatflows/{id}/chat
-      const form = new FormData()
+      // First try EXACTLY the same shape as Flowise UI: JSON to /internal-prediction with uploads array
+      const arrayBuffer = await (file as any).arrayBuffer()
+      const base64 = Buffer.from(arrayBuffer).toString('base64')
+      const mime = (file as any)?.type || 'application/octet-stream'
+      const dataUrl = `data:${mime};base64,${base64}`
       const fname = (file as any)?.name || 'upload.jpg'
-      form.append('question', requestBody.question || '')
-      form.append('files', file as any, fname)
-      form.append('chatId', requestBody.overrideConfig?.sessionId || '')
-      form.append('overrideConfig', JSON.stringify(requestBody.overrideConfig || {}))
+      
+      const jsonBody = {
+        question: requestBody.question || '',
+        chatId: requestBody.overrideConfig?.sessionId || '',
+        uploads: [{ data: dataUrl, name: fname, mime, type: 'file' }],
+        streaming: true,
+        overrideConfig: requestBody.overrideConfig || {},
+      }
 
-      response = await fetch(chatflowChatUrl, {
+      response = await fetch(internalPredictionUrl, {
         method: 'POST',
-        headers: { ...headers, Accept: 'text/event-stream, application/json' },
-        body: form as any,
+        headers: { ...headers, 'Content-Type': 'application/json', Accept: 'text/event-stream, application/json' },
+        body: JSON.stringify(jsonBody),
         signal: AbortSignal.timeout(60000),
       })
-      endpointUsed = 'chatbot'
+      endpointUsed = 'prediction'
 
-      // If chatflow chat doesn't work, try the old chatbot endpoint
+      // If internal-prediction fails, try regular prediction endpoint
       let ctMultipart = response.headers.get('content-type') || ''
       const isJsonOrSSE = ctMultipart.includes('application/json') || ctMultipart.includes('text/event-stream')
       if (!response.ok || !isJsonOrSSE) {
-        const snapshot = await response.text().catch(() => '')
-
-        const formChatbot = new FormData()
-        const fname2 = (file as any)?.name || 'upload.jpg'
-        formChatbot.append('question', requestBody.question || '')
-        formChatbot.append('files', file as any, fname2)
-        formChatbot.append('chatId', requestBody.overrideConfig?.sessionId || '')
-        formChatbot.append('overrideConfig', JSON.stringify(requestBody.overrideConfig || {}))
-
-        const tryChatbot = await fetch(chatbotUrl, {
+        const tryPrediction = await fetch(predictionUrl, {
           method: 'POST',
-          headers: { ...headers, Accept: 'text/event-stream, application/json' },
-          body: formChatbot as any,
+          headers: { ...headers, 'Content-Type': 'application/json', Accept: 'text/event-stream, application/json' },
+          body: JSON.stringify(jsonBody),
           signal: AbortSignal.timeout(60000),
         })
-        endpointUsed = 'chatbot'
-
-        const ct2 = tryChatbot.headers.get('content-type') || ''
-        if (!tryChatbot.ok || !(ct2.includes('application/json') || ct2.includes('text/event-stream'))) {
-          if (tryChatbot.status === 429) {
+        endpointUsed = 'prediction'
+        
+        const ct2 = tryPrediction.headers.get('content-type') || ''
+        if (!tryPrediction.ok || !(ct2.includes('application/json') || ct2.includes('text/event-stream'))) {
+          if (tryPrediction.status === 429) {
             throw new Error('Rate limit exceeded. Please try again later.')
           }
           let errText2 = ''
           let errJson2: any = null
           try {
-            errText2 = await tryChatbot.text()
+            errText2 = await tryPrediction.text()
             try { errJson2 = JSON.parse(errText2) } catch {}
           } catch {}
           const msg = errJson2?.message || errJson2?.error || errJson2?.stack || errText2
-          throw new Error(`Flowise multipart failed. chatflow(${response.status} ${ctMultipart})→chatbot(${tryChatbot.status} ${ct2}). Error: ${String(msg).slice(0,200)}`)
+          throw new Error(`Flowise JSON failed. internal-prediction(${response.status} ${ctMultipart})→prediction(${tryPrediction.status} ${ct2}). Error: ${String(msg).slice(0,200)}`)
         }
-        response = tryChatbot
-        
-        // If both chatflow and chatbot fail, try prediction endpoint as last resort
-        const ct3 = response.headers.get('content-type') || ''
-        if (!response.ok || !(ct3.includes('application/json') || ct3.includes('text/event-stream'))) {
-          const formPred = new FormData()
-          const fname3 = (file as any)?.name || 'upload.jpg'
-          formPred.append('question', requestBody.question || '')
-          formPred.append('files', file as any, fname3)
-          formPred.append('chatId', requestBody.overrideConfig?.sessionId || '')
-          formPred.append('overrideConfig', JSON.stringify(requestBody.overrideConfig || {}))
-
-          const tryPrediction = await fetch(predictionUrl, {
-            method: 'POST',
-            headers: { ...headers, Accept: 'text/event-stream, application/json' },
-            body: formPred as any,
-            signal: AbortSignal.timeout(60000),
-          })
-          endpointUsed = 'prediction'
-          
-          const ct4 = tryPrediction.headers.get('content-type') || ''
-          if (!tryPrediction.ok || !(ct4.includes('application/json') || ct4.includes('text/event-stream'))) {
-            if (tryPrediction.status === 429) {
-              throw new Error('Rate limit exceeded. Please try again later.')
-            }
-            let errText3 = ''
-            let errJson3: any = null
-            try {
-              errText3 = await tryPrediction.text()
-              try { errJson3 = JSON.parse(errText3) } catch {}
-            } catch {}
-            const msg3 = errJson3?.message || errJson3?.error || errJson3?.stack || errText3
-            throw new Error(`Flowise multipart failed. chatflow(${response.status} ${ctMultipart})→chatbot(${tryChatbot.status} ${ct2})→pred(${tryPrediction.status} ${ct4}). Error: ${String(msg3).slice(0,200)}`)
-          }
-          response = tryPrediction
-        }
+        response = tryPrediction
       }
     } else {
       // JSON mode: try prediction first
@@ -285,96 +248,16 @@ export async function sendToFlowise({
 
       if (!text || String(text).trim().length === 0) text = 'No response received'
 
-      // If multipart to prediction produced a "missing image" style reply, retry once using alternate field name 'file'
+      // If JSON to prediction produced a "missing image" style reply, it means the image wasn't processed correctly
       if (isMultipart && endpointUsed === 'prediction' && isImageMissingText(text)) {
-        try {
-          const formPred2 = new FormData()
-          const fnameAlt = (file as any)?.name || 'upload.jpg'
-          formPred2.append('question', requestBody.question || '')
-          formPred2.append('file', file as any, fnameAlt)
-          formPred2.append('chatId', requestBody.overrideConfig?.sessionId || '')
-          formPred2.append('overrideConfig', JSON.stringify(requestBody.overrideConfig || {}))
-          const r2 = await fetch(`${normalizedHost}/api/v1/prediction/${chatflowId}`, {
-            method: 'POST',
-            headers: { ...headers, Accept: 'text/event-stream, application/json' },
-            body: formPred2 as any,
-            signal: AbortSignal.timeout(60000),
-          })
-          const ct2 = r2.headers.get('content-type') || ''
-          if (r2.ok && ct2.includes('application/json')) {
-            const d2 = await r2.json().catch(() => null)
-            if (d2) {
-              const nested2 = (path: string[]): any => path.reduce((acc, key) => (acc && typeof acc === 'object') ? acc[key] : undefined, d2)
-              const choicesJoined2 = Array.isArray(d2?.choices) ? d2.choices.map((c: any) => c?.delta?.content || c?.message?.content || c?.text || '').join('') : ''
-              const t2 = (
-                d2.text || d2.response || d2.answer || d2.message ||
-                nested2(['data','text']) || nested2(['data','message']) || nested2(['data','answer']) || nested2(['data','content']) ||
-                nested2(['response','text']) || nested2(['response','message']) || nested2(['response','answer']) ||
-                choicesJoined2 ||
-                ''
-              ) || ''
-              if (t2 && !isImageMissingText(String(t2))) {
-                return {
-                  text: t2,
-                  sources: d2.sources || d2.documents || nested2(['data','sources']) || nested2(['data','documents']) || [],
-                  ...d2,
-                  __meta: { chatflowId, host: normalizedHost, endpoint: 'prediction' },
-                }
-              }
-            }
-          }
-          // Final fallback: send JSON with base64 data URL in 'uploads' so Flowise converts it to a file internally
-          const arrayBuffer = await (file as any).arrayBuffer()
-          const base64 = Buffer.from(arrayBuffer).toString('base64')
-          const mime = (file as any)?.type || 'application/octet-stream'
-          const dataUrl = `data:${mime};base64,${base64}`
-          const jsonBody: any = {
-            question: requestBody.question || '',
-            chatId: requestBody.overrideConfig?.sessionId || '',
-            uploads: [{ data: dataUrl, name: fnameAlt, mime, type: 'file' }],
-            // Include common aliases some Flowise nodes accept
-            files: [{ data: dataUrl, name: fnameAlt, mime, type: 'file' }],
-            images: [dataUrl],
-            image: dataUrl,
-            overrideConfig: requestBody.overrideConfig || {},
-            streaming: true,
-          }
-          const r3 = await fetch(`${normalizedHost}/api/v1/prediction/${chatflowId}`, {
-            method: 'POST',
-            headers: { ...headers, 'Content-Type': 'application/json', Accept: 'text/event-stream, application/json' },
-            body: JSON.stringify(jsonBody),
-            signal: AbortSignal.timeout(60000),
-          })
-          if (r3.ok && (r3.headers.get('content-type') || '').includes('application/json')) {
-            const d3 = await r3.json().catch(() => null)
-            if (d3) {
-              const nested3 = (path: string[]): any => path.reduce((acc, key) => (acc && typeof acc === 'object') ? acc[key] : undefined, d3)
-              const choicesJoined3 = Array.isArray(d3?.choices) ? d3.choices.map((c: any) => c?.delta?.content || c?.message?.content || c?.text || '').join('') : ''
-              const t3 = (
-                d3.text || d3.response || d3.answer || d3.message ||
-                nested3(['data','text']) || nested3(['data','message']) || nested3(['data','answer']) || nested3(['data','content']) ||
-                nested3(['response','text']) || nested3(['response','message']) || nested3(['response','answer']) ||
-                choicesJoined3 ||
-                ''
-              ) || ''
-              if (t3) {
-                return {
-                  text: t3,
-                  sources: d3.sources || d3.documents || nested3(['data','sources']) || nested3(['data','documents']) || [],
-                  ...d3,
-                  __meta: { chatflowId, host: normalizedHost, endpoint: 'prediction' },
-                }
-              }
-            }
-          }
-        } catch {}
+        console.warn('Flowise reported missing image despite JSON uploads array. This may indicate a configuration issue.')
       }
 
       return {
         text,
         sources: data.sources || data.documents || nested(['data','sources']) || nested(['data','documents']) || [],
         ...data,
-        __meta: { chatflowId, host: normalizedHost, endpoint: endpointUsed, debug: `Used ${endpointUsed} endpoint` },
+        __meta: { chatflowId, host: normalizedHost, endpoint: endpointUsed, debug: `Used ${endpointUsed} endpoint with JSON uploads array` },
       };
     }
     if (contentType.includes('text/event-stream')) {
