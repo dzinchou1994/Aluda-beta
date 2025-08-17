@@ -285,6 +285,46 @@ export async function sendToFlowise({
               }
             }
           }
+          // Final fallback: send JSON with base64 data URL in 'uploads' so Flowise converts it to a file internally
+          const arrayBuffer = await (file as any).arrayBuffer()
+          const base64 = Buffer.from(arrayBuffer).toString('base64')
+          const mime = (file as any)?.type || 'application/octet-stream'
+          const dataUrl = `data:${mime};base64,${base64}`
+          const jsonBody: any = {
+            question: requestBody.question || '',
+            chatId: requestBody.overrideConfig?.sessionId || '',
+            uploads: [{ data: dataUrl, name: fnameAlt, mime }],
+            overrideConfig: requestBody.overrideConfig || {},
+            streaming: false,
+          }
+          const r3 = await fetch(`${normalizedHost}/api/v1/prediction/${chatflowId}`, {
+            method: 'POST',
+            headers: { ...headers, 'Content-Type': 'application/json', Accept: 'application/json' },
+            body: JSON.stringify(jsonBody),
+            signal: AbortSignal.timeout(60000),
+          })
+          if (r3.ok && (r3.headers.get('content-type') || '').includes('application/json')) {
+            const d3 = await r3.json().catch(() => null)
+            if (d3) {
+              const nested3 = (path: string[]): any => path.reduce((acc, key) => (acc && typeof acc === 'object') ? acc[key] : undefined, d3)
+              const choicesJoined3 = Array.isArray(d3?.choices) ? d3.choices.map((c: any) => c?.delta?.content || c?.message?.content || c?.text || '').join('') : ''
+              const t3 = (
+                d3.text || d3.response || d3.answer || d3.message ||
+                nested3(['data','text']) || nested3(['data','message']) || nested3(['data','answer']) || nested3(['data','content']) ||
+                nested3(['response','text']) || nested3(['response','message']) || nested3(['response','answer']) ||
+                choicesJoined3 ||
+                ''
+              ) || ''
+              if (t3) {
+                return {
+                  text: t3,
+                  sources: d3.sources || d3.documents || nested3(['data','sources']) || nested3(['data','documents']) || [],
+                  ...d3,
+                  __meta: { chatflowId, host: normalizedHost, endpoint: 'prediction' },
+                }
+              }
+            }
+          }
         } catch {}
       }
 
