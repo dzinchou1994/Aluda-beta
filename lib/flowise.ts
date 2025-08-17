@@ -172,10 +172,21 @@ export async function sendToFlowise({
     const contentType = response.headers.get('content-type') || ''
     if (contentType.includes('application/json')) {
       const data = await response.json();
-      const text = data.text || data.response || data.answer || data.message || 'No response received';
+      // Try hard to extract text from many Flowise/provider shapes
+      const nested = (path: string[]): any => path.reduce((acc, key) => (acc && typeof acc === 'object') ? acc[key] : undefined, data)
+      const choicesJoined = Array.isArray(data?.choices)
+        ? data.choices.map((c: any) => c?.delta?.content || c?.message?.content || c?.text || '').join('')
+        : ''
+      const text = (
+        data.text || data.response || data.answer || data.message ||
+        nested(['data','text']) || nested(['data','message']) || nested(['data','answer']) || nested(['data','content']) ||
+        nested(['response','text']) || nested(['response','message']) || nested(['response','answer']) ||
+        choicesJoined ||
+        ''
+      ) || 'No response received'
       return {
         text,
-        sources: data.sources || data.documents || [],
+        sources: data.sources || data.documents || nested(['data','sources']) || nested(['data','documents']) || [],
         ...data,
         __meta: { chatflowId, host: normalizedHost, endpoint: endpointUsed },
       };
