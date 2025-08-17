@@ -92,16 +92,36 @@ export async function sendToFlowise({
       })
       endpointUsed = 'chatbot'
 
-      // If chatbot multipart doesn't return JSON or SSE, do NOT fall back to base64 prediction
-      // because that explodes token counts and can trigger 429s on upstream models.
+      // If chatbot multipart doesn't return JSON or SSE, first try multipart against prediction endpoint
+      // (many Flowise deployments expose prediction but not chatbot). Avoid base64 to keep payload small.
       let ctMultipart = response.headers.get('content-type') || ''
       const isJsonOrSSE = ctMultipart.includes('application/json') || ctMultipart.includes('text/event-stream')
       if (!response.ok || !isJsonOrSSE) {
-        if (response.status === 429) {
-          throw new Error('Rate limit exceeded. Please try again later.')
+        const snapshot = await response.text().catch(() => '')
+
+        const formPred = new FormData()
+        formPred.append('question', requestBody.question || '')
+        formPred.append('files', file as any)
+        formPred.append('chatId', requestBody.overrideConfig?.sessionId || '')
+        formPred.append('overrideConfig', JSON.stringify(requestBody.overrideConfig || {}))
+
+        const tryPrediction = await fetch(predictionUrl, {
+          method: 'POST',
+          headers: { ...headers, Accept: 'text/event-stream, application/json' },
+          body: formPred as any,
+          signal: AbortSignal.timeout(60000),
+        })
+        endpointUsed = 'prediction'
+
+        const ct2 = tryPrediction.headers.get('content-type') || ''
+        if (!tryPrediction.ok || !(ct2.includes('application/json') || ct2.includes('text/event-stream'))) {
+          if (tryPrediction.status === 429) {
+            throw new Error('Rate limit exceeded. Please try again later.')
+          }
+          const errText2 = await tryPrediction.text().catch(() => '')
+          throw new Error(`Flowise multipart failed. chatbot(${response.status} ${ctMultipart})→pred(${tryPrediction.status} ${ct2}). Snapshots: ${snapshot.slice(0,120)} | ${errText2.slice(0,120)}`)
         }
-        const errText = await response.text().catch(() => '')
-        throw new Error(`Flowise /chatbot multipart failed (${response.status} ${ctMultipart}): ${errText.slice(0, 200)}`)
+        response = tryPrediction
       }
     } else {
       // JSON mode: try prediction first
