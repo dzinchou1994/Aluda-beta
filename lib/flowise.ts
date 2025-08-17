@@ -79,8 +79,14 @@ export async function sendToFlowise({
     if (isMultipart) {
       // First try EXACTLY the same shape as Flowise widget: multipart to /chatbot with 'files'
       const form = new FormData()
+      const fname = (file as any)?.name || 'upload.jpg'
       form.append('question', requestBody.question || '')
-      form.append('files', file as any)
+      // Append multiple aliases to satisfy different Flowise nodes
+      form.append('files', file as any, fname)
+      form.append('file', file as any, fname)
+      form.append('files[]', file as any, fname)
+      form.append('image', file as any, fname)
+      form.append('images', file as any, fname)
       form.append('chatId', requestBody.overrideConfig?.sessionId || '')
       form.append('overrideConfig', JSON.stringify(requestBody.overrideConfig || {}))
 
@@ -100,8 +106,13 @@ export async function sendToFlowise({
         const snapshot = await response.text().catch(() => '')
 
         const formPred = new FormData()
+        const fname2 = (file as any)?.name || 'upload.jpg'
         formPred.append('question', requestBody.question || '')
-        formPred.append('files', file as any)
+        formPred.append('files', file as any, fname2)
+        formPred.append('file', file as any, fname2)
+        formPred.append('files[]', file as any, fname2)
+        formPred.append('image', file as any, fname2)
+        formPred.append('images', file as any, fname2)
         formPred.append('chatId', requestBody.overrideConfig?.sessionId || '')
         formPred.append('overrideConfig', JSON.stringify(requestBody.overrideConfig || {}))
 

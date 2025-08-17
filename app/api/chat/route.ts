@@ -173,6 +173,11 @@ export async function POST(request: NextRequest) {
       chatId: currentChatId,
       aiTitle,
       __meta: { ...(flowiseResponse.__meta || {}), selectedModel, usedOverride: usedOverride || null },
+      debug: {
+        file: Boolean(uploadedFile),
+        contentType,
+        endpoint: (flowiseResponse as any)?.__meta?.endpoint || null,
+      }
     })
 
   } catch (error: any) {
