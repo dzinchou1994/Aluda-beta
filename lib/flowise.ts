@@ -129,8 +129,14 @@ export async function sendToFlowise({
           if (tryPrediction.status === 429) {
             throw new Error('Rate limit exceeded. Please try again later.')
           }
-          const errText2 = await tryPrediction.text().catch(() => '')
-          throw new Error(`Flowise multipart failed. chatbot(${response.status} ${ctMultipart})→pred(${tryPrediction.status} ${ct2}). Snapshots: ${snapshot.slice(0,120)} | ${errText2.slice(0,120)}`)
+          let errText2 = ''
+          let errJson2: any = null
+          try {
+            errText2 = await tryPrediction.text()
+            try { errJson2 = JSON.parse(errText2) } catch {}
+          } catch {}
+          const msg = errJson2?.message || errJson2?.error || errJson2?.stack || errText2
+          throw new Error(`Flowise multipart failed. chatbot(${response.status} ${ctMultipart})→pred(${tryPrediction.status} ${ct2}). Error: ${String(msg).slice(0,200)}`)
         }
         response = tryPrediction
       }
