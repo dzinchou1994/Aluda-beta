@@ -407,8 +407,8 @@ export default function ChatComposer({ currentChatId, onChatCreated, session }: 
       const fullText = data.text || "ბოდიში, პასუხი ვერ მივიღე."
       const words = fullText.split(/\s+/)
       let currentText = ""
-      // Dynamic per-word delay so long answers don't feel sluggish
-      const perWordMs = Math.max(60, Math.min(180, Math.round(2400 / Math.max(words.length, 1))))
+      // Dynamic per-word delay so long answers don't feel sluggish (2x faster)
+      const perWordMs = Math.max(30, Math.min(90, Math.round(1200 / Math.max(words.length, 1))))
 
       for (let i = 0; i < words.length; i++) {
         await new Promise(resolve => setTimeout(resolve, perWordMs))
