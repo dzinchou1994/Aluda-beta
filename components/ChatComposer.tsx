@@ -727,7 +727,7 @@ export default function ChatComposer({ currentChatId, onChatCreated, session }: 
                 style={shouldAnimate ? { animationDelay: `${index * 100}ms` } : undefined}
               >
                 {/* Message Content - User messages with bubbles, AI messages as simple text */}
-                <div className={`min-w-0 max-w-[70%] ${shouldAnimate ? 'animate-fade-in-left' : ''} flex flex-col ${
+                <div className={`min-w-0 max-w-full md:max-w-[70%] ${shouldAnimate ? 'animate-fade-in-left' : ''} flex flex-col ${
                   msg.role === 'user' ? 'items-end order-first' : 'items-start order-last'
                 }`}>
                   {msg.role === 'user' ? (
@@ -757,7 +757,7 @@ export default function ChatComposer({ currentChatId, onChatCreated, session }: 
                     </div>
                   ) : (
                     // AI message as simple text
-                    <div className="text-gray-900 dark:text-white text-sm leading-relaxed whitespace-normal break-words">
+                    <div className="w-full text-gray-900 dark:text-white text-sm leading-relaxed whitespace-normal break-words">
                       {renderAssistantContent(msg.content)}
                     </div>
                   )}
