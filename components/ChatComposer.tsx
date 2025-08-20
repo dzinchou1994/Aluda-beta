@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import { Send, Loader2, User, Bot, MessageSquare, Plus, Image as ImageIcon, X, Copy } from 'lucide-react';
+import { Send, Loader2, User, Bot, MessageSquare, Plus, Image as ImageIcon, X } from 'lucide-react';
 import { useChats, Message } from '@/hooks/useChats';
 import { useChatsContext } from '@/context/ChatsContext';
 import { useTokens } from '@/context/TokensContext';
@@ -177,7 +177,7 @@ export default function ChatComposer({ currentChatId, onChatCreated, session }: 
     // Heuristics
     const looksLikeHTML = (txt: string) => /<\w+[^>]*>/.test(txt) && txt.includes('</')
     const prettifyHTML = (html: string) => {
-      // naive pretty-print: add newlines and indentation
+      // naive pretty-print: add newlines and indentation (no copy frame)
       const withBreaks = html.replace(/>\s*</g, '><').replace(/></g, '>$<$').split('$').join('\n')
       const lines = withBreaks.split(/\n/)
       let indent = 0
@@ -208,56 +208,57 @@ export default function ChatComposer({ currentChatId, onChatCreated, session }: 
     const tail = content.slice(lastIdx)
     if (tail.trim()) parts.push({ type: 'text', text: tail })
 
-    // If no fences but HTML-like, render as code frame with pretty formatting
+    // If no fences but HTML-like, render as pre/code with pretty formatting (no copy frame)
     if (parts.length === 0) {
       if (looksLikeHTML(content)) {
-        return <FrameWithCopy text={prettifyHTML(content)} mono label="HTML" />
+        return (
+          <pre className="mt-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-md p-3 font-mono text-[12.5px] leading-5 whitespace-pre-wrap break-words overflow-x-auto">
+            <code>{prettifyHTML(content)}</code>
+          </pre>
+        )
       }
     }
 
-    // If there are parts, render each; long text chunks go into framed box with copy
+    // If there are parts, render each without copy frames
     if (parts.length > 0) {
+      // Helper for links
+      const renderPlainLinks = (text: string) => {
+        const urlSplitRegex = /(https?:\/\/[^\s)]+|www\.[^\s)]+)/gi
+        return text.split(urlSplitRegex).map((part, i) => {
+          const isUrl = /^(https?:\/\/|www\.)/i.test(part)
+          if (isUrl) {
+            const href = part.startsWith('http') ? part : `https://${part}`
+            return (
+              <a key={`url-${i}`} href={href} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline break-all">
+                {part}
+              </a>
+            )
+          }
+          return <span key={`txt-${i}`}>{part}</span>
+        })
+      }
+
       return (
         <div className="space-y-3">
           {parts.map((p, idx) => {
             if (p.type === 'code') {
-              const langLabel = (p.lang || 'code').toUpperCase()
-              return <FrameWithCopy key={`code-${idx}`} text={p.text} mono label={langLabel} />
+              return (
+                <pre key={`code-${idx}`} className="mt-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-md p-3 font-mono text-[12.5px] leading-5 whitespace-pre-wrap break-words overflow-x-auto">
+                  <code>{p.text}</code>
+                </pre>
+              )
             }
-            // For text parts, if long, frame with copy; otherwise use formatter
             const txt = p.text.trim()
-            const isLong = txt.length > 400 || /\n\n/.test(txt) || /\d+\.\s/.test(txt)
-            if (isLong) {
-              return <FrameWithCopy key={`txt-${idx}`} text={txt} label="პასუხი" />
-            }
-            // Fallback to inline formatter used earlier
-            const renderPlainLinks = (text: string) => {
-              const urlSplitRegex = /(https?:\/\/[^\s)]+|www\.[^\s)]+)/gi
-              return text.split(urlSplitRegex).map((part, i) => {
-                const isUrl = /^(https?:\/\/|www\.)/i.test(part)
-                if (isUrl) {
-                  const href = part.startsWith('http') ? part : `https://${part}`
-                  return (
-                    <a key={`url-${i}`} href={href} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline break-all">
-                      {part}
-                    </a>
-                  )
-                }
-                return <span key={`txt-${i}`}>{part}</span>
-              })
-            }
             return <p key={`txt-${idx}`} className="text-sm leading-relaxed whitespace-normal break-words">{renderPlainLinks(txt)}</p>
           })}
         </div>
       )
     }
 
-    // If we reach here, use previous rich formatter (split lists, bullets, etc.)
+    // Fallback: improved formatter (lists, bullets, headings)
     // Normalize: split single-line lists into separate lines for better readability
     let normalized = content
-      // insert newline before " 1. ", " 2. ", etc when they appear mid-line
       .replace(/\s+(\d+)\.\s/g, (m) => "\n" + m.trimStart())
-      // insert newline before dash bullets when inline
       .replace(/\s+-\s+/g, (m) => "\n- ")
       .trim()
 
