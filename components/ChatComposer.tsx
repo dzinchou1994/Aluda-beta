@@ -286,12 +286,26 @@ export default function ChatComposer({ currentChatId, onChatCreated, session }: 
       const line = lines[i]
       const mdHeading = line.match(/^\s*#{1,6}\s*(.+?)\s*$/)
       if (mdHeading) {
-        const title = mdHeading[1]
+        const full = mdHeading[1].trim()
+        // If heading line also contains more text (e.g., "### Title ...: more text"),
+        // split at the first colon to show a proper heading and a following paragraph.
+        let headingText = full
+        let afterText = ''
+        const colonIdx = full.indexOf(':')
+        if (colonIdx !== -1) {
+          headingText = full.slice(0, colonIdx).trim()
+          afterText = full.slice(colonIdx + 1).trim()
+        }
         blocks.push(
           <div key={`h-${i}`} className="mt-4 mb-1">
-            <div className="font-bold text-xl leading-snug">{title}</div>
+            <div className="font-bold text-xl leading-snug">{headingText}</div>
           </div>
         )
+        if (afterText) {
+          blocks.push(
+            <p key={`hp-${i}`} className="mt-2 text-sm leading-relaxed whitespace-normal break-words">{renderInline(afterText)}</p>
+          )
+        }
         continue
       }
 
