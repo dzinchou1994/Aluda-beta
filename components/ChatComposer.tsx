@@ -342,19 +342,13 @@ export default function ChatComposer({ currentChatId, onChatCreated, session }: 
         form.append('images', blobToSend, filename)
         responsePromise = fetch("/api/chat", { 
           method: "POST", 
-          body: form,
-          headers: {
-            'Accept': 'text/event-stream',
-            'x-streaming': 'true'
-          }
+          body: form
         })
       } else {
         responsePromise = fetch("/api/chat", {
           method: "POST",
           headers: { 
-            "Content-Type": "application/json",
-            'Accept': 'text/event-stream',
-            'x-streaming': 'true'
+            "Content-Type": "application/json"
           },
           body: JSON.stringify({ message: messageToSend, chatId: activeChatId, model }),
         })
@@ -391,118 +385,19 @@ export default function ChatComposer({ currentChatId, onChatCreated, session }: 
         throw new Error(serverMsg || `HTTP error! status: ${response.status}`)
       }
 
-      // Check if response is streaming
-      const contentType = response.headers.get('content-type') || ''
-      console.log('Response content-type:', contentType)
-      console.log('Response status:', response.status)
-      console.log('Response ok:', response.ok)
+      // Handle response (non-streaming for now)
+      const data = await response.json()
+      console.log('API result meta:', data.__meta)
       
-      if (contentType.includes('text/event-stream')) {
-        console.log('Handling streaming response...')
-        // Handle streaming response
-        const reader = response.body?.getReader()
-        if (!reader) {
-          console.log('No reader available, falling back to non-streaming')
-          // Fallback to non-streaming
-          const data = await response.json()
-          console.log('API result meta:', data.__meta)
-          
-          // Add assistant message
-          const assistantMessage: Omit<Message, 'timestamp'> = {
-            id: `assistant_${Date.now()}`,
-            role: "assistant",
-            content: data.text || "ბოდიში, პასუხი ვერ მივიღე.",
-          }
-          
-          console.log('ChatComposer: Adding assistant message:', assistantMessage)
-          addMessageToChat(activeChatId, assistantMessage)
-          return
-        }
-
-        // Create assistant message for streaming
-        const assistantMessage: Omit<Message, 'timestamp'> = {
-          id: `assistant_${Date.now()}`,
-          role: "assistant",
-          content: "",
-        }
-        
-        addMessageToChat(activeChatId, assistantMessage)
-        let fullContent = ""
-
-        try {
-          while (true) {
-            const { done, value } = await reader.read()
-            if (done) {
-              console.log('Stream ended')
-              break
-            }
-
-            const chunk = new TextDecoder().decode(value)
-            console.log('Received chunk:', chunk)
-            const lines = chunk.split('\n')
-
-            for (const line of lines) {
-              if (line.startsWith('data:')) {
-                const data = line.slice(5).trim()
-                console.log('Processing data line:', data)
-                if (data === '[DONE]') {
-                  console.log('Stream ended with [DONE]')
-                  return
-                }
-
-                try {
-                  const parsed = JSON.parse(data)
-                  console.log('Parsed event:', parsed)
-                  if (parsed.event === 'token' && parsed.data) {
-                    fullContent += parsed.data
-                    console.log('Added token, full content now:', fullContent)
-                    // Update the assistant message content in real-time
-                    const updatedMessage = { ...assistantMessage, content: fullContent }
-                    addMessageToChat(activeChatId, updatedMessage)
-                  } else if (parsed.event === 'error') {
-                    throw new Error(parsed.error || 'Streaming error')
-                  }
-                } catch (e) {
-                  console.log('Error parsing JSON:', e)
-                  // Ignore parsing errors for non-JSON lines
-                }
-              }
-            }
-          }
-        } catch (streamingError) {
-          console.error('Streaming error, falling back to non-streaming:', streamingError)
-          // Fallback to non-streaming
-          const data = await response.json()
-          console.log('API result meta:', data.__meta)
-          
-          // Add assistant message
-          const assistantMessage: Omit<Message, 'timestamp'> = {
-            id: `assistant_${Date.now()}`,
-            role: "assistant",
-            content: data.text || "ბოდიში, პასუხი ვერ მივიღე.",
-          }
-          
-          console.log('ChatComposer: Adding assistant message:', assistantMessage)
-          addMessageToChat(activeChatId, assistantMessage)
-        } finally {
-          reader.releaseLock()
-        }
-      } else {
-        console.log('Handling non-streaming response...')
-        // Handle non-streaming response (fallback)
-        const data = await response.json()
-        console.log('API result meta:', data.__meta)
-        
-        // Add assistant message
-        const assistantMessage: Omit<Message, 'timestamp'> = {
-          id: `assistant_${Date.now()}`,
-          role: "assistant",
-          content: data.text || "ბოდიში, პასუხი ვერ მივიღე.",
-        }
-        
-        console.log('ChatComposer: Adding assistant message:', assistantMessage)
-        addMessageToChat(activeChatId, assistantMessage)
+      // Add assistant message
+      const assistantMessage: Omit<Message, 'timestamp'> = {
+        id: `assistant_${Date.now()}`,
+        role: "assistant",
+        content: data.text || "ბოდიში, პასუხი ვერ მივიღე.",
       }
+      
+      console.log('ChatComposer: Adding assistant message:', assistantMessage)
+      addMessageToChat(activeChatId, assistantMessage)
 
       // Clear attached image after successful send
       if (attachedImage) {
