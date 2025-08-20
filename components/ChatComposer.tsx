@@ -235,9 +235,11 @@ export default function ChatComposer({ currentChatId, onChatCreated, session }: 
     // Fallback: improved formatter (lists, bullets, headings)
     // Normalize: split single-line lists into separate lines for better readability
     let normalized = content
-      .replace(/\s+(\d+)\.\s/g, (m) => "\n" + m.trimStart())
-      .replace(/\s+-\s+/g, (m) => "\n- ")
-      // ensure headings that appear inline start on a new line
+      // force newlines before every numbered item occurrence
+      .replace(/\s+(\d+)\.\s/g, (_m, n) => `\n${n}. `)
+      // force newlines before every bullet occurrence
+      .replace(/\s+-\s+/g, () => "\n- ")
+      // ensure headings that appear inline start on a new line (global)
       .replace(/\s+(#{1,6})\s/g, (_m, hashes) => "\n" + String(hashes) + " ")
       .trim()
 
@@ -287,14 +289,26 @@ export default function ChatComposer({ currentChatId, onChatCreated, session }: 
       const mdHeading = line.match(/^\s*#{1,6}\s*(.+?)\s*$/)
       if (mdHeading) {
         const full = mdHeading[1].trim()
-        // If heading line also contains more text (e.g., "### Title ...: more text"),
-        // split at the first colon to show a proper heading and a following paragraph.
+        // If heading line also contains more text (e.g., "### Title ... more text"),
+        // split at the earliest reasonable separator and render the rest as a paragraph.
         let headingText = full
         let afterText = ''
+        const numberMatch = /\s+\d+\.\s/.exec(full)
+        const bulletMatch = /\s+-\s+/.exec(full)
         const colonIdx = full.indexOf(':')
-        if (colonIdx !== -1) {
-          headingText = full.slice(0, colonIdx).trim()
-          afterText = full.slice(colonIdx + 1).trim()
+        const periodIdx = full.indexOf('.')
+        const candidateIdxs = [
+          numberMatch ? numberMatch.index : -1,
+          bulletMatch ? bulletMatch.index : -1,
+          colonIdx,
+          periodIdx
+        ].filter((idx) => idx !== -1)
+        if (candidateIdxs.length > 0) {
+          const splitIdx = Math.min(...candidateIdxs)
+          headingText = full.slice(0, splitIdx).trim()
+          afterText = full.slice(splitIdx).trim()
+          // remove leading punctuation or list markers from the paragraph
+          afterText = afterText.replace(/^[:\.\-\s]*/, '')
         }
         blocks.push(
           <div key={`h-${i}`} className="mt-4 mb-1">
