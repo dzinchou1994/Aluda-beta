@@ -535,15 +535,11 @@ export default function ChatComposer({ currentChatId, onChatCreated, session }: 
                   </div>
                 )}
 
-                {/* Message Content */}
+                {/* Message Content - Simple text without bubbles */}
                 <div className={`min-w-0 max-w-[70%] ${shouldAnimate ? 'animate-fade-in-left' : ''} flex flex-col ${
                   msg.role === 'user' ? 'items-end order-first' : 'items-start order-last'
                 }`}>
-                  <div className={`px-4 py-3 inline-block w-auto max-w-[60ch] md:max-w-[70ch] shadow-sm transition-all duration-200 hover:shadow-md chat-bubble ${
-                    msg.role === 'user'
-                      ? 'chat-bubble-user'
-                      : 'chat-bubble-assistant dark:chat-bubble-assistant-dark'
-                  }`}>
+                  <div className="text-gray-900 dark:text-white text-sm leading-relaxed whitespace-normal break-words">
                     {msg.role === 'assistant' 
                       ? renderAssistantContent(msg.content)
                       : (
@@ -552,7 +548,7 @@ export default function ChatComposer({ currentChatId, onChatCreated, session }: 
                             <img src={msg.imageUrl} alt="attachment" className="rounded-md border border-gray-200 dark:border-gray-700 max-w-full" />
                           )}
                           {msg.content && (
-                            <p className="text-sm leading-relaxed whitespace-normal break-words">
+                            <p>
                               {/* linkify user content */}
                               {(() => {
                                 const urlSplitRegex = /(https?:\/\/[^\s)]+|www\.[^\s)]+)/gi
@@ -570,14 +566,6 @@ export default function ChatComposer({ currentChatId, onChatCreated, session }: 
                         </div>
                       )
                     }
-                  </div>
-                  <div className={`message-timestamp ${
-                    msg.role === 'user' ? 'text-right' : 'text-left'
-                  }`}>
-                    {new Date(msg.timestamp).toLocaleTimeString('ka-GE', { 
-                      hour: '2-digit', 
-                      minute: '2-digit' 
-                    })}
                   </div>
                 </div>
 
@@ -599,7 +587,7 @@ export default function ChatComposer({ currentChatId, onChatCreated, session }: 
               <Bot className="w-5 h-5 text-white" />
             </div>
             <div className="max-w-[70%]">
-              <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-2xl px-4 py-3 shadow-sm">
+              <div className="text-gray-900 dark:text-white">
                 <div className="flex items-center space-x-2">
                   <div className="flex space-x-1">
                     <div className="w-2 h-2 bg-gray-400 dark:bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
@@ -620,8 +608,8 @@ export default function ChatComposer({ currentChatId, onChatCreated, session }: 
               <div className="w-5 h-5 text-white">⚠️</div>
             </div>
             <div className="max-w-[70%]">
-              <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700 rounded-2xl px-4 py-3 shadow-sm">
-                <p className="text-sm text-red-700 dark:text-red-400">{error}</p>
+              <div className="text-red-700 dark:text-red-400">
+                <p className="text-sm">{error}</p>
               </div>
             </div>
           </div>
