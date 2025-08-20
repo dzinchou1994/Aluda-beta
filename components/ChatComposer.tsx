@@ -147,30 +147,7 @@ export default function ChatComposer({ currentChatId, onChatCreated, session }: 
   }
 
   // Reusable framed block with copy button
-  function FrameWithCopy({ text, mono = false, label }: { text: string; mono?: boolean; label?: string }) {
-    const [copied, setCopied] = useState(false)
-    const handleCopy = async () => {
-      try {
-        await navigator.clipboard.writeText(text)
-        setCopied(true)
-        setTimeout(() => setCopied(false), 1200)
-      } catch {}
-    }
-    return (
-      <div className={`relative mt-2 border rounded-md ${mono ? 'bg-gray-50 dark:bg-gray-900 border-gray-200 dark:border-gray-700' : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700'}`}>
-        <div className="flex items-center justify-between px-3 py-2 border-b border-gray-100 dark:border-gray-700">
-          <span className="text-xs text-gray-500 dark:text-gray-400">{label || (mono ? 'Code' : 'Content')}</span>
-          <button onClick={handleCopy} className="flex items-center gap-1 text-xs text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400">
-            <Copy className="w-3.5 h-3.5" /> {copied ? 'კოპირებული' : 'კოპირება'}
-          </button>
-        </div>
-        <div className={`p-3 ${mono ? 'font-mono text-[12.5px] leading-5' : 'text-sm leading-relaxed'}`}
-             style={mono ? { whiteSpace: 'pre-wrap', overflowX: 'auto' } : undefined}>
-          {mono ? <pre className="whitespace-pre-wrap break-words"><code>{text}</code></pre> : <div className="whitespace-pre-wrap break-words">{text}</div>}
-        </div>
-      </div>
-    )
-  }
+  // (Removed copy-frame helper)
 
   // Render assistant content with special formatting; support markdown links [text](url)
   function renderAssistantContent(content: string) {
