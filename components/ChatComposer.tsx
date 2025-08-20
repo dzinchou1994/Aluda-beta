@@ -325,6 +325,7 @@ export default function ChatComposer({ currentChatId, onChatCreated, session }: 
     try {
       const useMultipart = model === 'aluda2' && attachedImage
       let responsePromise: Promise<Response>
+      
       if (useMultipart) {
         const form = new FormData()
         if (messageToSend) form.append('message', messageToSend)
@@ -339,11 +340,22 @@ export default function ChatComposer({ currentChatId, onChatCreated, session }: 
         form.append('files[]', blobToSend, filename)
         form.append('image', blobToSend, filename)
         form.append('images', blobToSend, filename)
-        responsePromise = fetch("/api/chat", { method: "POST", body: form })
+        responsePromise = fetch("/api/chat", { 
+          method: "POST", 
+          body: form,
+          headers: {
+            'Accept': 'text/event-stream',
+            'x-streaming': 'true'
+          }
+        })
       } else {
         responsePromise = fetch("/api/chat", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: { 
+            "Content-Type": "application/json",
+            'Accept': 'text/event-stream',
+            'x-streaming': 'true'
+          },
           body: JSON.stringify({ message: messageToSend, chatId: activeChatId, model }),
         })
       }
@@ -379,51 +391,97 @@ export default function ChatComposer({ currentChatId, onChatCreated, session }: 
         throw new Error(serverMsg || `HTTP error! status: ${response.status}`)
       }
 
-      const data = await response.json()
-      console.log('API result meta:', data.__meta)
-      // Optional: if backend returns usage updates in future, sync here
-      
-      // Add assistant message
-      const assistantMessage: Omit<Message, 'timestamp'> = {
-        id: `assistant_${Date.now()}`,
-        role: "assistant",
-        content: data.text || "ბოდიში, პასუხი ვერ მივიღე.",
+      // Check if response is streaming
+      const contentType = response.headers.get('content-type') || ''
+      if (contentType.includes('text/event-stream')) {
+        // Handle streaming response
+        const reader = response.body?.getReader()
+        if (!reader) {
+          throw new Error('No response body for streaming')
+        }
+
+        // Create assistant message for streaming
+        const assistantMessage: Omit<Message, 'timestamp'> = {
+          id: `assistant_${Date.now()}`,
+          role: "assistant",
+          content: "",
+        }
+        
+        addMessageToChat(activeChatId, assistantMessage)
+        let fullContent = ""
+
+        try {
+          while (true) {
+            const { done, value } = await reader.read()
+            if (done) break
+
+            const chunk = new TextDecoder().decode(value)
+            const lines = chunk.split('\n')
+
+            for (const line of lines) {
+              if (line.startsWith('data:')) {
+                const data = line.slice(5).trim()
+                if (data === '[DONE]') {
+                  // Stream ended
+                  return
+                }
+
+                try {
+                  const parsed = JSON.parse(data)
+                  if (parsed.event === 'token' && parsed.data) {
+                    fullContent += parsed.data
+                    // Update the assistant message content in real-time
+                    const updatedMessage = { ...assistantMessage, content: fullContent }
+                    addMessageToChat(activeChatId, updatedMessage)
+                  } else if (parsed.event === 'error') {
+                    throw new Error(parsed.error || 'Streaming error')
+                  }
+                } catch (e) {
+                  // Ignore parsing errors for non-JSON lines
+                }
+              }
+            }
+          }
+        } finally {
+          reader.releaseLock()
+        }
+      } else {
+        // Handle non-streaming response (fallback)
+        const data = await response.json()
+        console.log('API result meta:', data.__meta)
+        
+        // Add assistant message
+        const assistantMessage: Omit<Message, 'timestamp'> = {
+          id: `assistant_${Date.now()}`,
+          role: "assistant",
+          content: data.text || "ბოდიში, პასუხი ვერ მივიღე.",
+        }
+        
+        console.log('ChatComposer: Adding assistant message:', assistantMessage)
+        addMessageToChat(activeChatId, assistantMessage)
       }
-      
-      console.log('ChatComposer: Adding assistant message:', assistantMessage)
-      addMessageToChat(activeChatId, assistantMessage)
 
       // Clear attached image after successful send
       if (attachedImage) {
         setAttachedImage(null)
         if (attachedPreviewUrl) {
           URL.revokeObjectURL(attachedPreviewUrl)
-          setAttachedPreviewUrl(null)
+          setAttachedPreviewUrl("")
         }
       }
+    } catch (error: any) {
+      console.error("Chat error:", error)
+      setError(error.message || "შეცდომა მოხდა შეტყობინების გაგზავნისას.")
       
-      // If backend suggested a title, apply it to the current chat
-      if (data.aiTitle && typeof data.aiTitle === 'string' && currentChatMessages.length <= 1) {
-        // Only rename once (after the first assistant reply), subsequent messages won't trigger rename
-        renameChat(activeChatId, data.aiTitle)
+      // Add error message to chat
+      const errorMessage: Omit<Message, 'timestamp'> = {
+        id: `error_${Date.now()}`,
+        role: "assistant",
+        content: `❌ ${error.message || "შეცდომა მოხდა შეტყობინების გაგზავნისას."}`,
       }
-      
-    } catch (err: any) {
-      console.error("Chat error:", err)
-      setError(err.message || "შეცდომა მოხდა")
+      addMessageToChat(activeChatId, errorMessage)
     } finally {
       setIsLoading(false)
-      // Always reset file input so user can reattach without page refresh
-      try {
-        if (fileInputRef.current) fileInputRef.current.value = ''
-        if (attachedImage) {
-          setAttachedImage(null)
-        }
-        if (attachedPreviewUrl) {
-          URL.revokeObjectURL(attachedPreviewUrl)
-          setAttachedPreviewUrl(null)
-        }
-      } catch {}
     }
   }
 
