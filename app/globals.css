@@ -4,41 +4,46 @@
 
 /* User Chat Bubble Styles */
 .chat-bubble {
-  position: relative;
+  border-radius: 18px;
+  padding: 12px 16px;
+  margin: 4px 0;
+  max-width: 70%;
   word-wrap: break-word;
-  overflow-wrap: break-word;
-  white-space: normal;
+  position: relative;
 }
 
 .chat-bubble-user {
-  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
-  border-radius: 18px 18px 18px 4px;
-  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+  align-self: flex-end;
+  margin-left: auto;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
 }
 
 .chat-bubble-user:hover {
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
   transform: translateY(-1px);
-  transition: all 0.2s ease;
+}
+
+/* Typing cursor animation */
+.typing-cursor {
+  display: inline-block;
+  width: 2px;
+  height: 1.2em;
+  background-color: #667eea;
+  margin-left: 2px;
+  animation: blink 1s infinite;
+}
+
+@keyframes blink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
 }
 
 /* Responsive chat bubble sizing */
-@media (max-width: 640px) {
+@media (max-width: 768px) {
   .chat-bubble {
-    max-width: 90vw;
-  }
-}
-
-@media (min-width: 641px) and (max-width: 1024px) {
-  .chat-bubble {
-    max-width: 75%;
-  }
-}
-
-@media (min-width: 1025px) {
-  .chat-bubble {
-    max-width: 70%;
+    max-width: 85%;
   }
 }
 

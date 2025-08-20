@@ -389,15 +389,42 @@ export default function ChatComposer({ currentChatId, onChatCreated, session }: 
       const data = await response.json()
       console.log('API result meta:', data.__meta)
       
-      // Add assistant message
+      // Add assistant message with typing effect
       const assistantMessage: Omit<Message, 'timestamp'> = {
         id: `assistant_${Date.now()}`,
         role: "assistant",
-        content: data.text || "ბოდიში, პასუხი ვერ მივიღე.",
+        content: "",
       }
       
       console.log('ChatComposer: Adding assistant message:', assistantMessage)
       addMessageToChat(activeChatId, assistantMessage)
+
+      // Show loading state first
+      const loadingMessage = { 
+        ...assistantMessage, 
+        content: '<span class="typing-cursor"></span>'
+      }
+      addMessageToChat(activeChatId, loadingMessage)
+      
+      // Wait a bit before starting typing
+      await new Promise(resolve => setTimeout(resolve, 500))
+
+      // Simulate typing effect
+      const fullText = data.text || "ბოდიში, პასუხი ვერ მივიღე."
+      const words = fullText.split(/\s+/)
+      let currentText = ""
+
+      for (let i = 0; i < words.length; i++) {
+        await new Promise(resolve => setTimeout(resolve, 750)) // 0.75 seconds
+        currentText += (i > 0 ? " " : "") + words[i]
+        
+        // Update the assistant message content with cursor
+        const updatedMessage = { 
+          ...assistantMessage, 
+          content: currentText + (i < words.length - 1 ? '<span class="typing-cursor"></span>' : '')
+        }
+        addMessageToChat(activeChatId, updatedMessage)
+      }
 
       // Clear attached image after successful send
       if (attachedImage) {
