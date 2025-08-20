@@ -403,13 +403,15 @@ export default function ChatComposer({ currentChatId, onChatCreated, session }: 
       // End loading state before typing to avoid duplicate loaders
       setIsLoading(false)
 
-      // Simulate typing effect
+      // Simulate typing effect (fast, dynamic)
       const fullText = data.text || "ბოდიში, პასუხი ვერ მივიღე."
       const words = fullText.split(/\s+/)
       let currentText = ""
+      // Dynamic per-word delay so long answers don't feel sluggish
+      const perWordMs = Math.max(60, Math.min(180, Math.round(2400 / Math.max(words.length, 1))))
 
       for (let i = 0; i < words.length; i++) {
-        await new Promise(resolve => setTimeout(resolve, 750)) // 0.75 seconds
+        await new Promise(resolve => setTimeout(resolve, perWordMs))
         currentText += (i > 0 ? " " : "") + words[i]
         
         // Update the existing assistant message content incrementally
