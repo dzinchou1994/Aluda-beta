@@ -174,6 +174,26 @@ export default function ChatComposer({ currentChatId, onChatCreated, session }: 
 
     // If fences were found, render split parts (code + text) without copy frames
     if (foundFence) {
+      const CopyButton = ({ text }: { text: string }) => {
+        const [copied, setCopied] = useState(false)
+        const handleCopy = async () => {
+          try {
+            await navigator.clipboard.writeText(text)
+            setCopied(true)
+            setTimeout(() => setCopied(false), 1500)
+          } catch {}
+        }
+        return (
+          <button
+            type="button"
+            onClick={handleCopy}
+            aria-label="კოპირება"
+            className="absolute top-2 right-2 z-10 text-xs px-2 py-1 rounded-md border border-gray-300 dark:border-gray-700 bg-white/80 dark:bg-gray-800/80 hover:bg-white dark:hover:bg-gray-800 backdrop-blur"
+          >
+            {copied ? 'კოპირებულია' : 'კოპირება'}
+          </button>
+        )
+      }
       // Helper for links
       const renderPlainLinks = (text: string) => {
         const urlSplitRegex = /(https?:\/\/[^\s)]+|www\.[^\s)]+)/gi
@@ -196,9 +216,12 @@ export default function ChatComposer({ currentChatId, onChatCreated, session }: 
           {parts.map((p, idx) => {
             if (p.type === 'code') {
               return (
-                <pre key={`code-${idx}`} className="mt-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-md p-3 font-mono text-[12.5px] leading-5 whitespace-pre-wrap break-words overflow-x-auto">
-                  <code>{p.text}</code>
-                </pre>
+                <div key={`code-${idx}`} className="mt-2 relative">
+                  <CopyButton text={p.text} />
+                  <pre className="bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-md p-3 font-mono text-[12.5px] leading-5 whitespace-pre-wrap break-words overflow-x-auto">
+                    <code>{p.text}</code>
+                  </pre>
+                </div>
               )
             }
             const txt = p.text.trim()
