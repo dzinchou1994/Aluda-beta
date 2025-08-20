@@ -535,44 +535,47 @@ export default function ChatComposer({ currentChatId, onChatCreated, session }: 
                   </div>
                 )}
 
-                {/* Message Content - Simple text without bubbles */}
+                {/* Message Content - User messages with bubbles, AI messages as simple text */}
                 <div className={`min-w-0 max-w-[70%] ${shouldAnimate ? 'animate-fade-in-left' : ''} flex flex-col ${
                   msg.role === 'user' ? 'items-end order-first' : 'items-start order-last'
                 }`}>
-                  <div className="text-gray-900 dark:text-white text-sm leading-relaxed whitespace-normal break-words">
-                    {msg.role === 'assistant' 
-                      ? renderAssistantContent(msg.content)
-                      : (
-                        <div className="space-y-2">
-                          {msg.imageUrl && (
-                            <img src={msg.imageUrl} alt="attachment" className="rounded-md border border-gray-200 dark:border-gray-700 max-w-full" />
-                          )}
-                          {msg.content && (
-                            <p>
-                              {/* linkify user content */}
-                              {(() => {
-                                const urlSplitRegex = /(https?:\/\/[^\s)]+|www\.[^\s)]+)/gi
-                                return msg.content.split(urlSplitRegex).map((part, i) => {
-                                  const isUrl = /^(https?:\/\/|www\.)/i.test(part)
-                                  if (isUrl) {
-                                    const href = part.startsWith('http') ? part : `https://${part}`
-                                    return <a key={i} href={href} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline break-all">{part}</a>
-                                  }
-                                  return <span key={i}>{part}</span>
-                                })
-                              })()}
-                            </p>
-                          )}
-                        </div>
-                      )
-                    }
-                  </div>
+                  {msg.role === 'user' ? (
+                    // User message with bubble
+                    <div className="px-4 py-3 inline-block w-auto max-w-[60ch] md:max-w-[70ch] shadow-sm transition-all duration-200 hover:shadow-md chat-bubble chat-bubble-user">
+                      <div className="space-y-2">
+                        {msg.imageUrl && (
+                          <img src={msg.imageUrl} alt="attachment" className="rounded-md border border-gray-200 dark:border-gray-700 max-w-full" />
+                        )}
+                        {msg.content && (
+                          <p className="text-sm leading-relaxed whitespace-normal break-words">
+                            {/* linkify user content */}
+                            {(() => {
+                              const urlSplitRegex = /(https?:\/\/[^\s)]+|www\.[^\s)]+)/gi
+                              return msg.content.split(urlSplitRegex).map((part, i) => {
+                                const isUrl = /^(https?:\/\/|www\.)/i.test(part)
+                                if (isUrl) {
+                                  const href = part.startsWith('http') ? part : `https://${part}`
+                                  return <a key={i} href={href} target="_blank" rel="noopener noreferrer" className="text-blue-200 underline break-all">{part}</a>
+                                }
+                                return <span key={i}>{part}</span>
+                              })
+                            })()}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  ) : (
+                    // AI message as simple text
+                    <div className="text-gray-900 dark:text-white text-sm leading-relaxed whitespace-normal break-words">
+                      {renderAssistantContent(msg.content)}
+                    </div>
+                  )}
                 </div>
 
-                {/* Avatar - Only show for user messages */}
-                {msg.role === 'user' && (
-                  <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full flex items-center justify-center flex-shrink-0 shadow-lg chat-avatar order-last">
-                    <User className="w-5 h-5 text-white" />
+                {/* Avatar - Only show for bot messages */}
+                {msg.role === 'assistant' && (
+                  <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-purple-600 rounded-full flex items-center justify-center flex-shrink-0 shadow-lg chat-avatar">
+                    <Bot className="w-5 h-5 text-white" />
                   </div>
                 )}
               </div>

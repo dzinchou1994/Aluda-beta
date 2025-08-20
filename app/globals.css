@@ -2,7 +2,47 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Simple Chat Styles - No bubbles */
+/* User Chat Bubble Styles */
+.chat-bubble {
+  position: relative;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  white-space: normal;
+}
+
+.chat-bubble-user {
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+  color: white;
+  border-radius: 18px 18px 18px 4px;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+}
+
+.chat-bubble-user:hover {
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+  transform: translateY(-1px);
+  transition: all 0.2s ease;
+}
+
+/* Responsive chat bubble sizing */
+@media (max-width: 640px) {
+  .chat-bubble {
+    max-width: 90vw;
+  }
+}
+
+@media (min-width: 641px) and (max-width: 1024px) {
+  .chat-bubble {
+    max-width: 75%;
+  }
+}
+
+@media (min-width: 1025px) {
+  .chat-bubble {
+    max-width: 70%;
+  }
+}
+
+/* Simple Chat Styles - No bubbles for AI */
 .chat-container {
   scroll-behavior: smooth;
   -webkit-overflow-scrolling: touch;
