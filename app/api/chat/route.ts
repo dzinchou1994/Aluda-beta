@@ -127,7 +127,9 @@ export async function POST(request: NextRequest) {
 
             const hostWithProtocol = /^(http|https):\/\//i.test(flowiseHost) ? flowiseHost : `https://${flowiseHost}`
             const normalizedHost = hostWithProtocol.replace(/\/+$/, '')
-            const chatflowChatUrl = `${normalizedHost}/api/v1/chatflows/${chatflowIdOverride}/chat`
+            
+            // Use the same endpoint as non-streaming version
+            const predictionUrl = `${normalizedHost}/api/v1/prediction/${chatflowIdOverride}`
 
             const headers: Record<string, string> = {
               'Content-Type': 'application/json',
@@ -146,7 +148,7 @@ export async function POST(request: NextRequest) {
             }
 
             // Send request to Flowise
-            const response = await fetch(chatflowChatUrl, {
+            const response = await fetch(predictionUrl, {
               method: 'POST',
               headers,
               body: JSON.stringify(requestBody),
