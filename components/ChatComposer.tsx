@@ -237,6 +237,8 @@ export default function ChatComposer({ currentChatId, onChatCreated, session }: 
     let normalized = content
       .replace(/\s+(\d+)\.\s/g, (m) => "\n" + m.trimStart())
       .replace(/\s+-\s+/g, (m) => "\n- ")
+      // ensure headings that appear inline start on a new line
+      .replace(/\s+(#{1,6})\s/g, (_m, hashes) => "\n" + String(hashes) + " ")
       .trim()
 
     // Plain URL linkifier
@@ -282,12 +284,12 @@ export default function ChatComposer({ currentChatId, onChatCreated, session }: 
     const blocks: JSX.Element[] = []
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i]
-      const mdHeading = line.match(/^\s*#{3,}\s*(.+?)\s*[:：]?\s*$/)
+      const mdHeading = line.match(/^\s*#{1,6}\s*(.+?)\s*$/)
       if (mdHeading) {
         const title = mdHeading[1]
         blocks.push(
-          <div key={`h-${i}`} className="mt-3">
-            <div className="font-bold text-lg leading-snug">{title}</div>
+          <div key={`h-${i}`} className="mt-4 mb-1">
+            <div className="font-bold text-xl leading-snug">{title}</div>
           </div>
         )
         continue
@@ -350,7 +352,7 @@ export default function ChatComposer({ currentChatId, onChatCreated, session }: 
         <p key={`p-${i}`} className="mt-2 text-sm leading-relaxed whitespace-normal break-words">{renderInline(line)}</p>
       )
     }
-    return <div className="space-y-1">{blocks}</div>
+    return <div className="space-y-2">{blocks}</div>
   }
   
   // Use the prop currentChatId if provided, otherwise use the hook's currentChatId
