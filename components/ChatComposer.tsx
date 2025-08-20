@@ -112,6 +112,7 @@ export default function ChatComposer({ currentChatId, onChatCreated, session }: 
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const renderedMessageIdsRef = useRef<Set<string>>(new Set())
+  const forceScrollRef = useRef<boolean>(false)
   const [attachedImage, setAttachedImage] = useState<File | null>(null)
   const [attachedPreviewUrl, setAttachedPreviewUrl] = useState<string | null>(null)
   
@@ -457,16 +458,18 @@ export default function ChatComposer({ currentChatId, onChatCreated, session }: 
     }
   }, [attachedPreviewUrl])
 
-  // Scroll to bottom when messages change, but only if user is near bottom
+  // Scroll to bottom when messages change. If user is near bottom, keep pinned.
+  // If a new message was just sent (forceScrollRef), force scrolling regardless.
   useEffect(() => {
     if (!messagesContainerRef.current || !messagesEndRef.current) return;
     
     const container = messagesContainerRef.current;
     const isNearBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 100;
     
-    if (isNearBottom) {
+    if (isNearBottom || forceScrollRef.current) {
       requestAnimationFrame(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+        forceScrollRef.current = false;
       });
     }
   }, [currentChatMessages.length]);
@@ -540,6 +543,11 @@ export default function ChatComposer({ currentChatId, onChatCreated, session }: 
       onChatCreated(activeChatId)
       setTimeout(() => setCurrentChatId(activeChatId), 50)
       setMessage("")
+      // Force scroll to the newest message even if user had scrolled up
+      forceScrollRef.current = true
+      requestAnimationFrame(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+      })
 
       const response = await responsePromise
 
