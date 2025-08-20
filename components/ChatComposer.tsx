@@ -176,7 +176,9 @@ export default function ChatComposer({ currentChatId, onChatCreated, session }: 
     const parts: Array<{ type: 'code' | 'text'; lang?: string; text: string }> = []
     let lastIdx = 0
     let m: RegExpExecArray | null
+    let foundFence = false
     while ((m = fenceRegex.exec(content)) !== null) {
+      foundFence = true
       const before = content.slice(lastIdx, m.index)
       if (before.trim()) parts.push({ type: 'text', text: before })
       parts.push({ type: 'code', lang: m[1] || undefined, text: m[2] })
@@ -186,7 +188,7 @@ export default function ChatComposer({ currentChatId, onChatCreated, session }: 
     if (tail.trim()) parts.push({ type: 'text', text: tail })
 
     // If no fences but HTML-like, render as pre/code with pretty formatting (no copy frame)
-    if (parts.length === 0) {
+    if (!foundFence) {
       if (looksLikeHTML(content)) {
         return (
           <pre className="mt-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-md p-3 font-mono text-[12.5px] leading-5 whitespace-pre-wrap break-words overflow-x-auto">
@@ -196,8 +198,8 @@ export default function ChatComposer({ currentChatId, onChatCreated, session }: 
       }
     }
 
-    // If there are parts, render each without copy frames
-    if (parts.length > 0) {
+    // If fences were found, render split parts (code + text) without copy frames
+    if (foundFence) {
       // Helper for links
       const renderPlainLinks = (text: string) => {
         const urlSplitRegex = /(https?:\/\/[^\s)]+|www\.[^\s)]+)/gi
@@ -232,7 +234,7 @@ export default function ChatComposer({ currentChatId, onChatCreated, session }: 
       )
     }
 
-    // Fallback: improved formatter (lists, bullets, headings)
+    // Fallback: improved formatter (lists, bullets, headings) — only used when no code fences
     // Normalize: split single-line lists into separate lines for better readability
     let normalized = content
       // force newlines before every numbered item occurrence
