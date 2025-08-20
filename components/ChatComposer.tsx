@@ -262,16 +262,54 @@ export default function ChatComposer({ currentChatId, onChatCreated, session }: 
       })
     }
 
-    // Markdown [text](url) + fallback to plain URLs
+    // Markdown inline: [text](url), bold **text** or __text__, and plain URLs
     const renderInline = (text: string) => {
       const mdRegex = /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g
       const elements: any[] = []
       let lastIndex = 0
       let match: RegExpExecArray | null
+
+      const renderBold = (txt: string) => {
+        const nodes: any[] = []
+        let cursor = 0
+        const strongRe = /\*\*([^*]+)\*\*|__([^_]+)__/g
+        let sm: RegExpExecArray | null
+        while ((sm = strongRe.exec(txt)) !== null) {
+          const before = txt.slice(cursor, sm.index)
+          if (before) nodes.push(<span key={`sb-${cursor}`}>{before}</span>)
+          const boldText = sm[1] || sm[2]
+          nodes.push(<strong key={`st-${cursor}`}>{boldText}</strong>)
+          cursor = sm.index + sm[0].length
+        }
+        const tailTxt = txt.slice(cursor)
+        if (tailTxt) nodes.push(<span key={`se-${cursor}`}>{tailTxt}</span>)
+        return nodes
+      }
+
+      const processText = (txt: string) => {
+        const urlSplitRegex = /(https?:\/\/[^\s)]+|www\.[^\s)]+)/gi
+        const parts = txt.split(urlSplitRegex)
+        const nodes: any[] = []
+        for (let i = 0; i < parts.length; i++) {
+          const part = parts[i]
+          if (!part) continue
+          const isUrl = /^(https?:\/\/|www\.)/i.test(part)
+          if (isUrl) {
+            const href = part.startsWith('http') ? part : `https://${part}`
+            nodes.push(
+              <a key={`u-${lastIndex}-${i}`} href={href} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline break-all">{part}</a>
+            )
+          } else {
+            nodes.push(...renderBold(part))
+          }
+        }
+        return nodes
+      }
+
       while ((match = mdRegex.exec(text)) !== null) {
         const [full, label, href] = match
         const before = text.slice(lastIndex, match.index)
-        if (before) elements.push(<span key={`b-${lastIndex}`}>{renderPlainLinks(before)}</span>)
+        if (before) elements.push(...processText(before))
         elements.push(
           <a key={`a-${match.index}`} href={href} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline break-all">
             {label}
@@ -280,7 +318,7 @@ export default function ChatComposer({ currentChatId, onChatCreated, session }: 
         lastIndex = match.index + full.length
       }
       const tail = text.slice(lastIndex)
-      if (tail) elements.push(<span key={`t-${lastIndex}`}>{renderPlainLinks(tail)}</span>)
+      if (tail) elements.push(...processText(tail))
       return elements
     }
 
