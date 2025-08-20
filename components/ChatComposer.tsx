@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import { Send, Loader2, User, Bot, MessageSquare, Plus, Image as ImageIcon, X } from 'lucide-react';
+import { Send, Loader2, User, Bot, MessageSquare, Plus, Image as ImageIcon, X, Copy } from 'lucide-react';
 import { useChats, Message } from '@/hooks/useChats';
 import { useChatsContext } from '@/context/ChatsContext';
 import { useTokens } from '@/context/TokensContext';
@@ -146,8 +146,113 @@ export default function ChatComposer({ currentChatId, onChatCreated, session }: 
     }
   }
 
+  // Reusable framed block with copy button
+  function FrameWithCopy({ text, mono = false, label }: { text: string; mono?: boolean; label?: string }) {
+    const [copied, setCopied] = useState(false)
+    const handleCopy = async () => {
+      try {
+        await navigator.clipboard.writeText(text)
+        setCopied(true)
+        setTimeout(() => setCopied(false), 1200)
+      } catch {}
+    }
+    return (
+      <div className={`relative mt-2 border rounded-md ${mono ? 'bg-gray-50 dark:bg-gray-900 border-gray-200 dark:border-gray-700' : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700'}`}>
+        <div className="flex items-center justify-between px-3 py-2 border-b border-gray-100 dark:border-gray-700">
+          <span className="text-xs text-gray-500 dark:text-gray-400">{label || (mono ? 'Code' : 'Content')}</span>
+          <button onClick={handleCopy} className="flex items-center gap-1 text-xs text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400">
+            <Copy className="w-3.5 h-3.5" /> {copied ? 'კოპირებული' : 'კოპირება'}
+          </button>
+        </div>
+        <div className={`p-3 ${mono ? 'font-mono text-[12.5px] leading-5' : 'text-sm leading-relaxed'}`}
+             style={mono ? { whiteSpace: 'pre-wrap', overflowX: 'auto' } : undefined}>
+          {mono ? <pre className="whitespace-pre-wrap break-words"><code>{text}</code></pre> : <div className="whitespace-pre-wrap break-words">{text}</div>}
+        </div>
+      </div>
+    )
+  }
+
   // Render assistant content with special formatting; support markdown links [text](url)
   function renderAssistantContent(content: string) {
+    // Heuristics
+    const looksLikeHTML = (txt: string) => /<\w+[^>]*>/.test(txt) && txt.includes('</')
+    const prettifyHTML = (html: string) => {
+      // naive pretty-print: add newlines and indentation
+      const withBreaks = html.replace(/>\s*</g, '><').replace(/></g, '>$<$').split('$').join('\n')
+      const lines = withBreaks.split(/\n/)
+      let indent = 0
+      const out: string[] = []
+      for (let raw of lines) {
+        const line = raw.trim()
+        if (!line) continue
+        const isClosing = /^<\//.test(line)
+        const isSelfClosing = /\/>$/.test(line) || /^<!/.test(line)
+        if (isClosing) indent = Math.max(0, indent - 1)
+        out.push('  '.repeat(indent) + line)
+        if (!isClosing && !isSelfClosing && /<\w+[^>]*>/.test(line) && !line.includes('</')) indent += 1
+      }
+      return out.join('\n')
+    }
+
+    // Code fence parsing: ```lang\ncode\n```
+    const fenceRegex = /```(\w+)?\n([\s\S]*?)```/g
+    const parts: Array<{ type: 'code' | 'text'; lang?: string; text: string }> = []
+    let lastIdx = 0
+    let m: RegExpExecArray | null
+    while ((m = fenceRegex.exec(content)) !== null) {
+      const before = content.slice(lastIdx, m.index)
+      if (before.trim()) parts.push({ type: 'text', text: before })
+      parts.push({ type: 'code', lang: m[1] || undefined, text: m[2] })
+      lastIdx = m.index + m[0].length
+    }
+    const tail = content.slice(lastIdx)
+    if (tail.trim()) parts.push({ type: 'text', text: tail })
+
+    // If no fences but HTML-like, render as code frame with pretty formatting
+    if (parts.length === 0) {
+      if (looksLikeHTML(content)) {
+        return <FrameWithCopy text={prettifyHTML(content)} mono label="HTML" />
+      }
+    }
+
+    // If there are parts, render each; long text chunks go into framed box with copy
+    if (parts.length > 0) {
+      return (
+        <div className="space-y-3">
+          {parts.map((p, idx) => {
+            if (p.type === 'code') {
+              const langLabel = (p.lang || 'code').toUpperCase()
+              return <FrameWithCopy key={`code-${idx}`} text={p.text} mono label={langLabel} />
+            }
+            // For text parts, if long, frame with copy; otherwise use formatter
+            const txt = p.text.trim()
+            const isLong = txt.length > 400 || /\n\n/.test(txt) || /\d+\.\s/.test(txt)
+            if (isLong) {
+              return <FrameWithCopy key={`txt-${idx}`} text={txt} label="პასუხი" />
+            }
+            // Fallback to inline formatter used earlier
+            const renderPlainLinks = (text: string) => {
+              const urlSplitRegex = /(https?:\/\/[^\s)]+|www\.[^\s)]+)/gi
+              return text.split(urlSplitRegex).map((part, i) => {
+                const isUrl = /^(https?:\/\/|www\.)/i.test(part)
+                if (isUrl) {
+                  const href = part.startsWith('http') ? part : `https://${part}`
+                  return (
+                    <a key={`url-${i}`} href={href} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline break-all">
+                      {part}
+                    </a>
+                  )
+                }
+                return <span key={`txt-${i}`}>{part}</span>
+              })
+            }
+            return <p key={`txt-${idx}`} className="text-sm leading-relaxed whitespace-normal break-words">{renderPlainLinks(txt)}</p>
+          })}
+        </div>
+      )
+    }
+
+    // If we reach here, use previous rich formatter (split lists, bullets, etc.)
     // Normalize: split single-line lists into separate lines for better readability
     let normalized = content
       // insert newline before " 1. ", " 2. ", etc when they appear mid-line
