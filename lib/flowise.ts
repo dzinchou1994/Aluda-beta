@@ -321,7 +321,10 @@ export async function sendToFlowise({
         }
       }
       // If still nothing useful, return raw snippet instead of throwing so UI shows something
-      return { text: rawFallback.slice(0, 400) || 'No response received', __meta: { chatflowId, host: normalizedHost, endpoint: endpointUsed, rawSnippet: rawFallback.slice(0, 400) } as any } as any
+      const isHtmlError = /<(!DOCTYPE|html)[^>]*>/i.test(rawFallback)
+      const safeMsgKa = 'ბოდიში, სერვერმა დროებით შეცდომა დააბრუნა (მაგ. 502). გთხოვთ სცადოთ ხელახლა რამდენიმე წამში.'
+      const text = isHtmlError ? safeMsgKa : (rawFallback.slice(0, 400) || 'No response received')
+      return { text, __meta: { chatflowId, host: normalizedHost, endpoint: endpointUsed } as any } as any
     }
     throw new Error(`Unexpected content-type ${contentType} with empty body`)
     
