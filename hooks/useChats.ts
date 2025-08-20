@@ -105,6 +105,7 @@ type ChatAction =
   | { type: 'UPDATE_CHAT'; payload: { chatId: string; chat: Partial<Chat> } }
   | { type: 'DELETE_CHAT'; payload: string }
   | { type: 'ADD_MESSAGE'; payload: { chatId: string; message: Message } }
+  | { type: 'UPDATE_MESSAGE'; payload: { chatId: string; messageId: string; changes: Partial<Message> } }
   | { type: 'SET_INITIALIZED'; payload: boolean };
 
 // Reducer function
@@ -187,6 +188,18 @@ function chatReducer(state: ChatState, action: ChatAction): ChatState {
           return chat;
         })
       };
+
+    case 'UPDATE_MESSAGE':
+      return {
+        ...state,
+        chats: state.chats.map(chat => {
+          if (chat.id !== action.payload.chatId) return chat
+          return {
+            ...chat,
+            messages: chat.messages.map(m => m.id === action.payload.messageId ? { ...m, ...action.payload.changes } : m)
+          }
+        })
+      }
     
     case 'SET_INITIALIZED':
       return { ...state, isInitialized: action.payload };
@@ -372,6 +385,10 @@ export function useChats() {
     console.log('useChats: Dispatch completed for chat update')
   }, [dispatch])
 
+  const updateMessageInChat = useCallback((chatId: string, messageId: string, changes: Partial<Message>) => {
+    dispatch({ type: 'UPDATE_MESSAGE', payload: { chatId, messageId, changes } })
+  }, [])
+
   const getCurrentChat = useCallback(() => {
     const currentChat = chats.find(chat => chat.id === currentChatId);
     console.log('useChats: Getting current chat:', currentChat, 'for ID:', currentChatId);
@@ -415,6 +432,7 @@ export function useChats() {
     deleteChat,
     renameChat,
     addMessageToChat,
+    updateMessageInChat,
     setCurrentChatId: (chatId: string | undefined) => {
       console.log('useChats: setCurrentChatId called with:', chatId);
       dispatch({ type: 'SET_CURRENT_CHAT_ID', payload: chatId });

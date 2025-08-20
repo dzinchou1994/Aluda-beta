@@ -96,7 +96,8 @@ export default function ChatComposer({ currentChatId, onChatCreated, session }: 
     addMessageToChat,
     setCurrentChatId,
     renameChat,
-    isInitialized
+    isInitialized,
+    updateMessageInChat
   } = useChatsContext()
   const { setUsageLimits } = useTokens()
   
@@ -398,16 +399,9 @@ export default function ChatComposer({ currentChatId, onChatCreated, session }: 
       
       console.log('ChatComposer: Adding assistant message:', assistantMessage)
       addMessageToChat(activeChatId, assistantMessage)
-
-      // Show loading state first
-      const loadingMessage = { 
-        ...assistantMessage, 
-        content: '<span class="typing-cursor"></span>'
-      }
-      addMessageToChat(activeChatId, loadingMessage)
       
-      // Wait a bit before starting typing
-      await new Promise(resolve => setTimeout(resolve, 500))
+      // End loading state before typing to avoid duplicate loaders
+      setIsLoading(false)
 
       // Simulate typing effect
       const fullText = data.text || "ბოდიში, პასუხი ვერ მივიღე."
@@ -418,12 +412,8 @@ export default function ChatComposer({ currentChatId, onChatCreated, session }: 
         await new Promise(resolve => setTimeout(resolve, 750)) // 0.75 seconds
         currentText += (i > 0 ? " " : "") + words[i]
         
-        // Update the assistant message content with cursor
-        const updatedMessage = { 
-          ...assistantMessage, 
-          content: currentText + (i < words.length - 1 ? '<span class="typing-cursor"></span>' : '')
-        }
-        addMessageToChat(activeChatId, updatedMessage)
+        // Update the existing assistant message content incrementally
+        updateMessageInChat(activeChatId, assistantMessage.id, { content: currentText })
       }
 
       // Clear attached image after successful send
