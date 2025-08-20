@@ -151,28 +151,11 @@ export default function ChatComposer({ currentChatId, onChatCreated, session }: 
 
   // Render assistant content with special formatting; support markdown links [text](url)
   function renderAssistantContent(content: string) {
-    // Heuristics
-    const looksLikeHTML = (txt: string) => /<\w+[^>]*>/.test(txt) && txt.includes('</')
-    const prettifyHTML = (html: string) => {
-      // naive pretty-print: add newlines and indentation (no copy frame)
-      const withBreaks = html.replace(/>\s*</g, '><').replace(/></g, '>$<$').split('$').join('\n')
-      const lines = withBreaks.split(/\n/)
-      let indent = 0
-      const out: string[] = []
-      for (let raw of lines) {
-        const line = raw.trim()
-        if (!line) continue
-        const isClosing = /^<\//.test(line)
-        const isSelfClosing = /\/>$/.test(line) || /^<!/.test(line)
-        if (isClosing) indent = Math.max(0, indent - 1)
-        out.push('  '.repeat(indent) + line)
-        if (!isClosing && !isSelfClosing && /<\w+[^>]*>/.test(line) && !line.includes('</')) indent += 1
-      }
-      return out.join('\n')
-    }
+    // (Removed HTML auto-frame pretty print to avoid swallowing surrounding text)
 
-    // Code fence parsing: ```lang\ncode\n```
-    const fenceRegex = /```(\w+)?\n([\s\S]*?)```/g
+    // Code fence parsing: allow optional whitespace/newline after language
+    // Examples: ```html\n... or ```html ...
+    const fenceRegex = /```(\w+)?[\t ]*\n?([\s\S]*?)```/g
     const parts: Array<{ type: 'code' | 'text'; lang?: string; text: string }> = []
     let lastIdx = 0
     let m: RegExpExecArray | null
@@ -187,16 +170,7 @@ export default function ChatComposer({ currentChatId, onChatCreated, session }: 
     const tail = content.slice(lastIdx)
     if (tail.trim()) parts.push({ type: 'text', text: tail })
 
-    // If no fences but HTML-like, render as pre/code with pretty formatting (no copy frame)
-    if (!foundFence) {
-      if (looksLikeHTML(content)) {
-        return (
-          <pre className="mt-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-md p-3 font-mono text-[12.5px] leading-5 whitespace-pre-wrap break-words overflow-x-auto">
-            <code>{prettifyHTML(content)}</code>
-          </pre>
-        )
-      }
-    }
+    // If no code fences, continue to text formatter (no HTML framing)
 
     // If fences were found, render split parts (code + text) without copy frames
     if (foundFence) {
