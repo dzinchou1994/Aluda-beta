@@ -148,6 +148,14 @@ export default function ChatComposer({ currentChatId, onChatCreated, session }: 
 
   // Render assistant content with special formatting; support markdown links [text](url)
   function renderAssistantContent(content: string) {
+    // Normalize: split single-line lists into separate lines for better readability
+    let normalized = content
+      // insert newline before " 1. ", " 2. ", etc when they appear mid-line
+      .replace(/\s+(\d+)\.\s/g, (m) => "\n" + m.trimStart())
+      // insert newline before dash bullets when inline
+      .replace(/\s+-\s+/g, (m) => "\n- ")
+      .trim()
+
     // Plain URL linkifier
     const renderPlainLinks = (text: string) => {
       const urlSplitRegex = /(https?:\/\/[^\s)]+|www\.[^\s)]+)/gi
@@ -187,7 +195,7 @@ export default function ChatComposer({ currentChatId, onChatCreated, session }: 
       return elements
     }
 
-    const lines = content.split(/\r?\n/)
+    const lines = normalized.split(/\r?\n/).filter(l => l.trim().length > 0)
     const blocks: JSX.Element[] = []
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i]
@@ -195,7 +203,7 @@ export default function ChatComposer({ currentChatId, onChatCreated, session }: 
       if (mdHeading) {
         const title = mdHeading[1]
         blocks.push(
-          <div key={`h-${i}`}>
+          <div key={`h-${i}`} className="mt-3">
             <div className="font-bold text-lg leading-snug">{title}</div>
           </div>
         )
@@ -209,7 +217,7 @@ export default function ChatComposer({ currentChatId, onChatCreated, session }: 
         const next = lines[i + 1]
         const desc = next && next.match(/^\s*-\s+(.+)\s*$/)
         blocks.push(
-          <div key={`li-${i}`} className="text-sm leading-relaxed whitespace-normal break-words">
+          <div key={`li-${i}`} className="mt-2 text-sm leading-relaxed whitespace-normal break-words">
             <span className="font-semibold mr-1">{number}.</span>
             <a href={href} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline break-all">{label}</a>
             {desc ? <div className="mt-1 text-xs text-gray-600 dark:text-gray-300">{renderInline(desc[1])}</div> : null}
@@ -219,25 +227,47 @@ export default function ChatComposer({ currentChatId, onChatCreated, session }: 
         continue
       }
 
-      // Numbered list with bold title pattern remains
-      const match = line.match(/^\s*(\d+)\.\s*\*\*(.+?)\*\*\s*:??\s*(.*)\s*$/)
-      if (match) {
-        const [, number, title, rest] = match
+      // Numbered list with bold title pattern
+      const boldMatch = line.match(/^\s*(\d+)\.\s*\*\*(.+?)\*\*\s*:??\s*(.*)\s*$/)
+      if (boldMatch) {
+        const [, number, title, rest] = boldMatch
         const cleanedRest = (rest || '').replace(/^\s*[:：]\s*/, '')
         blocks.push(
-          <div key={`b-${i}`}>
-            <div className="font-bold text-lg leading-snug">{`${number}. ${title}`}</div>
+          <div key={`b-${i}`} className="mt-3">
+            <div className="font-bold text-base leading-snug">{`${number}. ${title}`}</div>
             {cleanedRest && <div className="mt-1 text-sm leading-relaxed whitespace-normal break-words">{renderInline(cleanedRest)}</div>}
           </div>
         )
         continue
       }
 
+      // Numbered list with plain title pattern: 1. Title: text
+      const plainMatch = line.match(/^\s*(\d+)\.\s*([^:]+):\s*(.*)\s*$/)
+      if (plainMatch) {
+        const [, number, title, rest] = plainMatch
+        blocks.push(
+          <div key={`p-${i}`} className="mt-3">
+            <div className="font-bold text-base leading-snug">{`${number}. ${title.trim()}`}</div>
+            {rest && <div className="mt-1 text-sm leading-relaxed whitespace-normal break-words">{renderInline(rest)}</div>}
+          </div>
+        )
+        continue
+      }
+
+      // Bullet line: - text
+      const bullet = line.match(/^\s*-\s+(.+)\s*$/)
+      if (bullet) {
+        blocks.push(
+          <div key={`bu-${i}`} className="mt-1 text-sm leading-relaxed whitespace-normal break-words">• {renderInline(bullet[1])}</div>
+        )
+        continue
+      }
+
       blocks.push(
-        <p key={`p-${i}`} className="text-sm leading-relaxed whitespace-normal break-words">{renderInline(line)}</p>
+        <p key={`p-${i}`} className="mt-2 text-sm leading-relaxed whitespace-normal break-words">{renderInline(line)}</p>
       )
     }
-    return <div className="space-y-3">{blocks}</div>
+    return <div className="space-y-1">{blocks}</div>
   }
   
   // Use the prop currentChatId if provided, otherwise use the hook's currentChatId
