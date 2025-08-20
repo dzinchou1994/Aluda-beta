@@ -528,13 +528,6 @@ export default function ChatComposer({ currentChatId, onChatCreated, session }: 
                 }`}
                 style={shouldAnimate ? { animationDelay: `${index * 100}ms` } : undefined}
               >
-                {/* Avatar - Only show for bot messages */}
-                {msg.role === 'assistant' && (
-                  <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-purple-600 rounded-full flex items-center justify-center flex-shrink-0 shadow-lg chat-avatar">
-                    <Bot className="w-5 h-5 text-white" />
-                  </div>
-                )}
-
                 {/* Message Content - User messages with bubbles, AI messages as simple text */}
                 <div className={`min-w-0 max-w-[70%] ${shouldAnimate ? 'animate-fade-in-left' : ''} flex flex-col ${
                   msg.role === 'user' ? 'items-end order-first' : 'items-start order-last'
@@ -571,13 +564,6 @@ export default function ChatComposer({ currentChatId, onChatCreated, session }: 
                     </div>
                   )}
                 </div>
-
-                {/* Avatar - Only show for bot messages */}
-                {msg.role === 'assistant' && (
-                  <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-purple-600 rounded-full flex items-center justify-center flex-shrink-0 shadow-lg chat-avatar">
-                    <Bot className="w-5 h-5 text-white" />
-                  </div>
-                )}
               </div>
             )})}
           </div>
@@ -586,9 +572,6 @@ export default function ChatComposer({ currentChatId, onChatCreated, session }: 
         {/* Loading Indicator */}
         {isLoading && (
           <div className="flex items-start space-x-3 animate-fade-in-up">
-            <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-purple-600 rounded-full flex items-center justify-center flex-shrink-0 shadow-lg">
-              <Bot className="w-5 h-5 text-white" />
-            </div>
             <div className="max-w-[70%]">
               <div className="text-gray-900 dark:text-white">
                 <div className="flex items-center space-x-2">
@@ -607,9 +590,6 @@ export default function ChatComposer({ currentChatId, onChatCreated, session }: 
         {/* Error Message */}
         {error && (
           <div className="flex items-start space-x-3 animate-fade-in-up">
-            <div className="w-8 h-8 bg-gradient-to-r from-red-500 to-red-600 rounded-full flex items-center justify-center flex-shrink-0 shadow-lg">
-              <div className="w-5 h-5 text-white">⚠️</div>
-            </div>
             <div className="max-w-[70%]">
               <div className="text-red-700 dark:text-red-400">
                 <p className="text-sm">{error}</p>
