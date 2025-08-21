@@ -10,6 +10,25 @@ import ModelSwitcher from '@/components/ModelSwitcher';
 import { useModel } from '@/context/ModelContext';
 import { Session } from 'next-auth';
 
+// Time formatting helpers
+const formatShortTime = (iso?: string) => {
+  if (!iso) return ''
+  try {
+    return new Intl.DateTimeFormat('ka-GE', { hour: '2-digit', minute: '2-digit' }).format(new Date(iso))
+  } catch {
+    return ''
+  }
+}
+
+const formatFullDateTime = (iso?: string) => {
+  if (!iso) return ''
+  try {
+    return new Intl.DateTimeFormat('ka-GE', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(iso))
+  } catch {
+    return ''
+  }
+}
+
 function Suggestions({ onPick }: { onPick: (s: string) => void }) {
   const [topics, setTopics] = useState<string[] | null>(null)
   const [loading, setLoading] = useState(true)
@@ -766,6 +785,16 @@ export default function ChatComposer({ currentChatId, onChatCreated, session }: 
                       {renderAssistantContent(msg.content)}
                     </div>
                   )}
+                  {/* Timestamp */}
+                  <div className={`${msg.role === 'user' ? 'text-right' : 'text-left'} mt-1`}> 
+                    <time
+                      dateTime={(msg as any).timestamp}
+                      title={formatFullDateTime((msg as any).timestamp)}
+                      className="text-[11px] text-gray-400 dark:text-gray-500"
+                    >
+                      {formatShortTime((msg as any).timestamp)}
+                    </time>
+                  </div>
                 </div>
               </div>
             )})}
