@@ -80,7 +80,7 @@ export default function ChatPage() {
   }
 
   return (
-    <div className="flex h-screen bg-gray-50 dark:bg-chat-bg">
+    <div className="flex h-screen md:h-screen bg-gray-50 dark:bg-chat-bg">
       {/* Mobile Sidebar Overlay */}
       {isMobileSidebarOpen && (
         <div 
@@ -168,7 +168,7 @@ export default function ChatPage() {
         )}
 
         {/* Chat Content */}
-        <div className="flex-1 overflow-hidden bg-gray-50 dark:bg-gray-800 transition-colors duration-200 min-w-0">
+        <div className="flex-1 overflow-hidden bg-gray-50 dark:bg-chat-bg transition-colors duration-200 min-w-0">
           <ChatComposer
             currentChatId={currentChatId}
             onChatCreated={handleChatCreated}
@@ -185,7 +185,7 @@ export default function ChatPage() {
             onClick={closeMobileSidebar}
             onPointerDown={closeMobileSidebar}
           />
-          <div className="absolute inset-y-0 left-0 w-[85vw] max-w-xs bg-white dark:bg-gray-900 shadow-xl flex z-50">
+          <div className="absolute inset-y-0 left-0 w-[85vw] max-w-xs bg-white dark:bg-sidebar-dark shadow-xl flex z-50">
             <Sidebar
               chats={chats}
               currentChatId={currentChatId}

@@ -720,14 +720,14 @@ export default function ChatComposer({ currentChatId, onChatCreated, session }: 
   }
 
   return (
-    <div className="flex flex-col h-full bg-gradient-to-br from-gray-50 via-white to-gray-100 dark:bg-chat-bg transition-colors duration-200 min-w-0">
+    <div className="flex flex-col h-full bg-white dark:bg-chat-bg transition-colors duration-200 min-w-0">
       {/* Messages Area - Fixed height with scroll */}
       <div 
         ref={messagesContainerRef}
         className="flex-1 overflow-y-auto p-4 space-y-4 bg-white dark:bg-chat-bg"
         style={{ 
-          height: 'calc(100dvh - 160px)',
-          maxHeight: 'calc(100dvh - 160px)',
+          height: 'calc(100vh - 200px)',
+          maxHeight: 'calc(100vh - 200px)',
           overflowY: 'auto',
           // Avoid reflow jitter on some mobile browsers
           WebkitOverflowScrolling: 'touch'
