@@ -15,6 +15,7 @@
 .chat-bubble-user {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   box-shadow: none;
+  color: white;
 }
 
 /* Dark mode: neutral black/gray user bubble */
