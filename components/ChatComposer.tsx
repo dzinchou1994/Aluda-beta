@@ -733,15 +733,9 @@ export default function ChatComposer({ currentChatId, onChatCreated, session }: 
       {/* Messages Area - Fixed height with scroll */}
       <div 
         ref={messagesContainerRef}
-        onScroll={() => {
-          const container = messagesContainerRef.current;
-          if (!container) return;
-          const isNearBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 100;
-          // isAtBottomRef.current = isNearBottom; // This line is removed
-        }}
         className="flex-1 min-h-0 overflow-y-auto p-4 space-y-4 bg-white dark:bg-chat-bg overscroll-contain"
         style={{ 
-          paddingBottom: `calc(env(safe-area-inset-bottom, 0px) + 80px)`, // Fixed bottom padding
+          paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 80px)',
           WebkitOverflowScrolling: 'touch'
         }}
       >
