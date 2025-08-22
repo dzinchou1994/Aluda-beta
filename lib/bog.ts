@@ -74,10 +74,9 @@ export async function createBogOrder(params: CreateOrderParams): Promise<CreateO
   const hasDb = dbEnv.BOG_PUBLIC_KEY && dbEnv.BOG_SECRET_KEY && dbEnv.BOG_RETURN_URL && dbEnv.BOG_CALLBACK_URL
   const { BOG_PUBLIC_KEY, BOG_SECRET_KEY, BOG_API_BASE, BOG_RETURN_URL, BOG_CALLBACK_URL } = hasDb ? (dbEnv as any) : getBogEnv()
 
-  // Payments Manager typically uses Basic Auth with public/secret, or specific headers per merchant.
-  // We'll use Basic auth. If the gateway expects different headers for your merchant, adjust here.
-  const auth = Buffer.from(`${BOG_PUBLIC_KEY}:${BOG_SECRET_KEY}`).toString('base64')
-
+  // Payments Manager typically uses different endpoints than iPay
+  const path = process.env.BOG_CREATE_ORDER_PATH || '/api/v1/orders'
+  
   // Shape payload per Payments Manager standard flow: order create → receive paymentUrl
   // The exact field names may differ; adapt to your merchant configuration.
   const payload = {
@@ -89,17 +88,16 @@ export async function createBogOrder(params: CreateOrderParams): Promise<CreateO
     callback_url: BOG_CALLBACK_URL,
     customer: params.customerEmail ? { email: params.customerEmail } : undefined,
   }
-
-  const path = process.env.BOG_CREATE_ORDER_PATH || '/payments/v1/orders'
+  
   const url = `${BOG_API_BASE}${path.startsWith('/') ? path : `/${path}`}`
   const raw = await fetchJson(url, {
     method: 'POST',
     headers: {
-      // Many BOG APIs are fronted by IBM API gateway and expect client credentials headers
-      'x-ibm-client-id': BOG_PUBLIC_KEY,
-      'x-ibm-client-secret': BOG_SECRET_KEY,
-      // Also include Basic as some tenants still support it
-      'Authorization': `Basic ${auth}`,
+      // Payments Manager typically uses OAuth 2.0 + JWT as mentioned in docs
+      // For now, try both auth methods - your tenant may use one or the other
+      'Authorization': `Bearer ${BOG_PUBLIC_KEY}`,
+      'x-client-id': BOG_PUBLIC_KEY,
+      'x-client-secret': BOG_SECRET_KEY,
       'Content-Type': 'application/json',
       'Accept': 'application/json',
     },
