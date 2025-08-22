@@ -132,9 +132,39 @@ export default function ChatComposer({ currentChatId, onChatCreated, session }: 
   const fileInputRef = useRef<HTMLInputElement>(null)
   const renderedMessageIdsRef = useRef<Set<string>>(new Set())
   const forceScrollRef = useRef<boolean>(false)
+  const isAtBottomRef = useRef<boolean>(true)
+  const inputContainerRef = useRef<HTMLDivElement>(null)
+  const [bottomPadPx, setBottomPadPx] = useState<number>(80)
   const [attachedImage, setAttachedImage] = useState<File | null>(null)
   const [attachedPreviewUrl, setAttachedPreviewUrl] = useState<string | null>(null)
   // removed dynamic input height padding logic to prevent extra space on mobile
+
+  // Helper: reliable scroll to bottom within the container (mobile Safari friendly)
+  const scrollToBottom = (behavior: ScrollBehavior = 'smooth') => {
+    const container = messagesContainerRef.current
+    if (!container) return
+    container.scrollTo({ top: container.scrollHeight, behavior })
+  }
+
+  // Track whether user is near the bottom to decide auto-scroll during updates
+  const handleMessagesScroll = () => {
+    const container = messagesContainerRef.current
+    if (!container) return
+    const threshold = 120
+    const distance = container.scrollHeight - container.scrollTop - container.clientHeight
+    isAtBottomRef.current = distance < threshold
+  }
+
+  // Measure input area height to pad the scroll container bottom so content isn't hidden
+  useEffect(() => {
+    const updatePad = () => {
+      const h = inputContainerRef.current?.offsetHeight || 64
+      setBottomPadPx(h + 16)
+    }
+    updatePad()
+    window.addEventListener('resize', updatePad)
+    return () => window.removeEventListener('resize', updatePad)
+  }, [])
 
   // Compress large images on the client before uploading to avoid 413 Payload Too Large
   async function compressImageIfNeeded(original: File): Promise<Blob> {
@@ -488,7 +518,7 @@ export default function ChatComposer({ currentChatId, onChatCreated, session }: 
     
     if (isNearBottom || forceScrollRef.current) {
       requestAnimationFrame(() => {
-        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+        scrollToBottom('smooth')
         forceScrollRef.current = false;
       });
     }
@@ -496,7 +526,7 @@ export default function ChatComposer({ currentChatId, onChatCreated, session }: 
 
   useEffect(() => {
     if (!messagesEndRef.current || !messagesContainerRef.current) return
-    messagesEndRef.current.scrollIntoView({ behavior: 'smooth', block: 'end' })
+    scrollToBottom('smooth')
   }, [currentChatMessages.length, isLoading])
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -571,7 +601,7 @@ export default function ChatComposer({ currentChatId, onChatCreated, session }: 
       // Force scroll to the newest message even if user had scrolled up
       forceScrollRef.current = true
       requestAnimationFrame(() => {
-        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+        scrollToBottom('smooth')
       })
 
       const response = await responsePromise
@@ -629,6 +659,10 @@ export default function ChatComposer({ currentChatId, onChatCreated, session }: 
         
         // Update the existing assistant message content incrementally
         updateMessageInChat(activeChatId, assistantMessage.id, { content: currentText })
+        // Keep view pinned to bottom while typing if user didn't scroll away
+        if (isAtBottomRef.current) {
+          scrollToBottom('auto')
+        }
       }
 
       // If server suggested a concise title and the current chat still has the default title, apply it
@@ -730,9 +764,10 @@ export default function ChatComposer({ currentChatId, onChatCreated, session }: 
       {/* Messages Area - Fixed height with scroll */}
       <div 
         ref={messagesContainerRef}
+        onScroll={handleMessagesScroll}
         className="flex-1 min-h-0 overflow-y-auto p-4 space-y-4 bg-white dark:bg-chat-bg overscroll-contain"
         style={{ 
-          paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 16px)',
+          paddingBottom: `calc(env(safe-area-inset-bottom, 0px) + ${bottomPadPx}px)`,
           WebkitOverflowScrolling: 'touch'
         }}
       >
@@ -848,8 +883,8 @@ export default function ChatComposer({ currentChatId, onChatCreated, session }: 
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Input Area (sticky within column) */}
-      <div className="sticky bottom-0 z-10 bg-transparent dark:bg-transparent">
+      {/* Input Area (fixed on mobile to avoid parent overflow issues; sticky on larger screens) */}
+      <div ref={inputContainerRef} className="sticky md:sticky bottom-0 z-10 bg-white/90 dark:bg-chat-bg/90 backdrop-blur supports-[backdrop-filter]:bg-white/60 dark:supports-[backdrop-filter]:bg-chat-bg/60">
         <div className="max-w-4xl mx-auto p-3">
           <form onSubmit={handleSubmit} className="relative">
             {/* model switcher moved to Sidebar footer */}
