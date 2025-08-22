@@ -147,6 +147,24 @@ export default function Sidebar({
           </div>
         )}
         
+        {/* Model Switcher - Moved to top */}
+        <div className="mt-4 p-2 bg-gray-50 dark:bg-sidebar-dark rounded-lg">
+          <div className="flex items-center justify-between">
+            <span className="text-xs text-gray-500 dark:text-gray-400">მოდელი</span>
+            <ModelSwitcher
+              value={model}
+              onChange={(v) => {
+                if (v === 'aluda2' && !session) {
+                  onSignIn()
+                  return
+                }
+                setModel(v)
+              }}
+              disabledAluda2={!session}
+            />
+          </div>
+        </div>
+        
         {/* Authentication Section */}
         {session ? (
           <div className="flex items-center space-x-3 p-3 bg-gray-50 dark:bg-sidebar-dark rounded-lg mt-4">
@@ -183,21 +201,18 @@ export default function Sidebar({
             </button>
           </div>
         ) : (
-          <div className="p-3 bg-gray-50 dark:bg-sidebar-dark rounded-lg mt-4">
-            <div className="flex items-center space-x-3">
-              <div className="w-8 h-8 bg-gradient-to-r from-gray-400 to-gray-500 rounded-full flex items-center justify-center">
-                <User className="w-4 h-4 text-white" />
+          <div className="p-2 bg-gray-50 dark:bg-sidebar-dark rounded-lg mt-4">
+            <div className="flex items-center space-x-2 mb-2">
+              <div className="w-6 h-6 bg-gradient-to-r from-gray-400 to-gray-500 rounded-full flex items-center justify-center">
+                <User className="w-3 h-3 text-white" />
               </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-gray-900 dark:text-white truncate">სტუმარი</p>
-                <p className="text-xs text-gray-500 dark:text-gray-400">{usage.daily}/{limits.daily} დღეს · {usage.monthly}/{limits.monthly} თვეში</p>
-              </div>
+              <span className="text-xs font-medium text-gray-900 dark:text-white">სტუმარი</span>
             </div>
             <button
               onClick={onSignIn}
-              className="mt-3 w-full flex items-center justify-center space-x-2 p-3 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-all duration-200"
+              className="w-full flex items-center justify-center space-x-1 p-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-all duration-200 text-xs"
             >
-              <LogIn className="w-4 h-4" />
+              <LogIn className="w-3 h-3" />
               <span>შესვლა</span>
             </button>
           </div>
@@ -284,22 +299,9 @@ export default function Sidebar({
         )}
       </div>
       
-      {/* Footer: Model Switcher */}
+      {/* Footer: Empty for now */}
       <div className="p-2.5 border-t border-gray-200 dark:border-gray-800">
-        <div className="flex items-center justify-between">
-          <span className="text-xs text-gray-500 dark:text-gray-400">მოდელი</span>
-          <ModelSwitcher
-            value={model}
-            onChange={(v) => {
-              if (v === 'aluda2' && !session) {
-                onSignIn()
-                return
-              }
-              setModel(v)
-            }}
-            disabledAluda2={!session}
-          />
-        </div>
+        {/* Footer content can be added here in the future */}
       </div>
     </div>
   )
