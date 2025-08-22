@@ -63,6 +63,7 @@ export default function ChatComposer({ currentChatId: propCurrentChatId, session
     currentChatId: currentChatId || null,
     createNewChat,
     addMessageToChat,
+    updateMessageInChat,
     onChatCreated,
     setCurrentChatId,
     setError,

@@ -7,6 +7,7 @@ interface UseChatSubmitProps {
   currentChatId: string | null;
   createNewChat: () => string;
   addMessageToChat: (chatId: string, message: Omit<Message, 'timestamp'>) => void;
+  updateMessageInChat: (chatId: string, messageId: string, changes: Partial<Message>) => void;
   onChatCreated: (chatId: string) => void;
   setCurrentChatId: (chatId: string) => void;
   setError: (error: string) => void;
@@ -17,6 +18,7 @@ export function useChatSubmit({
   currentChatId,
   createNewChat,
   addMessageToChat,
+  updateMessageInChat,
   onChatCreated,
   setCurrentChatId,
   setError,
@@ -184,13 +186,8 @@ export function useChatSubmit({
                   
                   // Update the message content in real-time if we have content
                   if (fullContent && parsed.event === 'token') {
-                    const updatedMessage: Omit<Message, 'timestamp'> = {
-                      id: aiMessageId,
-                      role: "assistant",
-                      content: fullContent,
-                    };
                     console.log('Updating message with content:', fullContent);
-                    addMessageToChat(activeChatId, updatedMessage);
+                    updateMessageInChat(activeChatId, aiMessageId, { content: fullContent });
                   }
                 } catch (e) {
                   console.log('Parsing error for line:', data, e); // Debug log
