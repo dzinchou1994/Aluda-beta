@@ -724,20 +724,11 @@ export default function ChatComposer({ currentChatId, onChatCreated, session }: 
     }
   }
 
-  // Handle scroll events to prevent unwanted bouncing
+  // Handle scroll events for smooth mobile experience
   const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
-    if (window.innerWidth <= 768 && messagesContainerRef.current) {
-      const container = e.currentTarget
-      const { scrollTop, scrollHeight, clientHeight } = container
-      
-      // Prevent scrolling beyond boundaries
-      if (scrollTop <= 0) {
-        container.scrollTop = 0
-      }
-      
-      if (scrollTop + clientHeight >= scrollHeight) {
-        container.scrollTop = scrollHeight - clientHeight
-      }
+    // Only handle scroll for mobile devices
+    if (window.innerWidth <= 768) {
+      // Let the browser handle natural scrolling - no restrictions
     }
   }
 
@@ -802,15 +793,14 @@ export default function ChatComposer({ currentChatId, onChatCreated, session }: 
         style={{ 
           paddingTop: '16px',
           paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 100px)',
-          WebkitOverflowScrolling: 'touch',
-          overscrollBehavior: 'contain'
+          WebkitOverflowScrolling: 'touch'
         }}
-        onScroll={handleScroll}
+
       >
         {/* Welcome Message */}
         {currentChatMessages.length === 0 ? (
           <div className="flex flex-col items-center text-center animate-fade-in md:justify-center md:h-full mt-6">
-            <div className="w-16 h-16 md:w-20 md:h-20 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center mb-8 md:mb-6 animate-bounce">
+            <div className="w-16 h-16 md:w-20 md:h-20 logo-gradient rounded-full flex items-center justify-center mb-8 md:mb-6 animate-bounce">
               <MessageSquare className="h-8 w-8 md:h-10 md:w-10 text-white" />
             </div>
             <h3 className="text-xl md:text-2xl font-bold text-gray-800 dark:text-white mb-3">მოგესალმებათ AludaAI</h3>

@@ -58,7 +58,6 @@
 .chat-container {
   scroll-behavior: smooth;
   -webkit-overflow-scrolling: touch;
-  overscroll-behavior: contain;
 }
 
 /* Custom scrollbar for chat */
@@ -198,13 +197,10 @@
     transform: translateZ(0);
   }
   
-  /* Prevent unwanted scrolling when keyboard appears */
+  /* Smooth mobile scrolling */
   .messages-container-mobile {
-    scroll-behavior: auto;
+    scroll-behavior: smooth;
     -webkit-overflow-scrolling: touch;
-    overscroll-behavior: contain;
-    overscroll-behavior-x: none;
-    overscroll-behavior-y: contain;
   }
   
   /* Better mobile keyboard handling */
@@ -219,20 +215,17 @@
     min-height: 80px;
   }
   
-  /* Better scroll behavior for mobile */
+  /* Clean mobile scrolling */
   .messages-container-mobile {
-    scroll-snap-type: y proximity;
-    scroll-snap-align: start;
+    /* Natural, smooth scrolling behavior */
   }
   
-  /* Prevent iOS momentum scrolling issues */
-  .messages-container-mobile::-webkit-scrollbar {
-    display: none;
+  /* Logo gradient that works in both light and dark modes */
+  .logo-gradient {
+    background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
   }
   
-  /* Ensure smooth scrolling without bouncing */
-  .messages-container-mobile {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
+  .dark .logo-gradient {
+    background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
   }
 }
