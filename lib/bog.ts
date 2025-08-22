@@ -75,7 +75,8 @@ export async function createBogOrder(params: CreateOrderParams): Promise<CreateO
   const { BOG_PUBLIC_KEY, BOG_SECRET_KEY, BOG_API_BASE, BOG_RETURN_URL, BOG_CALLBACK_URL } = hasDb ? (dbEnv as any) : getBogEnv()
 
   // Payments Manager typically uses different endpoints than iPay
-  const path = process.env.BOG_CREATE_ORDER_PATH || '/payments/v1/orders'
+  // Try common patterns - your tenant may use a different one
+  const path = process.env.BOG_CREATE_ORDER_PATH || '/api/payments/v1/orders'
   
   // Shape payload per Payments Manager standard flow: order create → receive paymentUrl
   // The exact field names may differ; adapt to your merchant configuration.
