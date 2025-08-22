@@ -846,7 +846,7 @@ export default function ChatComposer({ currentChatId, onChatCreated, session }: 
       </div>
 
       {/* Input Area */}
-      <div className="bg-white dark:bg-gray-900 p-4 md:p-6 transition-colors duration-200">
+      <div className="border-t border-gray-200 dark:border-gray-700 p-4 bg-white dark:bg-chat-bg">
         <div className="max-w-4xl mx-auto">
           <form onSubmit={handleSubmit} className="relative">
             {/* model switcher moved to Sidebar footer */}
