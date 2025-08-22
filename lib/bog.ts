@@ -151,7 +151,8 @@ export async function createBogOrder(params: CreateOrderParams): Promise<CreateO
   console.log('BOG create order response:', JSON.stringify(raw, null, 2))
 
   // Try multiple possible field names for redirect URL
-  const redirectUrl = raw?.redirect_url || raw?.payment_url || raw?.url || raw?.redirectUrl || raw?.paymentUrl
+  // BOG returns it in _links.redirect.href
+  const redirectUrl = raw?._links?.redirect?.href || raw?.redirect_url || raw?.payment_url || raw?.url || raw?.redirectUrl || raw?.paymentUrl
   if (!redirectUrl) {
     console.error('BOG response missing redirect URL. Available fields:', Object.keys(raw || {}))
     throw new Error(`BOG create order: missing redirect URL in response. Response: ${JSON.stringify(raw)}`)
