@@ -131,40 +131,9 @@ export default function ChatComposer({ currentChatId, onChatCreated, session }: 
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const renderedMessageIdsRef = useRef<Set<string>>(new Set())
-  const forceScrollRef = useRef<boolean>(false)
-  const isAtBottomRef = useRef<boolean>(true)
-  const inputContainerRef = useRef<HTMLDivElement>(null)
-  const [bottomPadPx, setBottomPadPx] = useState<number>(80)
   const [attachedImage, setAttachedImage] = useState<File | null>(null)
   const [attachedPreviewUrl, setAttachedPreviewUrl] = useState<string | null>(null)
   // removed dynamic input height padding logic to prevent extra space on mobile
-
-  // Helper: reliable scroll to bottom within the container (mobile Safari friendly)
-  const scrollToBottom = (behavior: ScrollBehavior = 'smooth') => {
-    const container = messagesContainerRef.current
-    if (!container) return
-    container.scrollTo({ top: container.scrollHeight, behavior })
-  }
-
-  // Track whether user is near the bottom to decide auto-scroll during updates
-  const handleMessagesScroll = () => {
-    const container = messagesContainerRef.current
-    if (!container) return
-    const threshold = 120
-    const distance = container.scrollHeight - container.scrollTop - container.clientHeight
-    isAtBottomRef.current = distance < threshold
-  }
-
-  // Measure input area height to pad the scroll container bottom so content isn't hidden
-  useEffect(() => {
-    const updatePad = () => {
-      const h = inputContainerRef.current?.offsetHeight || 64
-      setBottomPadPx(h + 16)
-    }
-    updatePad()
-    window.addEventListener('resize', updatePad)
-    return () => window.removeEventListener('resize', updatePad)
-  }, [])
 
   // Compress large images on the client before uploading to avoid 413 Payload Too Large
   async function compressImageIfNeeded(original: File): Promise<Blob> {
@@ -508,25 +477,22 @@ export default function ChatComposer({ currentChatId, onChatCreated, session }: 
     }
   }, [attachedPreviewUrl])
 
-  // Scroll to bottom when messages change. If user is near bottom, keep pinned.
-  // If a new message was just sent (forceScrollRef), force scrolling regardless.
+  // Simple scroll to bottom when messages change
   useEffect(() => {
-    if (!messagesContainerRef.current || !messagesEndRef.current) return;
+    if (!messagesContainerRef.current) return;
     
-    const container = messagesContainerRef.current;
-    const isNearBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 100;
-    
-    if (isNearBottom || forceScrollRef.current) {
-      requestAnimationFrame(() => {
-        scrollToBottom('smooth')
-        forceScrollRef.current = false;
-      });
-    }
+    requestAnimationFrame(() => {
+      if (messagesContainerRef.current) {
+        messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
+      }
+    });
   }, [currentChatMessages.length]);
 
   useEffect(() => {
-    if (!messagesEndRef.current || !messagesContainerRef.current) return
-    scrollToBottom('smooth')
+    if (!messagesContainerRef.current) return;
+    if (messagesContainerRef.current) {
+      messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
+    }
   }, [currentChatMessages.length, isLoading])
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -598,11 +564,12 @@ export default function ChatComposer({ currentChatId, onChatCreated, session }: 
       onChatCreated(activeChatId)
       setTimeout(() => setCurrentChatId(activeChatId), 50)
       setMessage("")
-      // Force scroll to the newest message even if user had scrolled up
-      forceScrollRef.current = true
-      requestAnimationFrame(() => {
-        scrollToBottom('smooth')
-      })
+      // Scroll to bottom after sending message
+      setTimeout(() => {
+        if (messagesContainerRef.current) {
+          messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
+        }
+      }, 100)
 
       const response = await responsePromise
 
@@ -659,10 +626,12 @@ export default function ChatComposer({ currentChatId, onChatCreated, session }: 
         
         // Update the existing assistant message content incrementally
         updateMessageInChat(activeChatId, assistantMessage.id, { content: currentText })
-        // Keep view pinned to bottom while typing if user didn't scroll away
-        if (isAtBottomRef.current) {
-          scrollToBottom('auto')
-        }
+        // Keep view at bottom during typing
+        setTimeout(() => {
+          if (messagesContainerRef.current) {
+            messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
+          }
+        }, 50)
       }
 
       // If server suggested a concise title and the current chat still has the default title, apply it
@@ -764,10 +733,15 @@ export default function ChatComposer({ currentChatId, onChatCreated, session }: 
       {/* Messages Area - Fixed height with scroll */}
       <div 
         ref={messagesContainerRef}
-        onScroll={handleMessagesScroll}
+        onScroll={() => {
+          const container = messagesContainerRef.current;
+          if (!container) return;
+          const isNearBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 100;
+          // isAtBottomRef.current = isNearBottom; // This line is removed
+        }}
         className="flex-1 min-h-0 overflow-y-auto p-4 space-y-4 bg-white dark:bg-chat-bg overscroll-contain"
         style={{ 
-          paddingBottom: `calc(env(safe-area-inset-bottom, 0px) + ${bottomPadPx}px)`,
+          paddingBottom: `calc(env(safe-area-inset-bottom, 0px) + 80px)`, // Fixed bottom padding
           WebkitOverflowScrolling: 'touch'
         }}
       >
@@ -884,7 +858,7 @@ export default function ChatComposer({ currentChatId, onChatCreated, session }: 
       </div>
 
       {/* Input Area (fixed on mobile to avoid parent overflow issues; sticky on larger screens) */}
-      <div ref={inputContainerRef} className="sticky md:sticky bottom-0 z-10 bg-white/90 dark:bg-chat-bg/90 backdrop-blur supports-[backdrop-filter]:bg-white/60 dark:supports-[backdrop-filter]:bg-chat-bg/60">
+      <div className="sticky md:sticky bottom-0 z-10 bg-white/90 dark:bg-chat-bg/90 backdrop-blur supports-[backdrop-filter]:bg-white/60 dark:supports-[backdrop-filter]:bg-chat-bg/60">
         <div className="max-w-4xl mx-auto p-3">
           <form onSubmit={handleSubmit} className="relative">
             {/* model switcher moved to Sidebar footer */}

@@ -75,7 +75,7 @@ export async function createBogOrder(params: CreateOrderParams): Promise<CreateO
   const { BOG_PUBLIC_KEY, BOG_SECRET_KEY, BOG_API_BASE, BOG_RETURN_URL, BOG_CALLBACK_URL } = hasDb ? (dbEnv as any) : getBogEnv()
 
   // Payments Manager typically uses different endpoints than iPay
-  const path = process.env.BOG_CREATE_ORDER_PATH || '/api/v1/orders'
+  const path = process.env.BOG_CREATE_ORDER_PATH || '/payments/v1/orders'
   
   // Shape payload per Payments Manager standard flow: order create → receive paymentUrl
   // The exact field names may differ; adapt to your merchant configuration.
@@ -100,11 +100,8 @@ export async function createBogOrder(params: CreateOrderParams): Promise<CreateO
   const raw = await fetchJson(url, {
     method: 'POST',
     headers: {
-      // Payments Manager typically uses OAuth 2.0 + JWT as mentioned in docs
-      // For now, try both auth methods - your tenant may use one or the other
-      'Authorization': `Bearer ${BOG_PUBLIC_KEY}`,
-      'x-client-id': BOG_PUBLIC_KEY,
-      'x-client-secret': BOG_SECRET_KEY,
+      // Try the standard BOG Payments Manager authentication
+      'Authorization': `Basic ${Buffer.from(`${BOG_PUBLIC_KEY}:${BOG_SECRET_KEY}`).toString('base64')}`,
       'Content-Type': 'application/json',
       'Accept': 'application/json',
     },
