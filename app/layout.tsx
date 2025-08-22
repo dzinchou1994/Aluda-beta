@@ -13,10 +13,9 @@ export const metadata: Metadata = {
     icon: [
       { url: '/brain-icon.svg', type: 'image/svg+xml' },
       { url: '/aludaicon.webp', type: 'image/webp' },
-      { url: '/logo.webp', type: 'image/webp' },
     ],
     shortcut: '/brain-icon.svg',
-    apple: '/aludaicon.webp',
+    apple: '/brain-icon.svg',
   },
 }
 

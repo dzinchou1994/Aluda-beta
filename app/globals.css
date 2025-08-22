@@ -228,15 +228,6 @@
     padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 120px) !important;
   }
   
-  /* Logo gradient that works in both light and dark modes */
-  .logo-gradient {
-    background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
-  }
-  
-  .dark .logo-gradient {
-    background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
-  }
-  
   /* Additional mobile viewport fixes */
   .messages-container-mobile {
     /* Use viewport height minus header and input heights */
@@ -261,4 +252,9 @@
     max-height: 100vh;
     max-height: 100dvh;
   }
+}
+
+/* Simple logo gradient */
+.logo-gradient {
+  background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
 }
