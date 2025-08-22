@@ -724,7 +724,7 @@ export default function ChatComposer({ currentChatId, onChatCreated, session }: 
       {/* Messages Area - Fixed height with scroll */}
       <div 
         ref={messagesContainerRef}
-        className="flex-1 overflow-y-auto p-4 space-y-4 bg-white dark:bg-chat-bg"
+        className="flex-1 overflow-y-auto p-4 pb-24 space-y-4 bg-white dark:bg-chat-bg"
         style={{ 
           height: 'calc(100dvh - 160px)',
           maxHeight: 'calc(100dvh - 160px)',
@@ -846,8 +846,8 @@ export default function ChatComposer({ currentChatId, onChatCreated, session }: 
       </div>
 
       {/* Input Area */}
-      <div className="sticky bottom-0 z-10 border-t border-gray-200 dark:border-gray-800 p-4 bg-white dark:bg-chat-bg">
-        <div className="max-w-4xl mx-auto">
+      <div className="fixed bottom-0 left-0 right-0 z-20 border-t border-gray-200 dark:border-gray-800 bg-white dark:bg-chat-bg">
+        <div className="max-w-4xl mx-auto p-3">
           <form onSubmit={handleSubmit} className="relative">
             {/* model switcher moved to Sidebar footer */}
             {/* Unified container with input, image button and send button */}
