@@ -724,7 +724,7 @@ export default function ChatComposer({ currentChatId, onChatCreated, session }: 
       {/* Messages Area - Fixed height with scroll */}
       <div 
         ref={messagesContainerRef}
-        className="flex-1 overflow-y-auto p-4 md:p-6 space-y-4 chat-container"
+        className="flex-1 overflow-y-auto p-4 md:p-6 space-y-4 chat-container bg-white dark:bg-black"
         style={{ 
           height: 'calc(100dvh - 160px)',
           maxHeight: 'calc(100dvh - 160px)',
