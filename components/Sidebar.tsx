@@ -117,7 +117,7 @@ export default function Sidebar({
         {/* New Chat Button */}
         <button
           onClick={onNewChat}
-          className="w-full flex items-center justify-center space-x-2 p-3 bg-gradient-to-r from-blue-500 to-purple-600 dark:from-black dark:to-gray-800 text-white rounded-lg hover:from-blue-600 hover:to-purple-700 dark:hover:from-gray-900 dark:hover:to-gray-700 transition-all duration-200 shadow-md hover:shadow-lg"
+          className="w-full flex items-center justify-center space-x-2 p-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg hover:from-blue-600 hover:to-purple-700 transition-all duration-200 shadow-md hover:shadow-lg"
         >
           <Plus className="w-4 h-4" />
           <span>ახალი საუბარი</span>
