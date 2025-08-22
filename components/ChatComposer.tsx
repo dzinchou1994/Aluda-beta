@@ -860,8 +860,8 @@ export default function ChatComposer({ currentChatId, onChatCreated, session }: 
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Input Area - Fixed on mobile, positioned above sidebar on desktop */}
-      <div className="fixed md:absolute bottom-0 left-0 md:left-auto right-0 md:right-auto md:inset-x-0 z-50 bg-white dark:bg-chat-bg border-t border-gray-200 dark:border-gray-700 shadow-lg">
+      {/* Input Area - Sticky within chat container */}
+      <div className="sticky bottom-0 z-10 bg-white dark:bg-chat-bg border-t border-gray-200 dark:border-gray-700 shadow-lg">
         <div className="max-w-4xl mx-auto p-3">
           <form onSubmit={handleSubmit} className="relative">
             {/* model switcher moved to Sidebar footer */}
