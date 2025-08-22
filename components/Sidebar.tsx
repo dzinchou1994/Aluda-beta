@@ -93,15 +93,15 @@ export default function Sidebar({
   }
 
   return (
-    <div className={`${showOnMobile ? 'flex w-full' : 'hidden md:flex md:w-72 lg:w-80'} bg-white dark:bg-sidebar-dark border-r border-gray-200 dark:border-gray-700 flex-col h-full transition-colors duration-200`}>
+    <div className={`${showOnMobile ? 'flex w-full' : 'hidden md:flex md:w-64 lg:w-72'} bg-white dark:bg-sidebar-dark border-r border-gray-200 dark:border-gray-700 flex-col h-full transition-colors duration-200`}>
       {/* Header */}
-      <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+      <div className="p-3 border-b border-gray-200 dark:border-gray-700">
         <div className="flex items-center justify-between mb-4">
           <a href="/chat" className="flex items-center" aria-label="AludaAI">
-            <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 dark:from-black dark:to-gray-800 rounded-lg flex items-center justify-center mr-2">
-              <Brain className="w-5 h-5 text-white" />
+            <div className="w-7 h-7 bg-gradient-to-r from-blue-600 to-purple-600 dark:from-black dark:to-gray-800 rounded-lg flex items-center justify-center mr-2">
+              <Brain className="w-4 h-4 text-white" />
             </div>
-            <h2 className="text-lg font-semibold bg-gradient-to-r from-blue-600 to-purple-600 dark:from-white dark:to-gray-300 bg-clip-text text-transparent">AludaAI</h2>
+            <h2 className="text-base font-semibold bg-gradient-to-r from-blue-600 to-purple-600 dark:from-white dark:to-gray-300 bg-clip-text text-transparent">AludaAI</h2>
           </a>
           
           {/* Theme Toggle */}
@@ -117,10 +117,10 @@ export default function Sidebar({
         {/* New Chat Button */}
         <button
           onClick={onNewChat}
-          className="w-full flex items-center justify-center space-x-2 p-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg hover:from-blue-600 hover:to-purple-700 transition-all duration-200 shadow-md hover:shadow-lg"
+          className="w-full flex items-center justify-center space-x-2 p-2.5 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg hover:from-blue-600 hover:to-purple-700 transition-all duration-200 shadow-md hover:shadow-lg"
         >
           <Plus className="w-4 h-4" />
-          <span>ახალი საუბარი</span>
+          <span className="text-sm">ახალი საუბარი</span>
         </button>
         {/* Generate Image CTA under New Chat */}
         <button
@@ -134,10 +134,10 @@ export default function Sidebar({
               hideImageSoonTimeout.current = null
             }, 3000)
           }}
-          className="mt-2 w-full flex items-center justify-center space-x-2 p-3 bg-gradient-to-r from-fuchsia-500 to-pink-600 text-white rounded-lg hover:from-fuchsia-600 hover:to-pink-700 transition-all duration-200 shadow-md hover:shadow-lg"
+          className="mt-2 w-full flex items-center justify-center space-x-2 p-2.5 bg-gradient-to-r from-fuchsia-500 to-pink-600 text-white rounded-lg hover:from-fuchsia-600 hover:to-pink-700 transition-all duration-200 shadow-md hover:shadow-lg"
         >
           <ImageIcon className="w-4 h-4" />
-          <span>დააგენერირე სურათი</span>
+          <span className="text-sm">დააგენერირე სურათი</span>
         </button>
         {showImageSoon && (
           <div className="mt-2 text-center">
@@ -208,7 +208,7 @@ export default function Sidebar({
       )}
 
       {/* Chat List */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-2">
+      <div className="flex-1 overflow-y-auto p-3 space-y-2">
         {chats.length === 0 ? (
           <div className="text-center py-8">
             <MessageSquare className="w-12 h-12 text-gray-300 dark:text-gray-600 mx-auto mb-3" />
@@ -285,7 +285,7 @@ export default function Sidebar({
       </div>
       
       {/* Footer: Model Switcher */}
-      <div className="p-4 border-t border-gray-200 dark:border-gray-700">
+      <div className="p-3 border-t border-gray-200 dark:border-gray-700">
         <div className="flex items-center justify-between">
           <span className="text-xs text-gray-500 dark:text-gray-400">მოდელი</span>
           <ModelSwitcher
