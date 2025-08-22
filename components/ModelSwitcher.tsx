@@ -4,10 +4,12 @@ import { useState, useRef, useEffect } from 'react';
 import { ChevronDown, Sparkles, Check, Zap } from 'lucide-react';
 import { useModel } from '@/context/ModelContext';
 import { useTokens } from '@/context/TokensContext';
+import { useRouter } from 'next/navigation';
 
 export default function ModelSwitcher() {
   const { model, setModel } = useModel();
   const { actor } = useTokens();
+  const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -28,6 +30,11 @@ export default function ModelSwitcher() {
 
   const handleModelSelect = (newModel: 'mini' | 'aluda2') => {
     setModel(newModel);
+    setIsOpen(false);
+  };
+
+  const handleUpgrade = () => {
+    router.push('/buy');
     setIsOpen(false);
   };
 
@@ -75,9 +82,9 @@ export default function ModelSwitcher() {
         <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
       </button>
 
-      {/* Dropdown Menu */}
+      {/* Dropdown Menu - Always opens downward */}
       {isOpen && (
-        <div className="absolute bottom-full md:top-full left-0 right-0 mb-2 md:mt-2 bg-gray-800 rounded-lg border border-gray-600 shadow-xl z-50">
+        <div className="absolute top-full left-0 right-0 mt-2 bg-gray-800 rounded-lg border border-gray-600 shadow-xl z-50">
           {/* Aluda 2.0 Option (Premium) */}
           <div className="p-3 border-b border-gray-600 cursor-pointer hover:bg-gray-700 transition-colors duration-200" onClick={() => hasPremium && handleModelSelect('aluda2')}>
             <div className="flex items-center justify-between">
@@ -93,8 +100,7 @@ export default function ModelSwitcher() {
                   className="px-3 py-1 bg-gray-700 hover:bg-gray-600 border border-gray-500 rounded text-white text-sm transition-colors duration-200"
                   onClick={(e) => {
                     e.stopPropagation();
-                    // Handle upgrade logic here
-                    console.log('Upgrade to Aluda 2.0');
+                    handleUpgrade();
                   }}
                 >
                   Upgrade
