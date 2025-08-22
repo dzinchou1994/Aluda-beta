@@ -77,7 +77,7 @@ export default function ModelSwitcher() {
 
       {/* Dropdown Menu */}
       {isOpen && (
-        <div className="absolute bottom-full left-0 right-0 mb-2 bg-gray-800 rounded-lg border border-gray-600 shadow-xl z-50">
+        <div className="absolute bottom-full md:top-full left-0 right-0 mb-2 md:mt-2 bg-gray-800 rounded-lg border border-gray-600 shadow-xl z-50">
           {/* Aluda 2.0 Option (Premium) */}
           <div className="p-3 border-b border-gray-600 cursor-pointer hover:bg-gray-700 transition-colors duration-200" onClick={() => hasPremium && handleModelSelect('aluda2')}>
             <div className="flex items-center justify-between">
