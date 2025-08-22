@@ -122,9 +122,9 @@
 }
 
 .dark .unified-input-container {
-  background: linear-gradient(145deg, #1e293b 0%, #0f172a 100%);
-  border: 1px solid #334155;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  background: #000000;
+  border: 1px solid #1f2937;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.04);
 }
 
 .unified-input-container:focus-within {
@@ -134,9 +134,9 @@
 }
 
 .dark .unified-input-container:focus-within {
-  background: linear-gradient(145deg, #334155 0%, #1e293b 100%);
-  border-color: #9ca3af;
-  box-shadow: 0 0 0 3px rgba(156, 163, 175, 0.25), 0 4px 12px rgba(0, 0, 0, 0.3);
+  background: #0b0b0b;
+  border-color: #6b7280;
+  box-shadow: 0 0 0 3px rgba(17, 24, 39, 0.6), 0 4px 12px rgba(0, 0, 0, 0.45);
 }
 
 /* Send button enhancements */
