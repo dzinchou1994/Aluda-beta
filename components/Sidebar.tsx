@@ -171,8 +171,8 @@ export default function Sidebar({
               onClick={() => onSelectChat(chat.id)}
             >
               <div className="flex-1 min-w-0">
-                <h3 className={`text-xs font-medium truncate ${
-                  currentChatId === chat.id ? 'text-gray-900 dark:text-white' : 'text-gray-900 dark:text-white'
+                <h3 className={`text-xs font-normal truncate ${
+                  currentChatId === chat.id ? 'text-gray-900 dark:text-white' : 'text-gray-700 dark:text-gray-300'
                 }`}>
                   {chat.title}
                 </h3>
@@ -194,7 +194,7 @@ export default function Sidebar({
                   <div
                     onClick={(e) => e.stopPropagation()}
                     onMouseDown={(e) => e.stopPropagation()}
-                    className="absolute right-0 mt-2 w-48 bg-white dark:bg-sidebar-dark border border-gray-200 dark:border-gray-800 rounded-md shadow-lg py-1 z-20 transform origin-top-right transition ease-out duration-150"
+                    className="absolute right-0 mt-2 w-40 bg-white dark:bg-sidebar-dark border border-gray-200 dark:border-gray-800 rounded-md shadow-lg py-1 z-20 transform origin-top-right transition ease-out duration-150"
                   >
                     <button
                       className="w-full flex items-center px-3 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-sidebar-dark"
@@ -230,42 +230,81 @@ export default function Sidebar({
         )}
       </div>
       
-      {/* Footer: Authentication Section */}
+      {/* Footer: User Settings Section */}
       <div className="p-2.5 border-t border-gray-200 dark:border-gray-800">
-        {/* Authentication Section */}
+        {/* User Settings Section */}
         {session ? (
-          <div className="flex items-center space-x-3 p-2 bg-gray-50 dark:bg-sidebar-dark rounded-lg">
-            <div className="w-7 h-7 bg-gradient-to-r from-blue-500 to-purple-600 dark:from-black dark:to-gray-800 rounded-full flex items-center justify-center">
-              <User className="w-4 h-4 text-white" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
-                {session.user?.name || session.user?.email}
-              </p>
-              <p
-                className={`text-xs ${
-                  limits.daily > 0 && usage.daily / limits.daily >= 0.95
-                    ? 'text-red-600 dark:text-red-400'
-                    : 'text-gray-500 dark:text-gray-400'
-                }`}
+          <div className="space-y-3">
+            {/* User Info Header */}
+            <div className="flex items-center space-x-3 p-2 bg-gray-50 dark:bg-sidebar-dark rounded-lg">
+              <div className="w-7 h-7 bg-gray-600 dark:bg-gray-700 rounded-full flex items-center justify-center">
+                <User className="w-4 h-4 text-white" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
+                  {session.user?.name || session.user?.email}
+                </p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  {session.user?.email}
+                </p>
+              </div>
+              <button
+                onClick={onSignOut}
+                className="p-1 text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-colors"
+                title="გამოსვლა"
               >
-                {usage.daily}/{limits.daily} ტოკენი
-              </p>
+                <LogOut className="w-4 h-4" />
+              </button>
             </div>
-            <button
-              onClick={() => setSettingsOpen(true)}
-              className="p-1 text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition-colors"
-              title="პარამეტრები"
-            >
-              ⚙️
-            </button>
-            <button
-              onClick={onSignOut}
-              className="p-1 text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-colors"
-              title="გამოსვლა"
-            >
-              <LogOut className="w-4 h-4" />
-            </button>
+
+            {/* User Plan */}
+            <div className="p-2 bg-gray-50 dark:bg-sidebar-dark rounded-lg">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs font-medium text-gray-700 dark:text-gray-300">გეგმა</span>
+                <span className={`text-xs px-2 py-1 rounded-full ${
+                  limits.daily > 0 && usage.daily / limits.daily >= 0.95
+                    ? 'bg-red-100 text-red-700 dark:bg-red-900/20 dark:text-red-300'
+                    : 'bg-blue-100 text-blue-700 dark:bg-blue-900/20 dark:text-blue-300'
+                }`}>
+                  {limits.daily > 0 && usage.daily / limits.daily >= 0.95 ? 'ლიმიტი ამოწურული' : 'აქტიური'}
+                </span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-gray-600 dark:text-gray-400">
+                  {usage.daily}/{limits.daily} ტოკენი
+                </span>
+                {limits.daily > 0 && (
+                  <div className="w-16 bg-gray-200 dark:bg-gray-700 rounded-full h-2 overflow-hidden">
+                    <div
+                      className={`${usage.daily / limits.daily >= 0.95 ? 'bg-red-500' : 'bg-blue-400'} h-2`}
+                      style={{ width: `${Math.min(100, (usage.daily / limits.daily) * 100)}%` }}
+                    />
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Quick Actions */}
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                onClick={() => setSettingsOpen(true)}
+                className="flex items-center justify-center space-x-2 p-2 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-200 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-all duration-200 text-xs"
+                title="პარამეტრები"
+              >
+                <span>⚙️</span>
+                <span>პარამეტრები</span>
+              </button>
+              {limits.daily > 0 && usage.daily / limits.daily >= 0.95 && (
+                <button
+                  onClick={() => window.open('/buy', '_blank')}
+                  className="flex items-center justify-center space-x-2 p-2 bg-gradient-to-r from-yellow-500 to-orange-500 text-white rounded-lg hover:from-yellow-600 hover:to-orange-600 transition-all duration-200 text-xs"
+                  title="გახდი პრემიუმ"
+                >
+                  <span>⭐</span>
+                  <span>პრემიუმი</span>
+                </button>
+              )}
+            </div>
           </div>
         ) : (
           <div className="p-2 bg-gray-50 dark:bg-sidebar-dark rounded-lg">
@@ -278,7 +317,7 @@ export default function Sidebar({
                   onClick={onSignIn}
                   className="text-xs font-medium text-gray-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 transition-colors cursor-pointer"
                 >
-                  სტუმარი
+                  შესვლა
                 </button>
               </div>
               <button

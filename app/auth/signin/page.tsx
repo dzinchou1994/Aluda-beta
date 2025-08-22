@@ -87,7 +87,7 @@ export default function SignInPage() {
             <User className="h-8 w-8 text-white" />
           </div>
           <h2 className="text-3xl font-bold text-gray-900 mb-2">
-            {isSignUp ? "რეგისტრაცია" : "შესვლა"}
+            {isSignUp ? "რეგისტრაცია" : "მომხმარებლის ცენტრი"}
           </h2>
           <p className="text-gray-600">
             {isSignUp 

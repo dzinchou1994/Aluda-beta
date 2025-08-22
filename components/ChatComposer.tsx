@@ -134,7 +134,7 @@ export default function ChatComposer({ currentChatId: propCurrentChatId, session
   // Don't render until initialized
   if (!isInitialized) {
     return (
-      <div className="flex flex-col h-full bg-gradient-to-br from-gray-50 to-gray-100 dark:bg-chat-bg">
+      <div className="flex flex-col h-full bg-gray-50 dark:bg-gray-900">
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center animate-fade-in">
             <div className="relative">

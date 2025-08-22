@@ -109,7 +109,7 @@ export default function ChatInput({
             <button
               type="submit"
               disabled={!(message.trim().length > 0 || (model === 'aluda2' && attachedImage)) || isLoading}
-              className="ml-2 sm:ml-3 w-10 h-10 sm:w-12 sm:h-12 send-button bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-full hover:from-blue-600 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-gray-800 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center shadow-lg hover:shadow-xl hover:scale-105"
+              className="ml-2 sm:ml-3 w-10 h-10 sm:w-12 sm:h-12 send-button bg-blue-500 dark:bg-blue-600 text-white rounded-full hover:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-gray-800 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center shadow-lg hover:shadow-xl hover:scale-105"
             >
               {isLoading ? (
                 <Loader2 className="h-5 w-5 animate-spin" />

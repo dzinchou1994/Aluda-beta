@@ -13,15 +13,16 @@
 }
 
 .chat-bubble-user {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: #f3f4f4;
   box-shadow: none;
-  color: white;
+  color: #374151;
 }
 
-/* Dark mode: keep the same gradient as light mode */
+/* Dark mode: use dark color */
 .dark .chat-bubble-user {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: #303030;
   box-shadow: none;
+  color: #e5e7eb;
 }
 
 .dark .chat-bubble-user:hover {
@@ -33,7 +34,7 @@
   display: inline-block;
   width: 2px;
   height: 1.2em;
-  background-color: #667eea;
+  background-color: #6b7280;
   margin-left: 2px;
   animation: blink 1s infinite;
 }
