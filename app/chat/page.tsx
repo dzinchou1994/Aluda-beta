@@ -80,24 +80,35 @@ export default function ChatPage() {
   }
 
   return (
-    <div className="flex h-dvh bg-gray-50 dark:bg-gray-900">
-      {/* Desktop Sidebar */}
+    <div className="flex h-screen bg-gray-50 dark:bg-chat-bg">
+      {/* Mobile Sidebar Overlay */}
+      {isMobileSidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden"
+          onClick={closeMobileSidebar}
+          onPointerDown={closeMobileSidebar}
+          onPointerUp={closeMobileSidebar}
+        />
+      )}
+      
+      {/* Sidebar */}
       <Sidebar
         chats={chats}
         currentChatId={currentChatId}
-        onNewChat={handleNewChat}
-        onSelectChat={(id) => { setIsMobileSidebarOpen(false); handleSelectChat(id) }}
-        onDeleteChat={handleDeleteChat}
-        onRenameChat={renameChat}
+        onNewChat={() => { closeMobileSidebar(); handleNewChat() }}
+        onSelectChat={(id) => { closeMobileSidebar(); handleSelectChat(id) }}
+        onDeleteChat={(id) => { closeMobileSidebar(); handleDeleteChat(id) }}
+        onRenameChat={(id, title) => { closeMobileSidebar(); renameChat(id, title) }}
         session={session}
-        onSignIn={handleSignIn}
-        onSignOut={handleSignOut}
+        onSignIn={() => { closeMobileSidebar(); handleSignIn() }}
+        onSignOut={() => { closeMobileSidebar(); handleSignOut() }}
+        showOnMobile={isMobileSidebarOpen}
       />
-
+      
       {/* Main Chat Area */}
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className="flex-1 flex flex-col bg-white dark:bg-chat-bg">
         {/* Header */}
-        <header className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 px-4 md:px-6 py-3 md:py-4 flex items-center justify-between transition-colors duration-200">
+        <header className="bg-white dark:bg-chat-bg border-b border-gray-200 dark:border-gray-700 p-4 flex items-center justify-between">
           <div className="flex items-center space-x-3">
             {/* Mobile menu button */}
             <button

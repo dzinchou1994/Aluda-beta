@@ -22,7 +22,7 @@
 
 /* Dark mode: neutral black/gray user bubble */
 .dark .chat-bubble-user {
-  background: linear-gradient(135deg, #000000 0%, #1f2937 100%);
+  background: #2f2f2f;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
 }
 
