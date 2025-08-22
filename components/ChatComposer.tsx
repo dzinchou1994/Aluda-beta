@@ -853,7 +853,7 @@ export default function ChatComposer({ currentChatId, onChatCreated, session }: 
           <form onSubmit={handleSubmit} className="relative">
             {/* model switcher moved to Sidebar footer */}
             {/* Unified container with input, image button and send button */}
-            <div ref={inputContainerRef} className="flex items-end sm:items-center unified-input-container bg-white dark:bg-input-bg border border-gray-300 dark:border-gray-700 rounded-xl p-3 shadow-sm transition-all duration-200">
+            <div className="flex items-end sm:items-center unified-input-container bg-white dark:bg-input-bg border border-gray-300 dark:border-gray-700 rounded-xl p-3 shadow-sm transition-all duration-200">
               {/* Hidden file input */}
               <input
                 ref={fileInputRef}
