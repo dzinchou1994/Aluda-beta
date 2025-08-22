@@ -136,24 +136,6 @@ export default function ChatComposer({ currentChatId, onChatCreated, session }: 
   const [attachedPreviewUrl, setAttachedPreviewUrl] = useState<string | null>(null)
   // removed dynamic input height padding logic to prevent extra space on mobile
 
-  useEffect(() => {
-    const el = inputContainerRef.current
-    if (!el) return
-    const update = () => setInputHeight(el.offsetHeight || 0)
-    update()
-    let ro: ResizeObserver | null = null
-    if (typeof ResizeObserver !== 'undefined') {
-      ro = new ResizeObserver(() => update())
-      ro.observe(el)
-    } else {
-      window.addEventListener('resize', update)
-    }
-    return () => {
-      if (ro) ro.disconnect()
-      else window.removeEventListener('resize', update)
-    }
-  }, [])
-
   // Compress large images on the client before uploading to avoid 413 Payload Too Large
   async function compressImageIfNeeded(original: File): Promise<Blob> {
     try {
