@@ -101,7 +101,7 @@ export default function Sidebar({
   }
 
   return (
-    <div className={`${showOnMobile ? 'flex w-full' : 'hidden md:flex md:w-72 lg:w-80'} bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700 flex-col h-full transition-colors duration-200`}>
+    <div className={`${showOnMobile ? 'flex w-full' : 'hidden md:flex md:w-72 lg:w-80'} bg-white dark:bg-sidebar-dark border-r border-gray-200 dark:border-gray-700 flex-col h-full transition-colors duration-200`}>
       {/* Header */}
       <div className="p-4 border-b border-gray-200 dark:border-gray-700">
         <div className="flex items-center justify-between mb-4">
@@ -157,7 +157,7 @@ export default function Sidebar({
         
         {/* Authentication Section */}
         {session ? (
-          <div className="flex items-center space-x-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg mt-4">
+          <div className="flex items-center space-x-3 p-3 bg-gray-50 dark:bg-sidebar-dark rounded-lg mt-4">
             <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 dark:from-black dark:to-gray-800 rounded-full flex items-center justify-center">
               <User className="w-4 h-4 text-white" />
             </div>
@@ -191,7 +191,7 @@ export default function Sidebar({
             </button>
           </div>
         ) : (
-          <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg mt-4">
+          <div className="p-3 bg-gray-50 dark:bg-sidebar-dark rounded-lg mt-4">
             <div className="flex items-center space-x-3">
               <div className="w-8 h-8 bg-gradient-to-r from-gray-400 to-gray-500 rounded-full flex items-center justify-center">
                 <User className="w-4 h-4 text-white" />
@@ -229,8 +229,8 @@ export default function Sidebar({
               key={chat.id}
               className={`group flex items-center justify-between p-3 rounded-lg cursor-pointer transition-all duration-200 ${
                 currentChatId === chat.id
-                  ? "bg-gray-100 dark:bg-gray-800/60 border border-gray-300 dark:border-gray-700"
-                  : "hover:bg-gray-50 dark:hover:bg-gray-800"
+                  ? "bg-gray-100 dark:bg-sidebar-dark border border-gray-300 dark:border-gray-700"
+                  : "hover:bg-gray-50 dark:hover:bg-sidebar-dark"
               }`}
               onClick={() => onSelectChat(chat.id)}
             >
@@ -259,10 +259,10 @@ export default function Sidebar({
                   <div
                     onClick={(e) => e.stopPropagation()}
                     onMouseDown={(e) => e.stopPropagation()}
-                    className="absolute right-0 mt-2 w-40 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg py-1 z-20 transform origin-top-right transition ease-out duration-150"
+                    className="absolute right-0 mt-2 w-40 bg-white dark:bg-sidebar-dark border border-gray-200 dark:border-gray-700 rounded-md shadow-lg py-1 z-20 transform origin-top-right transition ease-out duration-150"
                   >
                     <button
-                      className="w-full flex items-center px-3 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700"
+                      className="w-full flex items-center px-3 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-sidebar-dark"
                       onMouseDown={(e) => e.stopPropagation()}
                       onClick={(e) => {
                         e.stopPropagation()
@@ -277,7 +277,7 @@ export default function Sidebar({
                       <Pencil className="w-4 h-4 mr-2" /> გადარქმევა
                     </button>
                     <button
-                      className="w-full flex items-center px-3 py-2 text-sm text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20"
+                      className="w-full flex items-center px-3 py-2 text-sm text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-sidebar-dark"
                       onMouseDown={(e) => e.stopPropagation()}
                       onClick={(e) => {
                         e.stopPropagation()
