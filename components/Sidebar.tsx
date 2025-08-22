@@ -165,13 +165,15 @@ export default function Sidebar({
               key={chat.id}
               className={`group flex items-center justify-between p-2 rounded-lg cursor-pointer transition-all duration-200 ${
                 currentChatId === chat.id
-                  ? "bg-[#242424] border border-gray-300 dark:border-gray-800"
-                  : "hover:bg-[#303030]"
+                  ? "bg-gray-100 dark:bg-[#242424] border border-gray-300 dark:border-gray-800"
+                  : "hover:bg-gray-50 dark:hover:bg-[#303030]"
               }`}
               onClick={() => onSelectChat(chat.id)}
             >
               <div className="flex-1 min-w-0">
-                <h3 className="text-xs font-medium text-gray-900 dark:text-white truncate">
+                <h3 className={`text-xs font-medium truncate ${
+                  currentChatId === chat.id ? 'text-gray-900 dark:text-white' : 'text-gray-900 dark:text-white'
+                }`}>
                   {chat.title}
                 </h3>
               </div>

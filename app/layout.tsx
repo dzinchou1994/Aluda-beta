@@ -9,6 +9,15 @@ const inter = Inter({ subsets: ["latin"] })
 export const metadata: Metadata = {
   title: "AludaAI - AI ასისტენტი ქართულ ენაზე",
   description: "თქვენი AI ასისტენტი ქართულ ენაზე Flowise-ზე დაფუძნებული",
+  icons: {
+    icon: [
+      { url: '/brain-icon.svg', type: 'image/svg+xml' },
+      { url: '/aludaicon.webp', type: 'image/webp' },
+      { url: '/logo.webp', type: 'image/webp' },
+    ],
+    shortcut: '/brain-icon.svg',
+    apple: '/aludaicon.webp',
+  },
 }
 
 export default function RootLayout({
