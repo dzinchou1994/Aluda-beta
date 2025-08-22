@@ -115,7 +115,7 @@ export default function Sidebar({
           {/* Theme Toggle */}
           <button
             onClick={toggleTheme}
-            className="p-2 text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-all duration-200"
+            className="p-2 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-800/60 rounded-lg transition-all duration-200"
             title={isDark ? "Light Mode" : "Dark Mode"}
           >
             {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
@@ -177,7 +177,7 @@ export default function Sidebar({
             </div>
             <button
               onClick={() => setSettingsOpen(true)}
-              className="p-1 text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+              className="p-1 text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition-colors"
               title="პარამეტრები"
             >
               ⚙️
@@ -229,7 +229,7 @@ export default function Sidebar({
               key={chat.id}
               className={`group flex items-center justify-between p-3 rounded-lg cursor-pointer transition-all duration-200 ${
                 currentChatId === chat.id
-                  ? "bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700"
+                  ? "bg-gray-100 dark:bg-gray-800/60 border border-gray-300 dark:border-gray-700"
                   : "hover:bg-gray-50 dark:hover:bg-gray-800"
               }`}
               onClick={() => onSelectChat(chat.id)}
