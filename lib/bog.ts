@@ -1,3 +1,23 @@
+import { prisma } from '@/lib/prisma'
+
+export async function getBogEnvFromDb() {
+  try {
+    const keys = ['BOG_PUBLIC_KEY','BOG_SECRET_KEY','BOG_API_BASE','BOG_RETURN_URL','BOG_CALLBACK_URL']
+    const rows = await (prisma as any).setting.findMany({ where: { key: { in: keys } } })
+    const map = Object.fromEntries((rows as any[]).map((r: any) => [r.key, r.value])) as Record<string, string | undefined>
+    const base = (map.BOG_API_BASE || 'https://api.bog.ge').replace(/\/$/, '')
+    return {
+      BOG_PUBLIC_KEY: map.BOG_PUBLIC_KEY,
+      BOG_SECRET_KEY: map.BOG_SECRET_KEY,
+      BOG_API_BASE: base,
+      BOG_RETURN_URL: map.BOG_RETURN_URL,
+      BOG_CALLBACK_URL: map.BOG_CALLBACK_URL,
+    }
+  } catch {
+    return { BOG_PUBLIC_KEY: undefined, BOG_SECRET_KEY: undefined, BOG_API_BASE: undefined, BOG_RETURN_URL: undefined, BOG_CALLBACK_URL: undefined }
+  }
+}
+
 export function getBogEnv() {
   const {
     BOG_PUBLIC_KEY,
@@ -49,7 +69,10 @@ async function fetchJson(url: string, init: RequestInit) {
 }
 
 export async function createBogOrder(params: CreateOrderParams): Promise<CreateOrderResponse> {
-  const { BOG_PUBLIC_KEY, BOG_SECRET_KEY, BOG_API_BASE, BOG_RETURN_URL, BOG_CALLBACK_URL } = getBogEnv()
+  // Prefer DB-backed values; fallback to process.env for local/dev
+  const dbEnv = await getBogEnvFromDb()
+  const hasDb = dbEnv.BOG_PUBLIC_KEY && dbEnv.BOG_SECRET_KEY && dbEnv.BOG_RETURN_URL && dbEnv.BOG_CALLBACK_URL
+  const { BOG_PUBLIC_KEY, BOG_SECRET_KEY, BOG_API_BASE, BOG_RETURN_URL, BOG_CALLBACK_URL } = hasDb ? (dbEnv as any) : getBogEnv()
 
   // Payments Manager typically uses Basic Auth with public/secret, or specific headers per merchant.
   // We'll use Basic auth. If the gateway expects different headers for your merchant, adjust here.
