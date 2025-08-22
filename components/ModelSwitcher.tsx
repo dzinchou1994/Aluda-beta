@@ -84,20 +84,20 @@ export default function ModelSwitcher() {
 
       {/* Dropdown Menu - Always opens downward */}
       {isOpen && (
-        <div className="absolute top-full left-0 right-0 mt-2 bg-gray-800 rounded-lg border border-gray-600 shadow-xl z-50 min-w-[200px] max-w-[250px]">
+        <div className="absolute top-full left-0 right-0 mt-2 bg-gray-800 rounded-lg border border-gray-600 shadow-xl z-50 min-w-[320px] max-w-[380px]">
           {/* Aluda 2.0 Option (Premium) */}
-          <div className="p-2 border-b border-gray-600 cursor-pointer hover:bg-gray-700 transition-colors duration-200" onClick={() => hasPremium && handleModelSelect('aluda2')}>
+          <div className="p-3 border-b border-gray-600 cursor-pointer hover:bg-gray-700 transition-colors duration-200" onClick={() => hasPremium && handleModelSelect('aluda2')}>
             <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-3">
                 {getModelIcon('aluda2')}
                 <div>
                   <div className="text-white font-medium text-sm">Aluda 2.0</div>
-                  <div className="text-gray-400 text-xs">ჩვენი ყველაზე ჭკვიანი მოდელი და მეტი</div>
+                  <div className="text-gray-400 text-xs">ჩვენი ყველაზე ჭკვიანი მოდელი</div>
                 </div>
               </div>
               {!hasPremium ? (
                 <button 
-                  className="px-2 py-1 bg-gray-700 hover:bg-gray-600 border border-gray-500 rounded text-white text-xs transition-colors duration-200"
+                  className="px-3 py-1 bg-gray-700 hover:bg-gray-600 border border-gray-500 rounded text-white text-xs transition-colors duration-200"
                   onClick={(e) => {
                     e.stopPropagation();
                     handleUpgrade();
@@ -106,22 +106,22 @@ export default function ModelSwitcher() {
                   გაუმჯობესება
                 </button>
               ) : (
-                model === 'aluda2' && <Check className="h-3 w-3 text-white" />
+                model === 'aluda2' && <Check className="h-4 w-4 text-white" />
               )}
             </div>
           </div>
 
           {/* Aluda mini Option (Standard) */}
-          <div className="p-2 cursor-pointer hover:bg-gray-700 transition-colors duration-200" onClick={() => handleModelSelect('mini')}>
+          <div className="p-3 cursor-pointer hover:bg-gray-700 transition-colors duration-200" onClick={() => handleModelSelect('mini')}>
             <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-3">
                 {getModelIcon('mini')}
                 <div>
                   <div className="text-white font-medium text-sm">Aluda mini</div>
                   <div className="text-gray-400 text-xs">კარგია ყოველდღიური ამოცანებისთვის</div>
                 </div>
               </div>
-              {model === 'mini' && <Check className="h-3 w-3 text-white" />}
+              {model === 'mini' && <Check className="h-4 w-4 text-white" />}
             </div>
           </div>
         </div>

@@ -44,6 +44,33 @@ export function getBogEnv() {
   }
 }
 
+export async function getBogAccessToken(): Promise<string> {
+  const { BOG_PUBLIC_KEY, BOG_SECRET_KEY } = getBogEnv()
+  
+  const auth = Buffer.from(`${BOG_PUBLIC_KEY}:${BOG_SECRET_KEY}`).toString('base64')
+  
+  const response = await fetch('https://oauth2.bog.ge/auth/realms/bog/protocol/openid-connect/token', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Basic ${auth}`,
+      'Content-Type': 'application/x-www-form-urlencoded',
+    },
+    body: 'grant_type=client_credentials',
+  })
+  
+  if (!response.ok) {
+    const text = await response.text()
+    throw new Error(`BOG OAuth failed: ${response.status} - ${text}`)
+  }
+  
+  const data = await response.json()
+  if (!data.access_token) {
+    throw new Error('BOG OAuth: missing access_token in response')
+  }
+  
+  return data.access_token
+}
+
 type CreateOrderParams = {
   amount: number
   currency: string
@@ -74,6 +101,9 @@ export async function createBogOrder(params: CreateOrderParams): Promise<CreateO
   const hasDb = dbEnv.BOG_PUBLIC_KEY && dbEnv.BOG_SECRET_KEY && dbEnv.BOG_RETURN_URL && dbEnv.BOG_CALLBACK_URL
   const { BOG_PUBLIC_KEY, BOG_SECRET_KEY, BOG_API_BASE, BOG_RETURN_URL, BOG_CALLBACK_URL } = hasDb ? (dbEnv as any) : getBogEnv()
 
+  // First get OAuth access token
+  const accessToken = await getBogAccessToken()
+  
   // Payments Manager typically uses different endpoints than iPay
   // Try common patterns - your tenant may use a different one
   const path = process.env.BOG_CREATE_ORDER_PATH || '/api/payments/v1/orders'
@@ -101,8 +131,8 @@ export async function createBogOrder(params: CreateOrderParams): Promise<CreateO
   const raw = await fetchJson(url, {
     method: 'POST',
     headers: {
-      // Try the standard BOG Payments Manager authentication
-      'Authorization': `Basic ${Buffer.from(`${BOG_PUBLIC_KEY}:${BOG_SECRET_KEY}`).toString('base64')}`,
+      // Use the OAuth Bearer token as specified in docs
+      'Authorization': `Bearer ${accessToken}`,
       'Content-Type': 'application/json',
       'Accept': 'application/json',
     },
