@@ -72,7 +72,7 @@ export default function ChatPage() {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 dark:border-gray-300 mx-auto mb-4"></div>
           <p className="text-gray-600">იტვირთება...</p>
         </div>
       </div>
@@ -126,7 +126,7 @@ export default function ChatPage() {
               <div className="flex items-center space-x-3">
                 <button
                   onClick={() => setIsSettingsOpen(true)}
-                  className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+                  className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 dark:from-gray-700 dark:to-gray-500 rounded-full flex items-center justify-center hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-gray-400 transition"
                   title="პარამეტრები"
                   aria-label="გახსენი პარამეტრები"
                 >

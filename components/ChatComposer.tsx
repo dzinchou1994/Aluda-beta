@@ -625,6 +625,17 @@ export default function ChatComposer({ currentChatId, onChatCreated, session }: 
         updateMessageInChat(activeChatId, assistantMessage.id, { content: currentText })
       }
 
+      // If server suggested a concise title and the current chat still has the default title, apply it
+      try {
+        const aiTitle = (data && typeof data.aiTitle === 'string') ? data.aiTitle.trim() : ''
+        if (aiTitle && activeChatId) {
+          const current = chats.find(c => c.id === activeChatId)
+          if (current && (!current.titleLocked && (current.title === 'ახალი საუბარი' || !current.title || current.title.trim().length === 0))) {
+            renameChat(activeChatId, aiTitle)
+          }
+        }
+      } catch {}
+
       // Clear attached image after successful send
       if (attachedImage) {
         setAttachedImage(null)
@@ -673,7 +684,7 @@ export default function ChatComposer({ currentChatId, onChatCreated, session }: 
   // Don't render until initialized
   if (!isInitialized) {
     return (
-      <div className="flex flex-col h-full bg-gradient-to-br from-gray-50 to-blue-50">
+      <div className="flex flex-col h-full bg-gradient-to-br from-gray-50 to-blue-50 dark:from-gray-900 dark:to-gray-900">
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center animate-fade-in">
             <div className="relative">
@@ -691,7 +702,7 @@ export default function ChatComposer({ currentChatId, onChatCreated, session }: 
   // Show refresh loading state
   if (isRefreshing) {
     return (
-      <div className="flex flex-col h-full bg-gradient-to-br from-gray-50 to-blue-50">
+      <div className="flex flex-col h-full bg-gradient-to-br from-gray-50 to-blue-50 dark:from-gray-900 dark:to-gray-900">
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center animate-fade-in">
             <div className="relative">
@@ -709,7 +720,7 @@ export default function ChatComposer({ currentChatId, onChatCreated, session }: 
   }
 
   return (
-    <div className="flex flex-col h-full bg-gradient-to-br from-gray-50 via-white to-blue-50 dark:from-gray-800 dark:via-gray-900 dark:to-gray-800 transition-colors duration-200 min-w-0">
+    <div className="flex flex-col h-full bg-gradient-to-br from-gray-50 via-white to-blue-50 dark:from-black dark:via-gray-900 dark:to-black transition-colors duration-200 min-w-0">
       {/* Messages Area - Fixed height with scroll */}
       <div 
         ref={messagesContainerRef}
@@ -895,7 +906,7 @@ export default function ChatComposer({ currentChatId, onChatCreated, session }: 
               <button
                 type="submit"
                 disabled={!(message.trim().length > 0 || (model === 'aluda2' && attachedImage)) || isLoading}
-                className="ml-2 sm:ml-3 w-10 h-10 sm:w-12 sm:h-12 send-button bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-full hover:from-blue-600 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-gray-800 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center shadow-lg hover:shadow-xl hover:scale-105"
+                className="ml-2 sm:ml-3 w-10 h-10 sm:w-12 sm:h-12 send-button bg-gradient-to-r from-blue-500 to-purple-600 dark:from-gray-700 dark:to-gray-500 text-white rounded-full hover:from-blue-600 hover:to-purple-700 dark:hover:from-gray-600 dark:hover:to-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-gray-400 focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-gray-800 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center shadow-lg hover:shadow-xl hover:scale-105"
               >
                 {isLoading ? (
                   <Loader2 className="h-5 w-5 animate-spin" />
