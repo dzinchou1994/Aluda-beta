@@ -69,6 +69,12 @@ export function useChatSubmit({
       const useMultipart = model === 'aluda2' && attachedImage;
       let responsePromise: Promise<Response>;
       
+      // Always use streaming for better UX
+      const headers: Record<string, string> = {
+        "Accept": "text/event-stream",
+        "x-streaming": "true"
+      };
+
       if (useMultipart) {
         const form = new FormData();
         if (messageToSend) form.append('message', messageToSend);
@@ -87,13 +93,15 @@ export function useChatSubmit({
         form.append('images', blobToSend, filename);
         
         responsePromise = fetch("/api/chat", { 
-          method: "POST", 
+          method: "POST",
+          headers,
           body: form
         });
       } else {
         responsePromise = fetch("/api/chat", {
           method: "POST",
-          headers: { 
+          headers: {
+            ...headers,
             "Content-Type": "application/json"
           },
           body: JSON.stringify({ message: messageToSend, chatId: activeChatId, model }),
@@ -112,37 +120,91 @@ export function useChatSubmit({
         throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
       }
 
-      const data = await response.json();
-      console.log('API response:', data); // Debug log
-      
-      if (data.error) {
-        throw new Error(data.error);
-      }
-
-      // Add AI response to chat - handle different response formats
-      let aiContent = data.content || data.text || data.message || data.response;
-      if (aiContent) {
-        const aiMessage: Omit<Message, 'timestamp'> = {
-          id: `ai_${Date.now()}`,
+      // Handle streaming response
+      if (response.headers.get('content-type')?.includes('text/event-stream')) {
+        console.log('Processing streaming response...');
+        
+        // Create a placeholder AI message that we'll update in real-time
+        const aiMessageId = `ai_${Date.now()}`;
+        const placeholderMessage: Omit<Message, 'timestamp'> = {
+          id: aiMessageId,
           role: "assistant",
-          content: aiContent,
+          content: "",
         };
-        console.log('Adding AI message:', aiMessage); // Debug log
-        addMessageToChat(activeChatId, aiMessage);
+        addMessageToChat(activeChatId, placeholderMessage);
+
+        // Process the stream
+        const reader = response.body?.getReader();
+        if (!reader) {
+          throw new Error('No response body for streaming');
+        }
+
+        let fullContent = '';
+        const decoder = new TextDecoder();
+
+        try {
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+
+            const chunk = decoder.decode(value);
+            const lines = chunk.split('\n');
+
+            for (const line of lines) {
+              if (line.startsWith('data:')) {
+                const data = line.slice(5).trim();
+                if (data === '[DONE]') break;
+
+                try {
+                  const parsed = JSON.parse(data);
+                  if (parsed.event === 'token' && parsed.data) {
+                    fullContent += parsed.data;
+                    // Update the message content in real-time
+                    const updatedMessage: Omit<Message, 'timestamp'> = {
+                      id: aiMessageId,
+                      role: "assistant",
+                      content: fullContent,
+                    };
+                    addMessageToChat(activeChatId, updatedMessage);
+                  }
+                } catch (e) {
+                  // Ignore parsing errors
+                }
+              }
+            }
+          }
+        } finally {
+          reader.releaseLock();
+        }
+
+        console.log('Streaming complete, final content:', fullContent);
       } else {
-        console.warn('No AI content found in response:', data); // Debug log
+        // Fallback to non-streaming response
+        const responseData = await response.json();
+        console.log('Non-streaming API response:', responseData);
+        
+        if (responseData.error) {
+          throw new Error(responseData.error);
+        }
+
+        // Add AI response to chat - handle different response formats
+        let aiContent = responseData.content || responseData.text || responseData.message || responseData.response;
+        if (aiContent) {
+          const aiMessage: Omit<Message, 'timestamp'> = {
+            id: `ai_${Date.now()}`,
+            role: "assistant",
+            content: aiContent,
+          };
+          console.log('Adding AI message:', aiMessage);
+          addMessageToChat(activeChatId, aiMessage);
+        } else {
+          console.warn('No AI content found in response:', responseData);
+        }
       }
 
       // Auto-rename chat if it's new and AI provided a title
-      if (data.aiTitle) {
-        try {
-          const current = await fetch(`/api/chat/${activeChatId}`).then(r => r.json()).catch(() => null);
-          if (current && (!current.titleLocked && (current.title === 'ახალი საუბარი' || !current.title || current.title.trim().length === 0))) {
-            // You might want to implement renameChat function here
-            console.log('Auto-renaming chat to:', data.aiTitle);
-          }
-        } catch {}
-      }
+      // Note: This would need to be handled differently for streaming responses
+      // For now, we'll skip auto-renaming in streaming mode
 
       // Clear attached image after successful send
       if (attachedImage) {
