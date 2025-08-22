@@ -165,8 +165,8 @@ export default function Sidebar({
               key={chat.id}
               className={`group flex items-center justify-between p-2 rounded-lg cursor-pointer transition-all duration-200 ${
                 currentChatId === chat.id
-                  ? "bg-gray-100 dark:bg-sidebar-dark border border-gray-300 dark:border-gray-800"
-                  : "hover:bg-gray-50 dark:hover:bg-sidebar-dark"
+                  ? "bg-[#242424] border border-gray-300 dark:border-gray-800"
+                  : "hover:bg-[#303030]"
               }`}
               onClick={() => onSelectChat(chat.id)}
             >
