@@ -7,7 +7,6 @@ interface UseChatSubmitProps {
   currentChatId: string | null;
   createNewChat: () => string;
   addMessageToChat: (chatId: string, message: Omit<Message, 'timestamp'>) => void;
-  updateMessageInChat: (chatId: string, messageId: string, changes: Partial<Message>) => void;
   onChatCreated: (chatId: string) => void;
   setCurrentChatId: (chatId: string) => void;
   setError: (error: string) => void;
@@ -18,7 +17,6 @@ export function useChatSubmit({
   currentChatId,
   createNewChat,
   addMessageToChat,
-  updateMessageInChat,
   onChatCreated,
   setCurrentChatId,
   setError,
@@ -71,12 +69,6 @@ export function useChatSubmit({
       const useMultipart = model === 'aluda2' && attachedImage;
       let responsePromise: Promise<Response>;
       
-      // Always use streaming for better UX
-      const headers: Record<string, string> = {
-        "Accept": "text/event-stream",
-        "x-streaming": "true"
-      };
-
       if (useMultipart) {
         const form = new FormData();
         if (messageToSend) form.append('message', messageToSend);
@@ -96,14 +88,12 @@ export function useChatSubmit({
         
         responsePromise = fetch("/api/chat", { 
           method: "POST",
-          headers,
           body: form
         });
       } else {
         responsePromise = fetch("/api/chat", {
           method: "POST",
-          headers: {
-            ...headers,
+          headers: { 
             "Content-Type": "application/json"
           },
           body: JSON.stringify({ message: messageToSend, chatId: activeChatId, model }),
@@ -122,137 +112,26 @@ export function useChatSubmit({
         throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
       }
 
-      // Check if we got a streaming response
-      const contentType = response.headers.get('content-type') || '';
-      console.log('Response headers:', Object.fromEntries(response.headers.entries()));
-      console.log('Content-Type:', contentType);
+      // Simple non-streaming response handling (revert to working version)
+      const responseData = await response.json();
+      console.log('API response:', responseData);
       
-      if (contentType.includes('text/event-stream')) {
-        console.log('Processing streaming response...');
-        
-        // Create a placeholder AI message that we'll update in real-time
-        const aiMessageId = `ai_${Date.now()}`;
-        const placeholderMessage: Omit<Message, 'timestamp'> = {
-          id: aiMessageId,
+      if (responseData.error) {
+        throw new Error(responseData.error);
+      }
+
+      // Add AI response to chat - handle different response formats
+      let aiContent = responseData.content || responseData.text || responseData.message || responseData.response;
+      if (aiContent) {
+        const aiMessage: Omit<Message, 'timestamp'> = {
+          id: `ai_${Date.now()}`,
           role: "assistant",
-          content: "",
+          content: aiContent,
         };
-        addMessageToChat(activeChatId, placeholderMessage);
-
-        // Process the stream
-        const reader = response.body?.getReader();
-        if (!reader) {
-          throw new Error('No response body for streaming');
-        }
-
-        let fullContent = '';
-        const decoder = new TextDecoder();
-
-        try {
-          while (true) {
-            const { done, value } = await reader.read();
-            if (done) break;
-
-            const chunk = decoder.decode(value);
-            const lines = chunk.split('\n');
-
-            for (const line of lines) {
-              if (line.startsWith('data:')) {
-                const data = line.slice(5).trim();
-                if (data === '[DONE]') break;
-
-                try {
-                  const parsed = JSON.parse(data);
-                  console.log('Streaming data received:', parsed); // Debug log
-                  
-                  // Handle different streaming formats
-                  if (parsed.event === 'token' && parsed.data) {
-                    // Standard token format - accumulate the content
-                    fullContent += parsed.data;
-                    console.log('Token received, current content:', fullContent);
-                  } else if (parsed.text) {
-                    // Flowise direct text format
-                    fullContent = parsed.text;
-                  } else if (parsed.message) {
-                    // Alternative message format
-                    fullContent = parsed.message;
-                  } else if (parsed.content) {
-                    // Content format
-                    fullContent = parsed.content;
-                  } else if (typeof parsed === 'string') {
-                    // Direct string response
-                    fullContent = parsed;
-                  }
-                  
-                  // Update the message content in real-time if we have content
-                  if (fullContent && parsed.event === 'token') {
-                    console.log('Updating message with content:', fullContent);
-                    updateMessageInChat(activeChatId, aiMessageId, { content: fullContent });
-                  }
-                } catch (e) {
-                  console.log('Parsing error for line:', data, e); // Debug log
-                  // If parsing fails, try to treat it as direct text
-                  if (data && data !== '[DONE]') {
-                    fullContent = data;
-                    const updatedMessage: Omit<Message, 'timestamp'> = {
-                      id: aiMessageId,
-                      role: "assistant",
-                      content: fullContent,
-                    };
-                    addMessageToChat(activeChatId, updatedMessage);
-                  }
-                }
-              }
-            }
-          }
-        } finally {
-          reader.releaseLock();
-        }
-
-        console.log('Streaming complete, final content:', fullContent);
-        
-        // If we still don't have content after streaming, try to get it from the response
-        if (!fullContent) {
-          console.warn('No content received from streaming, trying to get response body...');
-          try {
-            const responseText = await response.text();
-            console.log('Response body as text:', responseText);
-            if (responseText.trim()) {
-              fullContent = responseText.trim();
-              const updatedMessage: Omit<Message, 'timestamp'> = {
-                id: aiMessageId,
-                role: "assistant",
-                content: fullContent,
-              };
-              addMessageToChat(activeChatId, updatedMessage);
-            }
-          } catch (e) {
-            console.error('Failed to get response body:', e);
-          }
-        }
+        console.log('Adding AI message:', aiMessage);
+        addMessageToChat(activeChatId, aiMessage);
       } else {
-        // Fallback to non-streaming response
-        console.log('Processing non-streaming response...');
-        const responseData = await response.json();
-        console.log('Non-streaming API response:', responseData);
-        
-        if (responseData.error) {
-          throw new Error(responseData.error);
-        }
-
-        // Add AI response to chat - handle different response formats
-        let aiContent = responseData.content || responseData.text || responseData.message || responseData.response;
-        if (aiContent) {
-          const aiMessage: Omit<Message, 'timestamp'> = {
-            id: `ai_${Date.now()}`,
-            role: "assistant",
-            content: aiContent,
-          };
-          console.log('Adding AI message:', aiMessage);
-          addMessageToChat(activeChatId, aiMessage);
-        } else {
-          console.warn('No AI content found in response:', responseData);
-        }
+        console.warn('No AI content found in response:', responseData);
       }
 
       // Auto-rename chat if it's new and AI provided a title
