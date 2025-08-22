@@ -92,14 +92,6 @@ export default function Sidebar({
     }
   }
 
-  // Helper function to format date
-  const formatDate = (date: string | Date) => {
-    if (typeof date === 'string') {
-      return new Date(date).toLocaleDateString("ka-GE")
-    }
-    return date.toLocaleDateString("ka-GE")
-  }
-
   return (
     <div className={`${showOnMobile ? 'flex w-full' : 'hidden md:flex md:w-72 lg:w-80'} bg-white dark:bg-sidebar-dark border-r border-gray-200 dark:border-gray-700 flex-col h-full transition-colors duration-200`}>
       {/* Header */}
@@ -238,9 +230,6 @@ export default function Sidebar({
                 <h3 className="text-sm font-medium text-gray-900 dark:text-white truncate">
                   {chat.title}
                 </h3>
-                <p className="text-xs text-gray-500 dark:text-gray-400">
-                  {formatDate(chat.createdAt)}
-                </p>
               </div>
               <div className={`relative transition-opacity ${openMenuChatId === chat.id ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>
                 <button
