@@ -106,7 +106,7 @@ export async function createBogOrder(params: CreateOrderParams): Promise<CreateO
   
   // Payments Manager typically uses different endpoints than iPay
   // Try common patterns - your tenant may use a different one
-  const path = process.env.BOG_CREATE_ORDER_PATH || '/api/payments/v1/orders'
+  const path = process.env.BOG_CREATE_ORDER_PATH || '/payments/v1/orders'
   
   // Shape payload per Payments Manager standard flow: order create → receive paymentUrl
   // The exact field names may differ; adapt to your merchant configuration.
@@ -127,7 +127,9 @@ export async function createBogOrder(params: CreateOrderParams): Promise<CreateO
     amount_currency: params.currency || 'GEL',
   }
   
-  const url = `${BOG_API_BASE}${path.startsWith('/') ? path : `/${path}`}`
+  // After OAuth, use the actual API base URL, not the OAuth URL
+  const apiBase = 'https://api.bog.ge'
+  const url = `${apiBase}${path.startsWith('/') ? path : `/${path}`}`
   const raw = await fetchJson(url, {
     method: 'POST',
     headers: {
