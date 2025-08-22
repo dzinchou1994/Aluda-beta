@@ -12,6 +12,7 @@ module.exports = {
         'sidebar-dark': '#171818',
         'chat-bg': '#212121',
         'user-bubble': '#2f2f2f',
+        'input-bg': '#303030',
       },
       backgroundImage: {
         'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
