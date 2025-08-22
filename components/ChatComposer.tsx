@@ -725,13 +725,9 @@ export default function ChatComposer({ currentChatId, onChatCreated, session }: 
       {/* Messages Area - Fixed height with scroll */}
       <div 
         ref={messagesContainerRef}
-        className="flex-1 overflow-y-auto p-4 space-y-4 bg-white dark:bg-chat-bg"
+        className="flex-1 min-h-0 overflow-y-auto p-4 space-y-4 bg-white dark:bg-chat-bg overscroll-contain"
         style={{ 
-          height: 'calc(100svh - 160px)',
-          maxHeight: 'calc(100svh - 160px)',
-          overflowY: 'auto',
           paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 88px)',
-          // Avoid reflow jitter on some mobile browsers
           WebkitOverflowScrolling: 'touch'
         }}
       >
