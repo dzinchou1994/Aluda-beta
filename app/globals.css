@@ -22,8 +22,8 @@
 
 /* Dark mode: neutral black/gray user bubble */
 .dark .chat-bubble-user {
-  background: linear-gradient(135deg, #0f172a 0%, #111827 100%);
-  box-shadow: 0 2px 8px rgba(17, 24, 39, 0.5);
+  background: linear-gradient(135deg, #000000 0%, #1f2937 100%);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
 }
 
 .chat-bubble-user:hover {

@@ -126,7 +126,7 @@ export default function ChatPage() {
               <div className="flex items-center space-x-3">
                 <button
                   onClick={() => setIsSettingsOpen(true)}
-                  className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 dark:from-gray-700 dark:to-gray-500 rounded-full flex items-center justify-center hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-gray-400 transition"
+                  className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 dark:from-black dark:to-gray-800 rounded-full flex items-center justify-center hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-gray-400 transition"
                   title="პარამეტრები"
                   aria-label="გახსენი პარამეტრები"
                 >

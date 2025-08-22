@@ -106,10 +106,10 @@ export default function Sidebar({
       <div className="p-4 border-b border-gray-200 dark:border-gray-700">
         <div className="flex items-center justify-between mb-4">
           <a href="/chat" className="flex items-center" aria-label="AludaAI">
-            <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 dark:from-gray-700 dark:to-gray-500 rounded-lg flex items-center justify-center mr-2">
+            <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 dark:from-black dark:to-gray-800 rounded-lg flex items-center justify-center mr-2">
               <Brain className="w-5 h-5 text-white" />
             </div>
-            <h2 className="text-lg font-semibold bg-gradient-to-r from-blue-600 to-purple-600 dark:from-gray-200 dark:to-gray-400 bg-clip-text text-transparent">AludaAI</h2>
+            <h2 className="text-lg font-semibold bg-gradient-to-r from-blue-600 to-purple-600 dark:from-white dark:to-gray-300 bg-clip-text text-transparent">AludaAI</h2>
           </a>
           
           {/* Theme Toggle */}
@@ -125,7 +125,7 @@ export default function Sidebar({
         {/* New Chat Button */}
         <button
           onClick={onNewChat}
-          className="w-full flex items-center justify-center space-x-2 p-3 bg-gradient-to-r from-blue-500 to-purple-600 dark:from-gray-700 dark:to-gray-500 text-white rounded-lg hover:from-blue-600 hover:to-purple-700 dark:hover:from-gray-600 dark:hover:to-gray-400 transition-all duration-200 shadow-md hover:shadow-lg"
+          className="w-full flex items-center justify-center space-x-2 p-3 bg-gradient-to-r from-blue-500 to-purple-600 dark:from-black dark:to-gray-800 text-white rounded-lg hover:from-blue-600 hover:to-purple-700 dark:hover:from-gray-900 dark:hover:to-gray-700 transition-all duration-200 shadow-md hover:shadow-lg"
         >
           <Plus className="w-4 h-4" />
           <span>ახალი საუბარი</span>
@@ -158,7 +158,7 @@ export default function Sidebar({
         {/* Authentication Section */}
         {session ? (
           <div className="flex items-center space-x-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg mt-4">
-            <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 dark:from-gray-700 dark:to-gray-500 rounded-full flex items-center justify-center">
+            <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 dark:from-black dark:to-gray-800 rounded-full flex items-center justify-center">
               <User className="w-4 h-4 text-white" />
             </div>
             <div className="flex-1 min-w-0">
