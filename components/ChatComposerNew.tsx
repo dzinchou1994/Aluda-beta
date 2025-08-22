@@ -1,0 +1,232 @@
+'use client';
+
+import { useState, useRef, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { Loader2 } from 'lucide-react';
+import { useChats, Message } from '@/hooks/useChats';
+import { useChatsContext } from '@/context/ChatsContext';
+import { useTokens } from '@/context/TokensContext';
+import { useModel } from '@/context/ModelContext';
+import { Session } from 'next-auth';
+import WelcomeMessage from './WelcomeMessage';
+import ChatMessage from './ChatMessage';
+import ChatInput from './ChatInput';
+import { useChatScroll } from '@/hooks/useChatScroll';
+import { useChatSubmit } from '@/hooks/useChatSubmit';
+
+interface ChatComposerProps {
+  session: Session | null;
+  onChatCreated: (chatId: string) => void;
+}
+
+export default function ChatComposer({ session, onChatCreated }: ChatComposerProps) {
+  const router = useRouter();
+  const { model } = useModel();
+  const { usage, limits, setUsageLimits } = useTokens();
+  const { 
+    chats, 
+    currentChatId, 
+    setCurrentChatId, 
+    createNewChat, 
+    addMessageToChat, 
+    updateMessageInChat,
+    renameChat,
+    isInitialized, 
+    isRefreshing 
+  } = useChatsContext();
+
+  // Local state
+  const [message, setMessage] = useState('');
+  const [attachedImage, setAttachedImage] = useState<File | null>(null);
+  const [attachedPreviewUrl, setAttachedPreviewUrl] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [openMenuChatId, setOpenMenuChatId] = useState<string | null>(null);
+  const renderedMessageIdsRef = useRef<Set<string>>(new Set());
+
+  // Use custom hooks
+  const {
+    messagesEndRef,
+    messagesContainerRef,
+    handleScroll,
+    handleInputFocus,
+    handleInputChange,
+  } = useChatScroll({
+    messagesLength: chats.find(c => c.id === currentChatId)?.messages?.length || 0,
+    isLoading: false, // We'll handle this separately
+  });
+
+  const { isLoading, handleSubmit } = useChatSubmit({
+    model,
+    currentChatId,
+    createNewChat,
+    addMessageToChat,
+    onChatCreated,
+    setCurrentChatId,
+    setError,
+  });
+
+  // Wrapper for handleSubmit to handle local state
+  const handleSubmitWrapper = async (e: React.FormEvent) => {
+    await handleSubmit(
+      e,
+      message,
+      attachedImage,
+      attachedPreviewUrl,
+      setAttachedImage,
+      setAttachedPreviewUrl
+    );
+    setMessage(""); // Clear message after submission
+  };
+
+  // Handle key events
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSubmitWrapper(e as any);
+    }
+  };
+
+  // Handle input change with scroll management
+  const handleInputChangeWrapper = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    handleInputChange(e, setMessage);
+  };
+
+  // Start new chat
+  const startNewChat = () => {
+    if (!isInitialized) return;
+    
+    console.log('ChatComposer: Starting new chat...');
+    const newChatId = createNewChat();
+    console.log('ChatComposer: New chat created with ID:', newChatId);
+    
+    setCurrentChatId(newChatId);
+    onChatCreated(newChatId);
+  };
+
+  // Get current chat messages
+  const currentChat = chats.find(c => c.id === currentChatId);
+  const currentChatMessages = currentChat?.messages || [];
+
+  // Don't render until initialized
+  if (!isInitialized) {
+    return (
+      <div className="flex flex-col h-full bg-gradient-to-br from-gray-50 to-gray-100 dark:bg-chat-bg">
+        <div className="flex-1 flex items-center justify-center">
+          <div className="text-center animate-fade-in">
+            <div className="relative">
+              <Loader2 className="h-12 w-12 animate-spin mx-auto mb-6 text-gray-500 dark:text-gray-400" />
+              <div className="absolute inset-0 bg-gray-500/20 dark:bg-gray-400/20 rounded-full blur-xl animate-pulse"></div>
+            </div>
+            <p className="text-gray-600 dark:text-gray-300 text-lg font-medium animate-fade-in-up">იტვირთება...</p>
+            <p className="text-gray-400 dark:text-gray-500 text-sm mt-2 animate-fade-in-up-delay">მზად ვართ საუბრისთვის</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show refresh loading state
+  if (isRefreshing) {
+    return (
+      <div className="flex flex-col h-full bg-gradient-to-br from-gray-50 to-gray-100 dark:bg-chat-bg">
+        <div className="flex-1 flex items-center justify-center">
+          <div className="text-center animate-fade-in">
+            <div className="relative">
+              <div className="w-16 h-16 bg-gradient-to-r from-gray-500 to-gray-600 dark:from-gray-600 dark:to-gray-500 rounded-full flex items-center justify-center mx-auto mb-6 animate-pulse">
+                <Loader2 className="h-8 w-8 text-white" />
+              </div>
+              <div className="absolute inset-0 bg-gray-500/20 dark:bg-gray-400/20 rounded-full blur-xl animate-pulse"></div>
+            </div>
+            <p className="text-gray-600 text-lg font-medium animate-fade-in-up">ქმნება ახალი ჩათი...</p>
+            <p className="text-gray-400 text-sm mt-2 animate-fade-in-up-delay">გთხოვთ დაელოდოთ</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex flex-col h-full bg-white dark:bg-chat-bg transition-colors duration-200 min-w-0">
+      {/* Messages Area - Scrollable with proper mobile spacing */}
+      <div 
+        ref={messagesContainerRef}
+        className="flex-1 min-h-0 overflow-y-auto p-4 space-y-4 bg-white dark:bg-chat-bg overscroll-contain messages-container-mobile"
+        style={{ 
+          paddingTop: '16px',
+          paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 100px)',
+          WebkitOverflowScrolling: 'touch'
+        }}
+        onScroll={handleScroll}
+      >
+        {/* Welcome Message */}
+        {currentChatMessages.length === 0 ? (
+          <WelcomeMessage onPickSuggestion={setMessage} />
+        ) : (
+          <div className="space-y-4">
+            {currentChatMessages.map((msg, index) => {
+              const hasRendered = renderedMessageIdsRef.current.has(msg.id);
+              const shouldAnimate = !hasRendered;
+              if (!hasRendered) renderedMessageIdsRef.current.add(msg.id);
+
+              return (
+                <ChatMessage
+                  key={msg.id}
+                  message={msg}
+                  index={index}
+                  shouldAnimate={shouldAnimate}
+                />
+              );
+            })}
+          </div>
+        )}
+
+        {/* Loading Indicator */}
+        {isLoading && (
+          <div className="flex items-start space-x-3 animate-fade-in-up">
+            <div className="max-w-[70%]">
+              <div className="text-gray-900 dark:text-white">
+                <div className="flex items-center space-x-2">
+                  <div className="flex space-x-1">
+                    <div className="w-2 h-2 bg-gray-400 dark:bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                    <div className="w-2 h-2 bg-gray-400 dark:bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                    <div className="w-2 h-2 bg-gray-400 dark:bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                  </div>
+                  <span className="text-sm text-gray-500 dark:text-gray-400 ml-2">Aluda ფიქრობს...</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Error Message */}
+        {error && (
+          <div className="flex items-start space-x-3 animate-fade-in-up">
+            <div className="max-w-[70%]">
+              <div className="text-red-700 dark:text-red-400">
+                <p className="text-sm">{error}</p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Scroll anchor */}
+        <div ref={messagesEndRef} className="pb-4 md:pb-0" />
+      </div>
+
+      {/* Chat Input */}
+      <ChatInput
+        message={message}
+        setMessage={setMessage}
+        attachedImage={attachedImage}
+        setAttachedImage={setAttachedImage}
+        attachedPreviewUrl={attachedPreviewUrl}
+        setAttachedPreviewUrl={setAttachedPreviewUrl}
+        isLoading={isLoading}
+        onSubmit={handleSubmitWrapper}
+        onKeyDown={handleKeyDown}
+        onFocus={handleInputFocus}
+        onInputChange={handleInputChangeWrapper}
+      />
+    </div>
+  );
+}
