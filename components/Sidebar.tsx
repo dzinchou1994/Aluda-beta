@@ -146,59 +146,6 @@ export default function Sidebar({
             </div>
           </div>
         )}
-        
-        {/* Authentication Section */}
-        {session ? (
-          <div className="flex items-center space-x-3 p-3 bg-gray-50 dark:bg-sidebar-dark rounded-lg mt-4">
-            <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 dark:from-black dark:to-gray-800 rounded-full flex items-center justify-center">
-              <User className="w-4 h-4 text-white" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
-                {session.user?.name || session.user?.email}
-              </p>
-              <p
-                className={`text-xs ${
-                  limits.daily > 0 && usage.daily / limits.daily >= 0.95
-                    ? 'text-red-600 dark:text-red-400'
-                    : 'text-gray-500 dark:text-gray-400'
-                }`}
-              >
-                {usage.daily}/{limits.daily} ტოკენი
-              </p>
-            </div>
-            <button
-              onClick={() => setSettingsOpen(true)}
-              className="p-1 text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition-colors"
-              title="პარამეტრები"
-            >
-              ⚙️
-            </button>
-            <button
-              onClick={onSignOut}
-              className="p-1 text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-colors"
-              title="გამოსვლა"
-            >
-              <LogOut className="w-4 h-4" />
-            </button>
-          </div>
-        ) : (
-          <div className="p-2 bg-gray-50 dark:bg-sidebar-dark rounded-lg mt-4">
-            <div className="flex items-center space-x-2 mb-2">
-              <div className="w-6 h-6 bg-gradient-to-r from-gray-400 to-gray-500 rounded-full flex items-center justify-center">
-                <User className="w-3 h-3 text-white" />
-              </div>
-              <span className="text-xs font-medium text-gray-900 dark:text-white">სტუმარი</span>
-            </div>
-            <button
-              onClick={onSignIn}
-              className="w-full flex items-center justify-center space-x-1 p-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-all duration-200 text-xs"
-            >
-              <LogIn className="w-3 h-3" />
-              <span>შესვლა</span>
-            </button>
-          </div>
-        )}
       </div>
       {settingsOpen && (
         <UserSettingsModal open={settingsOpen} onClose={() => setSettingsOpen(false)} userEmail={session?.user?.email} />
@@ -281,9 +228,60 @@ export default function Sidebar({
         )}
       </div>
       
-      {/* Footer: Empty for now */}
+      {/* Footer: Authentication Section */}
       <div className="p-2.5 border-t border-gray-200 dark:border-gray-800">
-        {/* Footer content can be added here in the future */}
+        {/* Authentication Section */}
+        {session ? (
+          <div className="flex items-center space-x-3 p-2 bg-gray-50 dark:bg-sidebar-dark rounded-lg">
+            <div className="w-7 h-7 bg-gradient-to-r from-blue-500 to-purple-600 dark:from-black dark:to-gray-800 rounded-full flex items-center justify-center">
+              <User className="w-4 h-4 text-white" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
+                {session.user?.name || session.user?.email}
+              </p>
+              <p
+                className={`text-xs ${
+                  limits.daily > 0 && usage.daily / limits.daily >= 0.95
+                    ? 'text-red-600 dark:text-red-400'
+                    : 'text-gray-500 dark:text-gray-400'
+                }`}
+              >
+                {usage.daily}/{limits.daily} ტოკენი
+              </p>
+            </div>
+            <button
+              onClick={() => setSettingsOpen(true)}
+              className="p-1 text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition-colors"
+              title="პარამეტრები"
+            >
+              ⚙️
+            </button>
+            <button
+              onClick={onSignOut}
+              className="p-1 text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-colors"
+              title="გამოსვლა"
+            >
+              <LogOut className="w-4 h-4" />
+            </button>
+          </div>
+        ) : (
+          <div className="p-2 bg-gray-50 dark:bg-sidebar-dark rounded-lg">
+            <div className="flex items-center space-x-2 mb-2">
+              <div className="w-6 h-6 bg-gradient-to-r from-gray-400 to-gray-500 rounded-full flex items-center justify-center">
+                <User className="w-3 h-3 text-white" />
+              </div>
+              <span className="text-xs font-medium text-gray-900 dark:text-white">სტუმარი</span>
+            </div>
+            <button
+              onClick={onSignIn}
+              className="w-full flex items-center justify-center space-x-1 p-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-all duration-200 text-xs"
+            >
+              <LogIn className="w-3 h-3" />
+              <span>შესვლა</span>
+            </button>
+          </div>
+        )}
       </div>
     </div>
   )
