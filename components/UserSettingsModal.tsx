@@ -10,7 +10,7 @@ interface Props {
 }
 
 export default function UserSettingsModal({ open, onClose, userEmail }: Props) {
-  const { usage, limits, refresh } = useTokens()
+  const { usage, limits, actor, refresh } = useTokens()
   const [email, setEmail] = useState(userEmail || '')
   const [emailMsg, setEmailMsg] = useState('')
   const [emailLoading, setEmailLoading] = useState(false)
