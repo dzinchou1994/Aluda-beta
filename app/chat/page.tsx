@@ -123,25 +123,20 @@ export default function ChatPage() {
               <Menu className="w-5 h-5" />
             </button>
             
-            {/* Chat Title and Model Switcher */}
-            <div className="flex flex-col space-y-2">
-              <h1 className="text-lg md:text-xl font-semibold text-gray-900 dark:text-white">
-                {currentChat?.title ?? "AludaAI"}
-              </h1>
-              <div className="flex items-center space-x-2">
-                <span className="text-xs text-gray-500 dark:text-gray-400">მოდელი:</span>
-                <ModelSwitcher
-                  value={model}
-                  onChange={(v) => {
-                    if (v === 'aluda2' && !session) {
-                      handleSignIn()
-                      return
-                    }
-                    setModel(v)
-                  }}
-                  disabledAluda2={!session}
-                />
-              </div>
+            {/* Model Switcher */}
+            <div className="flex items-center space-x-2">
+              <span className="text-xs text-gray-500 dark:text-gray-400">მოდელი:</span>
+              <ModelSwitcher
+                value={model}
+                onChange={(v) => {
+                  if (v === 'aluda2' && !session) {
+                    handleSignIn()
+                    return
+                  }
+                  setModel(v)
+                }}
+                disabledAluda2={!session}
+              />
             </div>
           </div>
           
