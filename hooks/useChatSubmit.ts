@@ -33,7 +33,8 @@ export function useChatSubmit({
     attachedImage: File | null,
     attachedPreviewUrl: string | null,
     setAttachedImage: (file: File | null) => void,
-    setAttachedPreviewUrl: (url: string | null) => void
+    setAttachedPreviewUrl: (url: string | null) => void,
+    setMessage: (message: string) => void
   ) => {
     e.preventDefault();
     
@@ -242,6 +243,7 @@ export function useChatSubmit({
       };
       addMessageToChat(activeChatId!, errorMessage);
     } finally {
+      // Reset loading state (input field is cleared in handleKeyDown)
       setIsLoading(false);
     }
   };

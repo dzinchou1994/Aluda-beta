@@ -78,9 +78,9 @@ export default function ChatComposer({ currentChatId: propCurrentChatId, session
       attachedImage,
       attachedPreviewUrl,
       setAttachedImage,
-      setAttachedPreviewUrl
+      setAttachedPreviewUrl,
+      setMessage
     );
-    setMessage(""); // Clear message after submission
     
     // Scroll to bottom after submitting to show the new message and input area
     setTimeout(() => {
@@ -98,6 +98,8 @@ export default function ChatComposer({ currentChatId: propCurrentChatId, session
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
+      // Clear input field immediately when Enter is pressed
+      setMessage("");
       handleSubmitWrapper(e as any);
     }
   };

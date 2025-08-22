@@ -313,12 +313,9 @@ export default function Sidebar({
                 <div className="w-6 h-6 bg-gradient-to-r from-gray-400 to-gray-500 rounded-full flex items-center justify-center">
                   <User className="w-3 h-3 text-white" />
                 </div>
-                <button
-                  onClick={onSignIn}
-                  className="text-xs font-medium text-gray-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 transition-colors cursor-pointer"
-                >
-                  შესვლა
-                </button>
+                <span className="text-xs font-medium text-gray-900 dark:text-white">
+                  სტუმარი
+                </span>
               </div>
               <button
                 onClick={onSignIn}
