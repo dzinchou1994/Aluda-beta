@@ -106,25 +106,27 @@ export async function createBogOrder(params: CreateOrderParams): Promise<CreateO
   
   // Payments Manager typically uses different endpoints than iPay
   // Try common patterns - your tenant may use a different one
-  const path = process.env.BOG_CREATE_ORDER_PATH || '/v1/orders'
+  const path = process.env.BOG_CREATE_ORDER_PATH || '/payments/v1/ecommerce/orders'
   
-  // Shape payload per Payments Manager standard flow: order create → receive paymentUrl
-  // The exact field names may differ; adapt to your merchant configuration.
+  // Shape payload per BOG ecommerce API specification
   const payload = {
-    amount: params.amount,
-    currency: params.currency || 'GEL',
-    description: params.description || `Aluda Premium ${params.orderId}`,
-    order_id: params.orderId,
-    return_url: BOG_RETURN_URL,
     callback_url: BOG_CALLBACK_URL,
-    customer: params.customerEmail ? { email: params.customerEmail } : undefined,
-    // Try alternative field names that Payments Manager might expect
-    orderId: params.orderId,
-    returnUrl: BOG_RETURN_URL,
-    callbackUrl: BOG_CALLBACK_URL,
-    // Some systems expect amount as object
-    amount_value: params.amount,
-    amount_currency: params.currency || 'GEL',
+    external_order_id: params.orderId,
+    purchase_units: {
+      currency: params.currency || 'GEL',
+      total_amount: params.amount / 100, // Convert from cents to actual amount
+      basket: [
+        {
+          quantity: 1,
+          unit_price: params.amount / 100,
+          product_id: 'aluda_premium_monthly'
+        }
+      ]
+    },
+    redirect_urls: {
+      fail: `${BOG_RETURN_URL}?status=fail`,
+      success: `${BOG_RETURN_URL}?status=success`
+    }
   }
   
   // After OAuth, use the actual API base URL, not the OAuth URL
@@ -138,6 +140,7 @@ export async function createBogOrder(params: CreateOrderParams): Promise<CreateO
     headers: {
       // Use the OAuth Bearer token as specified in docs
       'Authorization': `Bearer ${accessToken}`,
+      'Accept-Language': 'ka',
       'Content-Type': 'application/json',
       'Accept': 'application/json',
     },
