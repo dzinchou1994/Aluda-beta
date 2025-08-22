@@ -109,7 +109,7 @@ export default function ChatPage() {
       />
       
       {/* Main Chat Area */}
-      <div className="flex-1 flex flex-col bg-white dark:bg-chat-bg">
+      <div className="flex-1 min-h-0 flex flex-col bg-white dark:bg-chat-bg">
         {/* Header */}
         <header className="sticky top-0 z-10 bg-white dark:bg-chat-bg border-b border-gray-200 dark:border-gray-800 p-4 flex items-center justify-between">
           <div className="flex items-center space-x-3">
@@ -184,7 +184,7 @@ export default function ChatPage() {
         )}
 
         {/* Chat Content */}
-        <div className="flex-1 overflow-hidden bg-gray-50 dark:bg-chat-bg transition-colors duration-200 min-w-0">
+        <div className="flex-1 min-h-0 overflow-hidden bg-gray-50 dark:bg-chat-bg transition-colors duration-200 min-w-0">
           <ChatComposer
             currentChatId={currentChatId}
             onChatCreated={handleChatCreated}

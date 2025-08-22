@@ -494,6 +494,11 @@ export default function ChatComposer({ currentChatId, onChatCreated, session }: 
     }
   }, [currentChatMessages.length]);
 
+  useEffect(() => {
+    if (!messagesEndRef.current || !messagesContainerRef.current) return
+    messagesEndRef.current.scrollIntoView({ behavior: 'smooth', block: 'end' })
+  }, [currentChatMessages.length, isLoading])
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
