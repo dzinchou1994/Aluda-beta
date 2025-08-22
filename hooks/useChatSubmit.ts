@@ -113,19 +113,24 @@ export function useChatSubmit({
       }
 
       const data = await response.json();
+      console.log('API response:', data); // Debug log
       
       if (data.error) {
         throw new Error(data.error);
       }
 
-      // Add AI response to chat
-      if (data.content) {
+      // Add AI response to chat - handle different response formats
+      let aiContent = data.content || data.text || data.message || data.response;
+      if (aiContent) {
         const aiMessage: Omit<Message, 'timestamp'> = {
           id: `ai_${Date.now()}`,
           role: "assistant",
-          content: data.content,
+          content: aiContent,
         };
+        console.log('Adding AI message:', aiMessage); // Debug log
         addMessageToChat(activeChatId, aiMessage);
+      } else {
+        console.warn('No AI content found in response:', data); // Debug log
       }
 
       // Auto-rename chat if it's new and AI provided a title

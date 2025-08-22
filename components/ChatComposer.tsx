@@ -110,6 +110,14 @@ export default function ChatComposer({ currentChatId: propCurrentChatId, session
   const currentChat = chats.find(c => c.id === currentChatId);
   const currentChatMessages = currentChat?.messages || [];
 
+  // Debug logging
+  console.log('ChatComposer render:', {
+    currentChatId,
+    currentChatMessages: currentChatMessages.length,
+    isLoading,
+    message
+  });
+
   // Don't render until initialized
   if (!isInitialized) {
     return (
