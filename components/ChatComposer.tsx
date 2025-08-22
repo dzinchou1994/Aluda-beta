@@ -735,7 +735,7 @@ export default function ChatComposer({ currentChatId, onChatCreated, session }: 
         ref={messagesContainerRef}
         className="flex-1 min-h-0 overflow-y-auto p-4 space-y-4 bg-white dark:bg-chat-bg overscroll-contain"
         style={{ 
-          paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 120px)',
+          paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 160px)',
           WebkitOverflowScrolling: 'touch'
         }}
       >
