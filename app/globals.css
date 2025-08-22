@@ -218,6 +218,8 @@
   /* Clean mobile scrolling */
   .messages-container-mobile {
     /* Natural, smooth scrolling behavior */
+    padding-top: 8px;
+    padding-bottom: 8px;
   }
   
   /* Logo gradient that works in both light and dark modes */
