@@ -377,6 +377,7 @@ export function useChats() {
   }, [dispatch])
 
   const updateMessageInChat = useCallback((chatId: string, messageId: string, changes: Partial<Message>) => {
+    console.log('useChats: Updating message in chat:', { chatId, messageId, changes });
     dispatch({ type: 'UPDATE_MESSAGE', payload: { chatId, messageId, changes } })
   }, [])
 

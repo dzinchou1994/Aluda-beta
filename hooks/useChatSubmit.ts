@@ -7,6 +7,7 @@ interface UseChatSubmitProps {
   currentChatId: string | null;
   createNewChat: () => string;
   addMessageToChat: (chatId: string, message: Omit<Message, 'timestamp'>) => void;
+  updateMessageInChat: (chatId: string, messageId: string, changes: Partial<Message>) => void;
   onChatCreated: (chatId: string) => void;
   setCurrentChatId: (chatId: string) => void;
   setError: (error: string) => void;
@@ -17,6 +18,7 @@ export function useChatSubmit({
   currentChatId,
   createNewChat,
   addMessageToChat,
+  updateMessageInChat,
   onChatCreated,
   setCurrentChatId,
   setError,
@@ -112,26 +114,102 @@ export function useChatSubmit({
         throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
       }
 
-      // Simple non-streaming response handling (revert to working version)
-      const responseData = await response.json();
-      console.log('API response:', responseData);
+      // Check if response supports streaming
+      const contentType = response.headers.get('content-type');
+      const isStreaming = contentType?.includes('text/event-stream');
       
-      if (responseData.error) {
-        throw new Error(responseData.error);
-      }
-
-      // Add AI response to chat - handle different response formats
-      let aiContent = responseData.content || responseData.text || responseData.message || responseData.response;
-      if (aiContent) {
+      console.log('Client-side: Response headers check:', {
+        contentType,
+        isStreaming,
+        allHeaders: Object.fromEntries(response.headers.entries())
+      });
+      
+      if (isStreaming) {
+        console.log('Client-side: Starting streaming response handling...');
+        // Handle streaming response
+        const reader = response.body?.getReader();
+        if (!reader) {
+          throw new Error('No response body for streaming');
+        }
+        
+        // Create AI message for streaming
+        const aiMessageId = `ai_${Date.now()}`;
         const aiMessage: Omit<Message, 'timestamp'> = {
-          id: `ai_${Date.now()}`,
+          id: aiMessageId,
           role: "assistant",
-          content: aiContent,
+          content: "",
         };
-        console.log('Adding AI message:', aiMessage);
+        console.log('Client-side: Adding AI message to chat:', aiMessage);
         addMessageToChat(activeChatId, aiMessage);
+        
+        let fullContent = '';
+        const decoder = new TextDecoder();
+        
+        try {
+          console.log('Client-side: Starting to read stream...');
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) {
+              console.log('Client-side: Stream reading done');
+              break;
+            }
+            
+            const chunk = decoder.decode(value);
+            console.log('Client-side: Received chunk:', chunk);
+            const lines = chunk.split('\n');
+            
+            for (const line of lines) {
+              if (line.startsWith('data:')) {
+                const data = line.slice(5).trim();
+                console.log('Client-side: Processing data line:', data);
+                
+                try {
+                  const parsed = JSON.parse(data);
+                  
+                  if (parsed.event === 'end') {
+                    console.log('Streaming ended, final content:', fullContent);
+                    break;
+                  } else if (parsed.event === 'token' && parsed.data) {
+                    fullContent += parsed.data;
+                    console.log('Received token:', parsed.data, 'Full content so far:', fullContent);
+                    // Update the message content in real-time
+                    updateMessageInChat(activeChatId, aiMessageId, { content: fullContent });
+                  } else if (parsed.event === 'start') {
+                    console.log('Streaming started');
+                  } else {
+                    console.log('Unknown event:', parsed.event, parsed);
+                  }
+                } catch (e) {
+                  console.log('Parse error:', e);
+                }
+              }
+            }
+          }
+        } finally {
+          reader.releaseLock();
+        }
       } else {
-        console.warn('No AI content found in response:', responseData);
+        // Handle non-streaming response
+        const responseData = await response.json();
+        console.log('API response:', responseData);
+        
+        if (responseData.error) {
+          throw new Error(responseData.error);
+        }
+
+        // Add AI response to chat - handle different response formats
+        let aiContent = responseData.content || responseData.text || responseData.message || responseData.response;
+        if (aiContent) {
+          const aiMessage: Omit<Message, 'timestamp'> = {
+            id: `ai_${Date.now()}`,
+            role: "assistant",
+            content: aiContent,
+          };
+          console.log('Adding AI message:', aiMessage);
+          addMessageToChat(activeChatId, aiMessage);
+        } else {
+          console.warn('No AI content found in response:', responseData);
+        }
       }
 
       // Auto-rename chat if it's new and AI provided a title

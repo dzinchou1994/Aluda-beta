@@ -1,12 +1,13 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 
 interface UseTypingEffectProps {
   text: string;
-  speed?: number; // milliseconds per character
+  speed?: number; // milliseconds per character (legacy)
+  duration?: number; // total duration in milliseconds (new approach)
   onComplete?: () => void;
 }
 
-export function useTypingEffect({ text, speed = 50, onComplete }: UseTypingEffectProps) {
+export function useTypingEffect({ text, speed, duration, onComplete }: UseTypingEffectProps) {
   const [displayedText, setDisplayedText] = useState('');
   const [isTyping, setIsTyping] = useState(false);
 
@@ -16,18 +17,35 @@ export function useTypingEffect({ text, speed = 50, onComplete }: UseTypingEffec
     setIsTyping(true);
     setDisplayedText('');
     
+    // Calculate delay per character based on total duration
+    let delayPerChar: number;
+    if (duration && duration > 0) {
+      // Use total duration approach - divide total time by number of characters
+      delayPerChar = Math.max(10, duration / text.length); // Minimum 10ms per character
+    } else {
+      // Fallback to legacy speed approach
+      delayPerChar = speed || 50;
+    }
+    
     for (let i = 1; i <= text.length; i++) {
       const partialText = text.slice(0, i);
       setDisplayedText(partialText);
       
       if (i < text.length) {
-        await new Promise(resolve => setTimeout(resolve, speed));
+        await new Promise(resolve => setTimeout(resolve, delayPerChar));
       }
     }
     
     setIsTyping(false);
     onComplete?.();
-  }, [text, speed, isTyping, onComplete]);
+  }, [text, speed, duration, isTyping, onComplete]);
+
+  // Reset when text changes (for streaming updates)
+  useEffect(() => {
+    if (text && !isTyping) {
+      setDisplayedText(text);
+    }
+  }, [text, isTyping]);
 
   const reset = useCallback(() => {
     setDisplayedText('');

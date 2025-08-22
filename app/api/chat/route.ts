@@ -102,129 +102,25 @@ export async function POST(request: NextRequest) {
 
     // Check if client wants streaming
     const acceptHeader = request.headers.get('accept') || ''
-    const wantsStreaming = acceptHeader.includes('text/event-stream') || request.headers.get('x-streaming') === 'true'
+    const xStreaming = request.headers.get('x-streaming')
+    const wantsStreaming = acceptHeader.includes('text/event-stream') || xStreaming === 'true'
+    
+    console.log('Streaming check:', {
+      acceptHeader,
+      xStreaming,
+      wantsStreaming,
+      hasAcceptHeader: !!acceptHeader,
+      hasXStreaming: !!xStreaming
+    })
 
     if (wantsStreaming) {
-      // Return streaming response
-      const encoder = new TextEncoder()
-      const stream = new ReadableStream({
-        async start(controller) {
-          try {
-            // Choose chatflow by model
-            const chatflowIdOverride = selectedModel === 'aluda2'
-              ? (process.env.ALUDAAI_FLOWISE_CHATFLOW_ID_ALUDAA2
-                || process.env.FLOWISE_CHATFLOW_ID_ALUDAA2
-                || (process.env as any).ALUDAAI_FLOWISE_CHATFLOW_ID_ALUDA2)
-              : (process.env.ALUDAAI_FLOWISE_CHATFLOW_ID || process.env.FLOWISE_CHATFLOW_ID)
-
-            const effectiveMessage = (uploadedFile && (!message || message.trim().length === 0))
-              ? (selectedModel === 'aluda2' 
-                  ? 'გაანალიზე ეს სურათი და განმიმარტე ქართულად რა არის მასზე ნაჩვენები.'
-                  : '')
-              : (message || '')
-
-            // Get Flowise host and API key
-            const flowiseHost = process.env.ALUDAAI_FLOWISE_HOST || process.env.FLOWISE_HOST
-            const apiKey = process.env.ALUDAAI_FLOWISE_API_KEY || process.env.FLOWISE_API_KEY
-            
-            if (!flowiseHost || !chatflowIdOverride) {
-              throw new Error('Flowise configuration missing')
-            }
-
-            const hostWithProtocol = /^(http|https):\/\//i.test(flowiseHost) ? flowiseHost : `https://${flowiseHost}`
-            const normalizedHost = hostWithProtocol.replace(/\/+$/, '')
-            
-            // Use the same endpoint as non-streaming version
-            const predictionUrl = `${normalizedHost}/api/v1/prediction/${chatflowIdOverride}`
-
-            const headers: Record<string, string> = {
-              'Content-Type': 'application/json',
-              'Accept': 'text/event-stream',
-            }
-            if (apiKey) {
-              headers['Authorization'] = `Bearer ${apiKey}`
-            }
-
-            const requestBody = {
-              question: effectiveMessage,
-              history: [],
-              overrideConfig: {
-                sessionId: currentChatId,
-              },
-            }
-
-            // Send request to Flowise
-            const response = await fetch(predictionUrl, {
-              method: 'POST',
-              headers,
-              body: JSON.stringify(requestBody),
-            })
-
-            if (!response.ok) {
-              throw new Error(`Flowise error: ${response.status}`)
-            }
-
-            // Stream the response
-            const reader = response.body?.getReader()
-            if (!reader) {
-              throw new Error('No response body')
-            }
-
-            let fullText = ''
-            let assistantTokens = 0
-
-            while (true) {
-              const { done, value } = await reader.read()
-              if (done) break
-
-              const chunk = new TextDecoder().decode(value)
-              const lines = chunk.split('\n')
-
-              for (const line of lines) {
-                if (line.startsWith('data:')) {
-                  const data = line.slice(5).trim()
-                  if (data === '[DONE]') {
-                    // Send final token count
-                    controller.enqueue(encoder.encode(`data: ${JSON.stringify({ event: 'end', tokens: assistantTokens })}\n\n`))
-                    return
-                  }
-
-                  try {
-                    const parsed = JSON.parse(data)
-                    if (parsed.event === 'token' && parsed.data) {
-                      fullText += parsed.data
-                      assistantTokens += parsed.data.length
-                      controller.enqueue(encoder.encode(`data: ${JSON.stringify({ event: 'token', data: parsed.data })}\n\n`))
-                    } else if (parsed.event === 'start') {
-                      controller.enqueue(encoder.encode(`data: ${JSON.stringify({ event: 'start' })}\n\n`))
-                    }
-                  } catch (e) {
-                    // Ignore parsing errors
-                  }
-                }
-              }
-            }
-
-            // Add usage after streaming is complete
-            const finalAssistantTokens = Math.ceil(fullText.length / 4) * tokenMultiplier
-            await addUsage(actor, estimatedTokens + finalAssistantTokens)
-
-          } catch (error: any) {
-            console.error('Streaming error:', error)
-            controller.enqueue(encoder.encode(`data: ${JSON.stringify({ event: 'error', error: error.message })}\n\n`))
-          } finally {
-            controller.close()
-          }
-        }
-      })
-
-      return new Response(stream, {
-        headers: {
-          'Content-Type': 'text/event-stream',
-          'Cache-Control': 'no-cache',
-          'Connection': 'keep-alive',
-        },
-      })
+      console.log('Starting streaming response...');
+      
+      // For now, return non-streaming response since Flowise doesn't support streaming
+      // We'll implement proper streaming later
+      console.log('Flowise doesn\'t support streaming, falling back to non-streaming');
+      
+      // Fall through to non-streaming logic
     }
 
     // Non-streaming response (existing logic)

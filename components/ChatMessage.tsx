@@ -11,21 +11,25 @@ interface ChatMessageProps {
 }
 
 export default function ChatMessage({ message, index, shouldAnimate }: ChatMessageProps) {
-  // Use typing effect for AI messages
+  // Only use typing effect for new AI messages that are currently being typed
+  // Old messages should show content directly without typing effect
+  const isNewMessage = message.content === '' || shouldAnimate;
+  const shouldUseTypingEffect = message.role === 'assistant' && isNewMessage && message.content;
+  
   const { displayedText, isTyping, startTyping, isComplete } = useTypingEffect({
     text: message.content || '',
-    speed: 30, // 30ms per character for smooth typing
+    duration: 750, // 750ms total duration for typing effect (2x slower than before)
     onComplete: () => {
       // Optional: do something when typing is complete
     }
   });
 
-  // Start typing effect when AI message appears
+  // Start typing effect only for new AI messages
   useEffect(() => {
-    if (message.role === 'assistant' && message.content && !isComplete) {
+    if (shouldUseTypingEffect && !isComplete) {
       startTyping();
     }
-  }, [message.role, message.content, startTyping, isComplete]);
+  }, [shouldUseTypingEffect, startTyping, isComplete]);
 
   // Helper function to render assistant content with markdown-like formatting
   const renderAssistantContent = (content: string) => {
@@ -57,7 +61,7 @@ export default function ChatMessage({ message, index, shouldAnimate }: ChatMessa
         return (
           <div key={lineIndex} className="flex items-start mb-1">
             <span className="mr-2 text-gray-500">•</span>
-            <span>{line.replace(/^[-*]\s/, '')}</span>
+            <span>{renderMarkdownText(line.replace(/^[-*]\s/, ''))}</span>
           </div>
         );
       }
@@ -69,18 +73,98 @@ export default function ChatMessage({ message, index, shouldAnimate }: ChatMessa
             <span className="mr-2 text-gray-500 text-sm">
               {line.match(/^\d+/)?.[0]}.
             </span>
-            <span>{line.replace(/^\d+\.\s/, '')}</span>
+            <span>{renderMarkdownText(line.replace(/^\d+\.\s/, ''))}</span>
           </div>
         );
       }
       
       // Regular paragraph
       if (line.trim()) {
-        return <p key={lineIndex} className="mb-2">{line}</p>;
+        return <p key={lineIndex} className="mb-2">{renderMarkdownText(line)}</p>;
       }
       
       // Empty line (spacing)
       return <div key={lineIndex} className="h-2" />;
+    });
+  };
+
+  // Helper function to render markdown text with bold formatting and links
+  const renderMarkdownText = (text: string) => {
+    if (!text) return null;
+    
+    // First, handle links [text](url)
+    let processedText = text;
+    const linkRegex = /\[([^\]]+)\]\(([^)]+)\)/g;
+    const links: Array<{ text: string; url: string; index: number }> = [];
+    let linkMatch;
+    let linkIndex = 0;
+    
+    // Find all links and store them
+    while ((linkMatch = linkRegex.exec(text)) !== null) {
+      links.push({
+        text: linkMatch[1],
+        url: linkMatch[2],
+        index: linkMatch.index
+      });
+    }
+    
+    // If no links, just handle bold formatting
+    if (links.length === 0) {
+      return renderBoldText(text);
+    }
+    
+    // Process text with links
+    let result: React.ReactNode[] = [];
+    let lastIndex = 0;
+    
+    links.forEach((link, i) => {
+      // Add text before link
+      if (link.index > lastIndex) {
+        const beforeText = text.slice(lastIndex, link.index);
+        result.push(renderBoldText(beforeText));
+      }
+      
+              // Add link
+        result.push(
+          <a 
+            key={`link-${i}`} 
+            href={link.url} 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="underline hover:opacity-80"
+          >
+            {renderBoldText(link.text)}
+          </a>
+        );
+      
+      lastIndex = link.index + link.text.length + link.url.length + 4; // +4 for []( )
+    });
+    
+    // Add remaining text after last link
+    if (lastIndex < text.length) {
+      const afterText = text.slice(lastIndex);
+      result.push(renderBoldText(afterText));
+    }
+    
+    return result;
+  };
+
+  // Helper function to render bold text only
+  const renderBoldText = (text: string) => {
+    if (!text) return null;
+    
+    // Split text by bold markers (**text**)
+    const parts = text.split(/(\*\*[^*]+\*\*)/g);
+    
+    return parts.map((part, partIndex) => {
+      if (part.startsWith('**') && part.endsWith('**')) {
+        // Bold text - remove ** markers and make bold
+        const boldText = part.slice(2, -2);
+        return <strong key={partIndex} className="font-bold">{boldText}</strong>;
+      } else {
+        // Regular text
+        return <span key={partIndex}>{part}</span>;
+      }
     });
   };
 
@@ -121,12 +205,9 @@ export default function ChatMessage({ message, index, shouldAnimate }: ChatMessa
             </div>
           </div>
         ) : (
-          // AI message with typing effect
+          // AI message - show content directly for old messages, use typing effect for new ones
           <div className="w-full text-gray-900 dark:text-white text-sm leading-relaxed whitespace-normal break-words">
-            {renderAssistantContent(displayedText)}
-            {isTyping && (
-              <span className="inline-block w-2 h-4 bg-blue-500 ml-1 animate-pulse"></span>
-            )}
+            {shouldUseTypingEffect && isTyping ? renderAssistantContent(displayedText) : renderAssistantContent(message.content)}
           </div>
         )}
         {/* Timestamp - Hidden for cleaner interface */}
