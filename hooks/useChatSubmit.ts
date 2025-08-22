@@ -165,8 +165,9 @@ export function useChatSubmit({
                   
                   // Handle different streaming formats
                   if (parsed.event === 'token' && parsed.data) {
-                    // Standard token format
+                    // Standard token format - accumulate the content
                     fullContent += parsed.data;
+                    console.log('Token received, current content:', fullContent);
                   } else if (parsed.text) {
                     // Flowise direct text format
                     fullContent = parsed.text;
@@ -182,12 +183,13 @@ export function useChatSubmit({
                   }
                   
                   // Update the message content in real-time if we have content
-                  if (fullContent) {
+                  if (fullContent && parsed.event === 'token') {
                     const updatedMessage: Omit<Message, 'timestamp'> = {
                       id: aiMessageId,
                       role: "assistant",
                       content: fullContent,
                     };
+                    console.log('Updating message with content:', fullContent);
                     addMessageToChat(activeChatId, updatedMessage);
                   }
                 } catch (e) {
