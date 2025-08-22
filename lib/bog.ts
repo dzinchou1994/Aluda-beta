@@ -90,10 +90,15 @@ export async function createBogOrder(params: CreateOrderParams): Promise<CreateO
     customer: params.customerEmail ? { email: params.customerEmail } : undefined,
   }
 
-  const url = `${BOG_API_BASE}/payments/v1/orders`
+  const path = process.env.BOG_CREATE_ORDER_PATH || '/payments/v1/orders'
+  const url = `${BOG_API_BASE}${path.startsWith('/') ? path : `/${path}`}`
   const raw = await fetchJson(url, {
     method: 'POST',
     headers: {
+      // Many BOG APIs are fronted by IBM API gateway and expect client credentials headers
+      'x-ibm-client-id': BOG_PUBLIC_KEY,
+      'x-ibm-client-secret': BOG_SECRET_KEY,
+      // Also include Basic as some tenants still support it
       'Authorization': `Basic ${auth}`,
       'Content-Type': 'application/json',
       'Accept': 'application/json',

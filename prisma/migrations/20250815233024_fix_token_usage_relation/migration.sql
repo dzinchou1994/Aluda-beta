@@ -17,3 +17,15 @@ ALTER TABLE "new_TokenUsage" RENAME TO "TokenUsage";
 CREATE UNIQUE INDEX "TokenUsage_actorType_actorId_period_periodKey_key" ON "TokenUsage"("actorType", "actorId", "period", "periodKey");
 PRAGMA foreign_keys=ON;
 PRAGMA defer_foreign_keys=OFF;
+
+-- CreateTable Setting (added for DB-backed app settings)
+CREATE TABLE IF NOT EXISTS "Setting" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "key" TEXT NOT NULL,
+    "value" TEXT NOT NULL,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" DATETIME NOT NULL
+);
+
+-- CreateIndex
+CREATE UNIQUE INDEX IF NOT EXISTS "Setting_key_key" ON "Setting"("key");
