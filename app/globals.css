@@ -122,8 +122,8 @@
 }
 
 .dark .unified-input-container {
-  background: #000000;
-  border: 1px solid #1f2937;
+  background: #374151;
+  border: 1px solid #4b5563;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.04);
 }
 
@@ -134,7 +134,7 @@
 }
 
 .dark .unified-input-container:focus-within {
-  background: #0b0b0b;
+  background: #4b5563;
   border-color: #6b7280;
   box-shadow: 0 0 0 3px rgba(17, 24, 39, 0.6), 0 4px 12px rgba(0, 0, 0, 0.45);
 }

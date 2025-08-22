@@ -101,9 +101,9 @@ export default function Sidebar({
   }
 
   return (
-    <div className={`${showOnMobile ? 'flex w-full' : 'hidden md:flex md:w-72 lg:w-80'} bg-white dark:bg-black border-r border-gray-200 dark:border-gray-800 flex-col h-full transition-colors duration-200`}>
+    <div className={`${showOnMobile ? 'flex w-full' : 'hidden md:flex md:w-72 lg:w-80'} bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700 flex-col h-full transition-colors duration-200`}>
       {/* Header */}
-      <div className="p-4 border-b border-gray-200 dark:border-gray-800">
+      <div className="p-4 border-b border-gray-200 dark:border-gray-700">
         <div className="flex items-center justify-between mb-4">
           <a href="/chat" className="flex items-center" aria-label="AludaAI">
             <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 dark:from-gray-700 dark:to-gray-500 rounded-lg flex items-center justify-center mr-2">

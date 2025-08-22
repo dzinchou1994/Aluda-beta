@@ -80,7 +80,7 @@ export default function ChatPage() {
   }
 
   return (
-    <div className="flex h-dvh bg-gray-50 dark:bg-black">
+    <div className="flex h-dvh bg-gray-50 dark:bg-gray-900">
       {/* Desktop Sidebar */}
       <Sidebar
         chats={chats}
@@ -97,7 +97,7 @@ export default function ChatPage() {
       {/* Main Chat Area */}
       <div className="flex-1 flex flex-col min-w-0">
         {/* Header */}
-        <header className="bg-white dark:bg-black border-b border-gray-200 dark:border-gray-800 px-4 md:px-6 py-3 md:py-4 flex items-center justify-between transition-colors duration-200">
+        <header className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 px-4 md:px-6 py-3 md:py-4 flex items-center justify-between transition-colors duration-200">
           <div className="flex items-center space-x-3">
             {/* Mobile menu button */}
             <button

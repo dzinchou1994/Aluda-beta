@@ -720,11 +720,11 @@ export default function ChatComposer({ currentChatId, onChatCreated, session }: 
   }
 
   return (
-    <div className="flex flex-col h-full bg-gradient-to-br from-gray-50 via-white to-blue-50 dark:bg-black transition-colors duration-200 min-w-0">
+    <div className="flex flex-col h-full bg-gradient-to-br from-gray-50 via-white to-blue-50 dark:bg-gray-900 transition-colors duration-200 min-w-0">
       {/* Messages Area - Fixed height with scroll */}
       <div 
         ref={messagesContainerRef}
-        className="flex-1 overflow-y-auto p-4 md:p-6 space-y-4 chat-container bg-white dark:bg-black"
+        className="flex-1 overflow-y-auto p-4 md:p-6 space-y-4 chat-container bg-white dark:bg-gray-900"
         style={{ 
           height: 'calc(100dvh - 160px)',
           maxHeight: 'calc(100dvh - 160px)',
@@ -846,7 +846,7 @@ export default function ChatComposer({ currentChatId, onChatCreated, session }: 
       </div>
 
       {/* Input Area */}
-      <div className="bg-white dark:bg-black p-4 md:p-6 transition-colors duration-200">
+      <div className="bg-white dark:bg-gray-900 p-4 md:p-6 transition-colors duration-200">
         <div className="max-w-4xl mx-auto">
           <form onSubmit={handleSubmit} className="relative">
             {/* model switcher moved to Sidebar footer */}
