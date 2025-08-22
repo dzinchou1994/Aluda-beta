@@ -82,6 +82,27 @@ export default function UserSettingsModal({ open, onClose, userEmail }: Props) {
         <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">პარამეტრები</h2>
 
         <div className="space-y-6">
+          {/* User Plan */}
+          <div>
+            <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">მომხმარებლის გეგმა</h3>
+            <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+              <div className="flex items-center space-x-2">
+                <span className={`w-3 h-3 rounded-full ${actor?.plan === 'PREMIUM' ? 'bg-yellow-400' : 'bg-gray-400'}`}></span>
+                <span className="text-sm text-gray-900 dark:text-white">
+                  {actor?.plan === 'PREMIUM' ? 'პრემიუმ' : 'უფასო'}
+                </span>
+              </div>
+              {actor?.plan !== 'PREMIUM' && (
+                <button
+                  onClick={() => window.open('/buy', '_blank')}
+                  className="px-3 py-1 bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white text-xs rounded-lg transition-colors duration-200"
+                >
+                  გახდი პრემიუმ
+                </button>
+              )}
+            </div>
+          </div>
+
           {/* Tokens */}
           <div>
             <div className="flex items-center justify-between mb-2">
