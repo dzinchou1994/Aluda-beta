@@ -21,6 +21,12 @@ export function getLimits(actor: Actor) {
 }
 
 export async function getUsage(actor: Actor) {
+  // Local development mode - bypass database
+  if (process.env.DISABLE_TOKEN_TRACKING === 'true') {
+    console.log('Token tracking disabled for local development');
+    return { daily: 0, monthly: 0 };
+  }
+
   const { day, month } = getPeriodKeys()
   const [daily, monthly] = await Promise.all([
     prisma.tokenUsage.findUnique({
@@ -48,6 +54,12 @@ export async function getUsage(actor: Actor) {
 }
 
 export async function addUsage(actor: Actor, tokens: number) {
+  // Local development mode - bypass database
+  if (process.env.DISABLE_TOKEN_TRACKING === 'true') {
+    console.log('Token usage tracking disabled for local development, tokens:', tokens);
+    return;
+  }
+
   const { day, month } = getPeriodKeys()
   await prisma.$transaction([
     prisma.tokenUsage.upsert({
@@ -90,6 +102,16 @@ export async function addUsage(actor: Actor, tokens: number) {
 }
 
 export async function canConsume(actor: Actor, tokens: number) {
+  // Local development mode - always allow
+  if (process.env.DISABLE_TOKEN_TRACKING === 'true') {
+    console.log('Token consumption check disabled for local development');
+    return {
+      allowed: true,
+      usage: { daily: 0, monthly: 0 },
+      limits: getLimits(actor),
+    };
+  }
+
   const limits = getLimits(actor)
   const usage = await getUsage(actor)
   return {

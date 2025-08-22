@@ -1,6 +1,8 @@
 'use client';
 
 import { Message } from '@/hooks/useChats';
+import { useTypingEffect } from '@/hooks/useTypingEffect';
+import { useEffect } from 'react';
 
 interface ChatMessageProps {
   message: Message;
@@ -9,6 +11,22 @@ interface ChatMessageProps {
 }
 
 export default function ChatMessage({ message, index, shouldAnimate }: ChatMessageProps) {
+  // Use typing effect for AI messages
+  const { displayedText, isTyping, startTyping, isComplete } = useTypingEffect({
+    text: message.content || '',
+    speed: 30, // 30ms per character for smooth typing
+    onComplete: () => {
+      // Optional: do something when typing is complete
+    }
+  });
+
+  // Start typing effect when AI message appears
+  useEffect(() => {
+    if (message.role === 'assistant' && message.content && !isComplete) {
+      startTyping();
+    }
+  }, [message.role, message.content, startTyping, isComplete]);
+
   // Helper function to render assistant content with markdown-like formatting
   const renderAssistantContent = (content: string) => {
     if (!content) return null;
@@ -103,9 +121,12 @@ export default function ChatMessage({ message, index, shouldAnimate }: ChatMessa
             </div>
           </div>
         ) : (
-          // AI message as simple text
+          // AI message with typing effect
           <div className="w-full text-gray-900 dark:text-white text-sm leading-relaxed whitespace-normal break-words">
-            {renderAssistantContent(message.content)}
+            {renderAssistantContent(displayedText)}
+            {isTyping && (
+              <span className="inline-block w-2 h-4 bg-blue-500 ml-1 animate-pulse"></span>
+            )}
           </div>
         )}
         {/* Timestamp - Hidden for cleaner interface */}
