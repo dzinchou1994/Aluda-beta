@@ -6,7 +6,7 @@ import ChatComposer from "@/components/ChatComposer"
 import Sidebar from "@/components/Sidebar"
 import UserSettingsModal from "@/components/UserSettingsModal"
 import { useChatsContext } from "@/context/ChatsContext"
-import { Plus, User, LogIn, LogOut, Menu, X } from "lucide-react"
+import { Plus, User, LogIn, LogOut, Menu, X, MoreVertical } from "lucide-react"
 import ModelSwitcher from "@/components/ModelSwitcher"
 
 export default function ChatPage() {
@@ -14,6 +14,7 @@ export default function ChatPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false)
   const [isSettingsOpen, setIsSettingsOpen] = useState(false)
+  const [isTopMenuOpen, setIsTopMenuOpen] = useState(false)
   const { 
     chats, 
     currentChatId, 
@@ -68,6 +69,19 @@ export default function ChatPage() {
   // Mobile sidebar open/close helpers to avoid double-tap on touch devices
   const openMobileSidebar = useCallback(() => setIsMobileSidebarOpen(true), [])
   const closeMobileSidebar = useCallback(() => setIsMobileSidebarOpen(false), [])
+  
+  // Close top menu when clicking outside
+  useEffect(() => {
+    if (!isTopMenuOpen) return
+    const onDocClick = () => setIsTopMenuOpen(false)
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setIsTopMenuOpen(false) }
+    document.addEventListener('click', onDocClick)
+    document.addEventListener('keydown', onKey)
+    return () => {
+      document.removeEventListener('click', onDocClick)
+      document.removeEventListener('keydown', onKey)
+    }
+  }, [isTopMenuOpen])
 
   if (isLoading) {
     return (
@@ -128,42 +142,107 @@ export default function ChatPage() {
           </div>
           
           <div className="flex items-center space-x-3 md:space-x-4">
-            <a
-              href="/about"
-              className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors hidden md:inline"
-            >
-              ჩვენს შესახებ
-            </a>
-            
-            {/* User Profile or Sign In */}
-            {session ? (
-              <div className="flex items-center space-x-3">
-                <button
-                  onClick={() => setIsSettingsOpen(true)}
-                  className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 dark:from-black dark:to-gray-800 rounded-full flex items-center justify-center hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-gray-400 transition"
-                  title="პარამეტრები"
-                  aria-label="გახსენი პარამეტრები"
-                >
-                  <User className="w-5 h-5 text-white" />
-                </button>
-                <button
-                  onClick={handleSignOut}
-                  className="text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-colors"
-                  title="გამოსვლა"
-                  aria-label="გამოსვლა"
-                >
-                  <LogOut className="w-4 h-4" />
-                </button>
-              </div>
-            ) : (
+            {/* Top Menu Button */}
+            <div className="relative">
               <button
-                onClick={handleSignIn}
-                className="flex items-center space-x-2 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  setIsTopMenuOpen(!isTopMenuOpen)
+                }}
+                className="p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800/60 rounded-lg transition-all duration-200"
+                title="მენიუ"
+                aria-label="გახსენი მენიუ"
               >
-                <LogIn className="w-4 h-4" />
-                <span className="hidden sm:inline">შესვლა</span>
+                <MoreVertical className="w-5 h-5" />
               </button>
-            )}
+              
+              {/* Dropdown Menu */}
+              {isTopMenuOpen && (
+                <div className="absolute right-0 mt-2 w-60 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg py-2 z-50 transform origin-top-right transition ease-out duration-150">
+                  {/* About Link */}
+                  <a
+                    href="/about"
+                    className="flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                    onClick={() => setIsTopMenuOpen(false)}
+                  >
+                    <div className="w-4 h-4 mr-3 text-gray-500 dark:text-gray-400">
+                      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                    </div>
+                    ჩვენს შესახებ
+                  </a>
+                  
+                  {/* Terms of Service Link */}
+                  <a
+                    href="/terms"
+                    className="flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                    onClick={() => setIsTopMenuOpen(false)}
+                  >
+                    <div className="w-4 h-4 mr-3 text-gray-500 dark:text-gray-400">
+                      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                    </div>
+                    წესები და პირობები
+                  </a>
+                  
+                  {/* Divider */}
+                  <div className="border-t border-gray-200 dark:border-gray-700 my-1"></div>
+                  
+                  {/* User Profile or Sign In */}
+                  {session ? (
+                    <>
+                      <button
+                        onClick={() => {
+                          setIsSettingsOpen(true)
+                          setIsTopMenuOpen(false)
+                        }}
+                        className="w-full flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                      >
+                        <div className="w-4 h-4 mr-3 text-gray-500 dark:text-gray-400">
+                          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                          </svg>
+                        </div>
+                        პარამეტრები
+                      </button>
+                      
+                      <button
+                        onClick={() => {
+                          handleSignOut()
+                          setIsTopMenuOpen(false)
+                        }}
+                        className="w-full flex items-center px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                      >
+                        <div className="w-4 h-4 mr-3 text-red-500 dark:text-red-400">
+                          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                          </svg>
+                        </div>
+                        გამოსვლა
+                      </button>
+                    </>
+                  ) : (
+                    <button
+                      onClick={() => {
+                        handleSignIn()
+                        setIsTopMenuOpen(false)
+                      }}
+                      className="w-full flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                    >
+                      <div className="w-4 h-4 mr-3 text-gray-500 dark:text-gray-400">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+                        </svg>
+                      </div>
+                      მომხმარებლის ცენტრი
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
         </header>
         {isSettingsOpen && (

@@ -67,6 +67,7 @@ export default function ChatComposer({ currentChatId: propCurrentChatId, session
     onChatCreated,
     setCurrentChatId,
     setError,
+    renameChat,
   });
 
   // Wrapper for handleSubmit to handle local state
@@ -80,6 +81,17 @@ export default function ChatComposer({ currentChatId: propCurrentChatId, session
       setAttachedPreviewUrl
     );
     setMessage(""); // Clear message after submission
+    
+    // Scroll to bottom after submitting to show the new message and input area
+    setTimeout(() => {
+      if (messagesEndRef.current) {
+        messagesEndRef.current.scrollIntoView({ 
+          behavior: 'smooth', 
+          block: 'end',
+          inline: 'nearest'
+        });
+      }
+    }, 100);
   };
 
   // Handle key events

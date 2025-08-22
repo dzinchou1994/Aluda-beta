@@ -132,7 +132,7 @@
   box-shadow: 0 0 0 3px rgba(17, 24, 39, 0.6), 0 4px 12px rgba(0, 0, 0, 0.45);
 }
 
-/* Send button enhancements */
+/* Send button enhancements - keep same color in both themes */
 .send-button {
   position: relative;
   overflow: hidden;
@@ -153,6 +153,15 @@
 
 .send-button:hover::before {
   opacity: 1;
+}
+
+/* Ensure send button keeps the same blue-purple gradient in both light and dark themes */
+.dark .send-button {
+  background: linear-gradient(to right, #3b82f6, #8b5cf6) !important;
+}
+
+.dark .send-button:hover {
+  background: linear-gradient(to right, #2563eb, #7c3aed) !important;
 }
 
 /* Mobile input container positioning */

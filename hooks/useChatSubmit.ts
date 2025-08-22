@@ -11,6 +11,7 @@ interface UseChatSubmitProps {
   onChatCreated: (chatId: string) => void;
   setCurrentChatId: (chatId: string) => void;
   setError: (error: string) => void;
+  renameChat: (chatId: string, title: string) => void;
 }
 
 export function useChatSubmit({
@@ -22,6 +23,7 @@ export function useChatSubmit({
   onChatCreated,
   setCurrentChatId,
   setError,
+  renameChat,
 }: UseChatSubmitProps) {
   const [isLoading, setIsLoading] = useState(false);
 
@@ -210,11 +212,15 @@ export function useChatSubmit({
         } else {
           console.warn('No AI content found in response:', responseData);
         }
+
+        // Auto-rename chat if AI provided a title
+        if (responseData.aiTitle && responseData.aiTitle.trim()) {
+          console.log('AI suggested title:', responseData.aiTitle);
+          renameChat(activeChatId, responseData.aiTitle.trim());
+        }
       }
 
-      // Auto-rename chat if it's new and AI provided a title
-      // Note: This would need to be handled differently for streaming responses
-      // For now, we'll skip auto-renaming in streaming mode
+      // Note: For streaming responses, we skip auto-renaming for now
 
       // Clear attached image after successful send
       if (attachedImage) {
