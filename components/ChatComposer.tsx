@@ -738,13 +738,13 @@ export default function ChatComposer({ currentChatId, onChatCreated, session }: 
 
   return (
     <div className="flex flex-col h-full bg-white dark:bg-chat-bg transition-colors duration-200 min-w-0">
-      {/* Messages Area - Fixed height with scroll */}
+      {/* Messages Area - Scrollable with proper mobile spacing */}
       <div 
         ref={messagesContainerRef}
-        className="flex-1 min-h-0 overflow-y-auto p-4 space-y-4 bg-white dark:bg-chat-bg overscroll-contain"
+        className="flex-1 min-h-0 overflow-y-auto p-4 space-y-4 bg-white dark:bg-chat-bg overscroll-contain messages-container-mobile"
         style={{ 
           paddingTop: '16px',
-          paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 180px)',
+          paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 140px)',
           WebkitOverflowScrolling: 'touch'
         }}
       >
@@ -860,13 +860,13 @@ export default function ChatComposer({ currentChatId, onChatCreated, session }: 
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Input Area - Sticky within chat container, ensure mobile visibility */}
-      <div className="sticky bottom-0 z-20 bg-white dark:bg-chat-bg shadow-lg">
-        <div className="max-w-4xl mx-auto p-3">
+      {/* Input Area - Mobile-first positioning, sticky on desktop */}
+      <div className="relative md:sticky md:bottom-0 bg-white dark:bg-chat-bg shadow-lg border-t border-gray-200 dark:border-gray-700 md:border-t-0 mobile-input-container">
+        <div className="max-w-4xl mx-auto p-4 md:p-3 md:px-3">
           <form onSubmit={handleSubmit} className="relative">
             {/* model switcher moved to Sidebar footer */}
             {/* Unified container with input, image button and send button */}
-            <div className="flex items-end sm:items-center unified-input-container bg-white dark:bg-input-bg border border-gray-300 dark:border-gray-700 rounded-xl p-3 shadow-sm transition-all duration-200">
+            <div className="flex items-end sm:items-center unified-input-container bg-white dark:bg-input-bg border border-gray-300 dark:border-gray-700 rounded-xl p-3 shadow-sm transition-all duration-200 md:rounded-xl rounded-lg">
               {/* Hidden file input */}
               <input
                 ref={fileInputRef}
