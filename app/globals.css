@@ -18,9 +18,9 @@
   color: white;
 }
 
-/* Dark mode: neutral black/gray user bubble */
+/* Dark mode: keep the same gradient as light mode */
 .dark .chat-bubble-user {
-  background: #2f2f2f;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   box-shadow: none;
 }
 
@@ -188,12 +188,30 @@
   
   /* Ensure messages container has proper bottom spacing on mobile */
   .messages-container-mobile {
-    padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 160px) !important;
+    padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 100px) !important;
   }
   
   /* Ensure input area is always visible on mobile */
   .mobile-input-container {
     will-change: transform;
     transform: translateZ(0);
+  }
+  
+  /* Prevent unwanted scrolling when keyboard appears */
+  .messages-container-mobile {
+    scroll-behavior: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  /* Better mobile keyboard handling */
+  @media (max-height: 600px) {
+    .messages-container-mobile {
+      padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 80px) !important;
+    }
+  }
+  
+  /* Ensure proper spacing without excessive padding */
+  .mobile-input-container {
+    min-height: 80px;
   }
 }

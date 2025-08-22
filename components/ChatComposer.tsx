@@ -684,6 +684,46 @@ export default function ChatComposer({ currentChatId, onChatCreated, session }: 
     }
   };
 
+  // Handle mobile input focus to maintain scroll position
+  const handleInputFocus = () => {
+    if (window.innerWidth <= 768) {
+      // On mobile, scroll to show the last message without excessive spacing
+      setTimeout(() => {
+        if (messagesEndRef.current) {
+          messagesEndRef.current.scrollIntoView({ 
+            behavior: 'smooth', 
+            block: 'end',
+            inline: 'nearest'
+          })
+        }
+      }, 100)
+    }
+  }
+
+  // Handle mobile input change to maintain scroll position
+  const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setMessage(e.target.value)
+    
+    // On mobile, maintain scroll position when typing
+    if (window.innerWidth <= 768 && messagesContainerRef.current) {
+      const container = messagesContainerRef.current
+      const isAtBottom = container.scrollHeight - container.scrollTop <= container.clientHeight + 10
+      
+      if (isAtBottom) {
+        // If we're at the bottom, stay there
+        setTimeout(() => {
+          if (messagesEndRef.current) {
+            messagesEndRef.current.scrollIntoView({ 
+              behavior: 'auto', 
+              block: 'end',
+              inline: 'nearest'
+            })
+          }
+        }, 50)
+      }
+    }
+  }
+
   const startNewChat = () => {
     if (!isInitialized) return;
     
@@ -744,15 +784,15 @@ export default function ChatComposer({ currentChatId, onChatCreated, session }: 
         className="flex-1 min-h-0 overflow-y-auto p-4 space-y-4 bg-white dark:bg-chat-bg overscroll-contain messages-container-mobile"
         style={{ 
           paddingTop: '16px',
-          paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 140px)',
+          paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 100px)',
           WebkitOverflowScrolling: 'touch'
         }}
       >
         {/* Welcome Message */}
         {currentChatMessages.length === 0 ? (
           <div className="flex flex-col items-center text-center animate-fade-in md:justify-center md:h-full mt-6">
-            <div className="w-16 h-16 md:w-20 md:h-20 bg-gradient-to-r from-gray-200 to-gray-300 dark:from-gray-800/50 dark:to-gray-700/50 rounded-full flex items-center justify-center mb-8 md:mb-6 animate-bounce">
-              <MessageSquare className="h-8 w-8 md:h-10 md:w-10 text-gray-700 dark:text-gray-200" />
+            <div className="w-16 h-16 md:w-20 md:h-20 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center mb-8 md:mb-6 animate-bounce">
+              <MessageSquare className="h-8 w-8 md:h-10 md:w-10 text-white" />
             </div>
             <h3 className="text-xl md:text-2xl font-bold text-gray-800 dark:text-white mb-3">მოგესალმებათ AludaAI</h3>
             <p className="text-gray-600 dark:text-gray-300 max-w-md leading-relaxed">
@@ -811,8 +851,8 @@ export default function ChatComposer({ currentChatId, onChatCreated, session }: 
                       {renderAssistantContent(msg.content)}
                     </div>
                   )}
-                  {/* Timestamp */}
-                  <div className={`${msg.role === 'user' ? 'text-right' : 'text-left'} mt-1`}> 
+                  {/* Timestamp - Hidden for cleaner interface */}
+                  {/* <div className={`${msg.role === 'user' ? 'text-right' : 'text-left'} mt-1`}> 
                     <time
                       dateTime={(msg as any).timestamp}
                       title={formatFullDateTime((msg as any).timestamp)}
@@ -820,7 +860,7 @@ export default function ChatComposer({ currentChatId, onChatCreated, session }: 
                     >
                       {formatShortTime((msg as any).timestamp)}
                     </time>
-                  </div>
+                  </div> */}
                 </div>
               </div>
             )})}
@@ -910,8 +950,9 @@ export default function ChatComposer({ currentChatId, onChatCreated, session }: 
               <textarea
                 ref={textareaRef}
                 value={message}
-                onChange={(e) => setMessage(e.target.value)}
+                onChange={handleInputChange}
                 onKeyDown={handleKeyDown}
+                onFocus={handleInputFocus}
                 placeholder="დაწერეთ თქვენი შეტყობინება..."
                 className="flex-1 resize-none bg-transparent border-none outline-none text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 text-base md:text-lg py-2 min-h-[24px] max-h-40"
                 rows={1}
