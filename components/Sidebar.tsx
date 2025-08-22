@@ -1,7 +1,6 @@
 "use client"
 
-import { MessageSquare, Trash2, Plus, LogIn, LogOut, User, Sun, Moon, MoreVertical, Pencil } from "lucide-react"
-import Image from 'next/image'
+import { MessageSquare, Trash2, Plus, LogIn, LogOut, User, Sun, Moon, MoreVertical, Pencil, Brain } from "lucide-react"
 import { useTokens } from '@/context/TokensContext'
 import UserSettingsModal from './UserSettingsModal'
 import ModelSwitcher from './ModelSwitcher'
@@ -107,15 +106,10 @@ export default function Sidebar({
       <div className="p-4 border-b border-gray-200 dark:border-gray-700">
         <div className="flex items-center justify-between mb-4">
           <a href="/chat" className="flex items-center" aria-label="AludaAI">
-            <Image
-              src="/aludaicon.webp"
-              alt="Aluda icon"
-              width={32}
-              height={32}
-              priority
-              className="h-8 w-8 mr-2 select-none"
-            />
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">AludaAI</h2>
+            <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center mr-2">
+              <Brain className="w-5 h-5 text-white" />
+            </div>
+            <h2 className="text-lg font-semibold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">AludaAI</h2>
           </a>
           
           {/* Theme Toggle */}
