@@ -134,7 +134,27 @@ export default function ChatComposer({ currentChatId, onChatCreated, session }: 
   const forceScrollRef = useRef<boolean>(false)
   const [attachedImage, setAttachedImage] = useState<File | null>(null)
   const [attachedPreviewUrl, setAttachedPreviewUrl] = useState<string | null>(null)
-  
+  const inputContainerRef = useRef<HTMLDivElement>(null)
+  const [inputHeight, setInputHeight] = useState<number>(88)
+
+  useEffect(() => {
+    const el = inputContainerRef.current
+    if (!el) return
+    const update = () => setInputHeight(el.offsetHeight || 0)
+    update()
+    let ro: ResizeObserver | null = null
+    if (typeof ResizeObserver !== 'undefined') {
+      ro = new ResizeObserver(() => update())
+      ro.observe(el)
+    } else {
+      window.addEventListener('resize', update)
+    }
+    return () => {
+      if (ro) ro.disconnect()
+      else window.removeEventListener('resize', update)
+    }
+  }, [])
+
   // Compress large images on the client before uploading to avoid 413 Payload Too Large
   async function compressImageIfNeeded(original: File): Promise<Blob> {
     try {
@@ -724,11 +744,12 @@ export default function ChatComposer({ currentChatId, onChatCreated, session }: 
       {/* Messages Area - Fixed height with scroll */}
       <div 
         ref={messagesContainerRef}
-        className="flex-1 overflow-y-auto p-4 pb-28 space-y-4 bg-white dark:bg-chat-bg"
+        className="flex-1 overflow-y-auto p-4 space-y-4 bg-white dark:bg-chat-bg"
         style={{ 
           height: 'calc(100dvh - 160px)',
           maxHeight: 'calc(100dvh - 160px)',
           overflowY: 'auto',
+          paddingBottom: `${Math.max(inputHeight + 16, 96)}px`,
           // Avoid reflow jitter on some mobile browsers
           WebkitOverflowScrolling: 'touch'
         }}
@@ -851,7 +872,7 @@ export default function ChatComposer({ currentChatId, onChatCreated, session }: 
           <form onSubmit={handleSubmit} className="relative">
             {/* model switcher moved to Sidebar footer */}
             {/* Unified container with input, image button and send button */}
-            <div className="flex items-end sm:items-center unified-input-container bg-white dark:bg-input-bg border border-gray-300 dark:border-gray-700 rounded-xl p-3 shadow-sm transition-all duration-200">
+            <div ref={inputContainerRef} className="flex items-end sm:items-center unified-input-container bg-white dark:bg-input-bg border border-gray-300 dark:border-gray-700 rounded-xl p-3 shadow-sm transition-all duration-200">
               {/* Hidden file input */}
               <input
                 ref={fileInputRef}
