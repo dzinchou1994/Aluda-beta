@@ -479,20 +479,24 @@ export default function ChatComposer({ currentChatId, onChatCreated, session }: 
 
   // Simple scroll to bottom when messages change
   useEffect(() => {
-    if (!messagesContainerRef.current) return;
+    if (!messagesEndRef.current) return;
     
     requestAnimationFrame(() => {
-      if (messagesContainerRef.current) {
-        messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
-      }
+      messagesEndRef.current?.scrollIntoView({ 
+        behavior: 'smooth', 
+        block: 'end',
+        inline: 'nearest'
+      });
     });
   }, [currentChatMessages.length]);
 
   useEffect(() => {
-    if (!messagesContainerRef.current) return;
-    if (messagesContainerRef.current) {
-      messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
-    }
+    if (!messagesEndRef.current) return;
+    messagesEndRef.current.scrollIntoView({ 
+      behavior: 'smooth', 
+      block: 'end',
+      inline: 'nearest'
+    });
   }, [currentChatMessages.length, isLoading])
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -566,9 +570,11 @@ export default function ChatComposer({ currentChatId, onChatCreated, session }: 
       setMessage("")
       // Scroll to bottom after sending message
       setTimeout(() => {
-        if (messagesContainerRef.current) {
-          messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
-        }
+        messagesEndRef.current?.scrollIntoView({ 
+          behavior: 'smooth', 
+          block: 'end',
+          inline: 'nearest'
+        });
       }, 100)
 
       const response = await responsePromise
@@ -628,9 +634,11 @@ export default function ChatComposer({ currentChatId, onChatCreated, session }: 
         updateMessageInChat(activeChatId, assistantMessage.id, { content: currentText })
         // Keep view at bottom during typing
         setTimeout(() => {
-          if (messagesContainerRef.current) {
-            messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
-          }
+          messagesEndRef.current?.scrollIntoView({ 
+            behavior: 'auto', 
+            block: 'end',
+            inline: 'nearest'
+          });
         }, 50)
       }
 
@@ -735,7 +743,7 @@ export default function ChatComposer({ currentChatId, onChatCreated, session }: 
         ref={messagesContainerRef}
         className="flex-1 min-h-0 overflow-y-auto p-4 space-y-4 bg-white dark:bg-chat-bg overscroll-contain"
         style={{ 
-          paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 160px)',
+          paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 140px)',
           WebkitOverflowScrolling: 'touch'
         }}
       >
