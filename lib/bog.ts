@@ -87,6 +87,13 @@ export async function createBogOrder(params: CreateOrderParams): Promise<CreateO
     return_url: BOG_RETURN_URL,
     callback_url: BOG_CALLBACK_URL,
     customer: params.customerEmail ? { email: params.customerEmail } : undefined,
+    // Try alternative field names that Payments Manager might expect
+    orderId: params.orderId,
+    returnUrl: BOG_RETURN_URL,
+    callbackUrl: BOG_CALLBACK_URL,
+    // Some systems expect amount as object
+    amount_value: params.amount,
+    amount_currency: params.currency || 'GEL',
   }
   
   const url = `${BOG_API_BASE}${path.startsWith('/') ? path : `/${path}`}`
@@ -104,10 +111,14 @@ export async function createBogOrder(params: CreateOrderParams): Promise<CreateO
     body: JSON.stringify(payload),
   })
 
-  // Expect something like { redirect_url: "..." } or { payment_url: "..." }
-  const redirectUrl = raw?.redirect_url || raw?.payment_url || raw?.url
+  // Log the full response for debugging
+  console.log('BOG create order response:', JSON.stringify(raw, null, 2))
+
+  // Try multiple possible field names for redirect URL
+  const redirectUrl = raw?.redirect_url || raw?.payment_url || raw?.url || raw?.redirectUrl || raw?.paymentUrl
   if (!redirectUrl) {
-    throw new Error('BOG create order: missing redirect URL in response')
+    console.error('BOG response missing redirect URL. Available fields:', Object.keys(raw || {}))
+    throw new Error(`BOG create order: missing redirect URL in response. Response: ${JSON.stringify(raw)}`)
   }
   return { redirectUrl, raw }
 }
