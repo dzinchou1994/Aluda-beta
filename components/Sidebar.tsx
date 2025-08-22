@@ -108,13 +108,14 @@ export default function Sidebar({
         <div className="flex items-center justify-between mb-4">
           <a href="/chat" className="flex items-center" aria-label="AludaAI">
             <Image
-              src="/logo.webp"
-              alt="AludaAI"
-              width={128}
+              src="/aludaicon.webp"
+              alt="Aluda icon"
+              width={32}
               height={32}
               priority
-              className="h-8 w-auto select-none"
+              className="h-8 w-8 mr-2 select-none"
             />
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">AludaAI</h2>
           </a>
           
           {/* Theme Toggle */}
