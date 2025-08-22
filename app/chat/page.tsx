@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, useCallback } from "react"
 import { useSession, signIn, signOut } from "next-auth/react"
 import ChatComposer from "@/components/ChatComposer"
 import Sidebar from "@/components/Sidebar"
@@ -64,6 +64,10 @@ export default function ChatPage() {
     signOut({ callbackUrl: '/chat' })
   }
 
+  // Mobile sidebar open/close helpers to avoid double-tap on touch devices
+  const openMobileSidebar = useCallback(() => setIsMobileSidebarOpen(true), [])
+  const closeMobileSidebar = useCallback(() => setIsMobileSidebarOpen(false), [])
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -98,7 +102,8 @@ export default function ChatPage() {
             {/* Mobile menu button */}
             <button
               className="md:hidden p-2 rounded-lg border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300"
-              onClick={() => setIsMobileSidebarOpen(true)}
+              onClick={openMobileSidebar}
+              onPointerDown={openMobileSidebar}
               aria-label="Open sidebar"
             >
               <Menu className="w-5 h-5" />
@@ -164,24 +169,29 @@ export default function ChatPage() {
       {/* Mobile Sidebar Drawer */}
       {isMobileSidebarOpen && (
         <div className="fixed inset-0 z-50 md:hidden">
-          <div className="absolute inset-0 bg-black/40 z-40" onClick={() => setIsMobileSidebarOpen(false)} />
+          <div
+            className="absolute inset-0 bg-black/40 z-40"
+            onClick={closeMobileSidebar}
+            onPointerDown={closeMobileSidebar}
+          />
           <div className="absolute inset-y-0 left-0 w-[85vw] max-w-xs bg-white dark:bg-gray-900 shadow-xl flex z-50">
             <Sidebar
               chats={chats}
               currentChatId={currentChatId}
-              onNewChat={() => { setIsMobileSidebarOpen(false); handleNewChat() }}
-              onSelectChat={(id) => { setIsMobileSidebarOpen(false); handleSelectChat(id) }}
-              onDeleteChat={(id) => { setIsMobileSidebarOpen(false); handleDeleteChat(id) }}
-              onRenameChat={(id, title) => { setIsMobileSidebarOpen(false); renameChat(id, title) }}
+              onNewChat={() => { closeMobileSidebar(); handleNewChat() }}
+              onSelectChat={(id) => { closeMobileSidebar(); handleSelectChat(id) }}
+              onDeleteChat={(id) => { closeMobileSidebar(); handleDeleteChat(id) }}
+              onRenameChat={(id, title) => { closeMobileSidebar(); renameChat(id, title) }}
               session={session}
-              onSignIn={() => { setIsMobileSidebarOpen(false); handleSignIn() }}
-              onSignOut={() => { setIsMobileSidebarOpen(false); handleSignOut() }}
+              onSignIn={() => { closeMobileSidebar(); handleSignIn() }}
+              onSignOut={() => { closeMobileSidebar(); handleSignOut() }}
               showOnMobile
             />
           </div>
           <button
             className="absolute top-4 right-4 p-2 rounded-lg text-white bg-black/50 backdrop-blur z-[60]"
-            onClick={() => setIsMobileSidebarOpen(false)}
+            onClick={closeMobileSidebar}
+            onPointerDown={closeMobileSidebar}
             aria-label="Close sidebar"
           >
             <X className="w-5 h-5" />
