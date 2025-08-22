@@ -120,8 +120,12 @@ export function useChatSubmit({
         throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
       }
 
-      // Handle streaming response
-      if (response.headers.get('content-type')?.includes('text/event-stream')) {
+      // Check if we got a streaming response
+      const contentType = response.headers.get('content-type') || '';
+      console.log('Response headers:', Object.fromEntries(response.headers.entries()));
+      console.log('Content-Type:', contentType);
+      
+      if (contentType.includes('text/event-stream')) {
         console.log('Processing streaming response...');
         
         // Create a placeholder AI message that we'll update in real-time
@@ -157,9 +161,28 @@ export function useChatSubmit({
 
                 try {
                   const parsed = JSON.parse(data);
+                  console.log('Streaming data received:', parsed); // Debug log
+                  
+                  // Handle different streaming formats
                   if (parsed.event === 'token' && parsed.data) {
+                    // Standard token format
                     fullContent += parsed.data;
-                    // Update the message content in real-time
+                  } else if (parsed.text) {
+                    // Flowise direct text format
+                    fullContent = parsed.text;
+                  } else if (parsed.message) {
+                    // Alternative message format
+                    fullContent = parsed.message;
+                  } else if (parsed.content) {
+                    // Content format
+                    fullContent = parsed.content;
+                  } else if (typeof parsed === 'string') {
+                    // Direct string response
+                    fullContent = parsed;
+                  }
+                  
+                  // Update the message content in real-time if we have content
+                  if (fullContent) {
                     const updatedMessage: Omit<Message, 'timestamp'> = {
                       id: aiMessageId,
                       role: "assistant",
@@ -168,7 +191,17 @@ export function useChatSubmit({
                     addMessageToChat(activeChatId, updatedMessage);
                   }
                 } catch (e) {
-                  // Ignore parsing errors
+                  console.log('Parsing error for line:', data, e); // Debug log
+                  // If parsing fails, try to treat it as direct text
+                  if (data && data !== '[DONE]') {
+                    fullContent = data;
+                    const updatedMessage: Omit<Message, 'timestamp'> = {
+                      id: aiMessageId,
+                      role: "assistant",
+                      content: fullContent,
+                    };
+                    addMessageToChat(activeChatId, updatedMessage);
+                  }
                 }
               }
             }
@@ -178,8 +211,29 @@ export function useChatSubmit({
         }
 
         console.log('Streaming complete, final content:', fullContent);
+        
+        // If we still don't have content after streaming, try to get it from the response
+        if (!fullContent) {
+          console.warn('No content received from streaming, trying to get response body...');
+          try {
+            const responseText = await response.text();
+            console.log('Response body as text:', responseText);
+            if (responseText.trim()) {
+              fullContent = responseText.trim();
+              const updatedMessage: Omit<Message, 'timestamp'> = {
+                id: aiMessageId,
+                role: "assistant",
+                content: fullContent,
+              };
+              addMessageToChat(activeChatId, updatedMessage);
+            }
+          } catch (e) {
+            console.error('Failed to get response body:', e);
+          }
+        }
       } else {
         // Fallback to non-streaming response
+        console.log('Processing non-streaming response...');
         const responseData = await response.json();
         console.log('Non-streaming API response:', responseData);
         
