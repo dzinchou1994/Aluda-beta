@@ -147,24 +147,6 @@ export default function Sidebar({
           </div>
         )}
         
-        {/* Model Switcher - Moved to top */}
-        <div className="mt-4 p-2 bg-gray-50 dark:bg-sidebar-dark rounded-lg">
-          <div className="flex items-center justify-between">
-            <span className="text-xs text-gray-500 dark:text-gray-400">მოდელი</span>
-            <ModelSwitcher
-              value={model}
-              onChange={(v) => {
-                if (v === 'aluda2' && !session) {
-                  onSignIn()
-                  return
-                }
-                setModel(v)
-              }}
-              disabledAluda2={!session}
-            />
-          </div>
-        </div>
-        
         {/* Authentication Section */}
         {session ? (
           <div className="flex items-center space-x-3 p-3 bg-gray-50 dark:bg-sidebar-dark rounded-lg mt-4">

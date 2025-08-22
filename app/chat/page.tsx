@@ -6,7 +6,9 @@ import ChatComposer from "@/components/ChatComposer"
 import Sidebar from "@/components/Sidebar"
 import UserSettingsModal from "@/components/UserSettingsModal"
 import { useChatsContext } from "@/context/ChatsContext"
+import { useModel } from "@/context/ModelContext"
 import { Plus, User, LogIn, LogOut, Menu, X } from "lucide-react"
+import ModelSwitcher from "@/components/ModelSwitcher"
 
 export default function ChatPage() {
   const { data: session, status } = useSession()
@@ -23,6 +25,7 @@ export default function ChatPage() {
     renameChat,
     chatCreated 
   } = useChatsContext()
+  const { model, setModel } = useModel()
 
   useEffect(() => {
     // Always allow access to chat, just show loading briefly
@@ -119,9 +122,27 @@ export default function ChatPage() {
             >
               <Menu className="w-5 h-5" />
             </button>
-            <h1 className="text-lg md:text-xl font-semibold text-gray-900 dark:text-white">
-              {currentChat?.title ?? "AludaAI"}
-            </h1>
+            
+            {/* Chat Title and Model Switcher */}
+            <div className="flex flex-col space-y-2">
+              <h1 className="text-lg md:text-xl font-semibold text-gray-900 dark:text-white">
+                {currentChat?.title ?? "AludaAI"}
+              </h1>
+              <div className="flex items-center space-x-2">
+                <span className="text-xs text-gray-500 dark:text-gray-400">მოდელი:</span>
+                <ModelSwitcher
+                  value={model}
+                  onChange={(v) => {
+                    if (v === 'aluda2' && !session) {
+                      handleSignIn()
+                      return
+                    }
+                    setModel(v)
+                  }}
+                  disabledAluda2={!session}
+                />
+              </div>
+            </div>
           </div>
           
           <div className="flex items-center space-x-3 md:space-x-4">
