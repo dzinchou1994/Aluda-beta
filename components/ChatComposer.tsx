@@ -724,6 +724,23 @@ export default function ChatComposer({ currentChatId, onChatCreated, session }: 
     }
   }
 
+  // Handle scroll events to prevent unwanted bouncing
+  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    if (window.innerWidth <= 768 && messagesContainerRef.current) {
+      const container = e.currentTarget
+      const { scrollTop, scrollHeight, clientHeight } = container
+      
+      // Prevent scrolling beyond boundaries
+      if (scrollTop <= 0) {
+        container.scrollTop = 0
+      }
+      
+      if (scrollTop + clientHeight >= scrollHeight) {
+        container.scrollTop = scrollHeight - clientHeight
+      }
+    }
+  }
+
   const startNewChat = () => {
     if (!isInitialized) return;
     
@@ -785,8 +802,10 @@ export default function ChatComposer({ currentChatId, onChatCreated, session }: 
         style={{ 
           paddingTop: '16px',
           paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 100px)',
-          WebkitOverflowScrolling: 'touch'
+          WebkitOverflowScrolling: 'touch',
+          overscrollBehavior: 'contain'
         }}
+        onScroll={handleScroll}
       >
         {/* Welcome Message */}
         {currentChatMessages.length === 0 ? (

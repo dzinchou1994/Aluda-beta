@@ -58,6 +58,7 @@
 .chat-container {
   scroll-behavior: smooth;
   -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
 }
 
 /* Custom scrollbar for chat */
@@ -201,6 +202,9 @@
   .messages-container-mobile {
     scroll-behavior: auto;
     -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+    overscroll-behavior-x: none;
+    overscroll-behavior-y: contain;
   }
   
   /* Better mobile keyboard handling */
@@ -213,5 +217,22 @@
   /* Ensure proper spacing without excessive padding */
   .mobile-input-container {
     min-height: 80px;
+  }
+  
+  /* Better scroll behavior for mobile */
+  .messages-container-mobile {
+    scroll-snap-type: y proximity;
+    scroll-snap-align: start;
+  }
+  
+  /* Prevent iOS momentum scrolling issues */
+  .messages-container-mobile::-webkit-scrollbar {
+    display: none;
+  }
+  
+  /* Ensure smooth scrolling without bouncing */
+  .messages-container-mobile {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
   }
 }
