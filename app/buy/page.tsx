@@ -3,12 +3,14 @@
 import Link from 'next/link'
 import { Check } from 'lucide-react'
 import { useSession } from 'next-auth/react'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 
 export default function BuyPage() {
   const { status } = useSession()
   const router = useRouter()
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   // Guests should not see the buy page; redirect them to signin
   useEffect(() => {
@@ -119,10 +121,35 @@ export default function BuyPage() {
                 </ul>
 
                 <div className="mt-6 sm:mt-8 max-w-md mx-auto w-full">
-                  <button className="w-full bg-gray-900 text-white dark:bg-white dark:text-gray-900 py-3 sm:py-3.5 px-4 rounded-lg font-medium hover:opacity-90 transition">
-                    გააქტიურე პრემიუმი — ₾20/თვე
+                  <button
+                    onClick={async () => {
+                      try {
+                        setError(null)
+                        setLoading(true)
+                        const res = await fetch('/api/payments/bog/create', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ amount: 2000, currency: 'GEL' }),
+                        })
+                        const data = await res.json()
+                        if (!res.ok) throw new Error(data?.error || 'Payment create failed')
+                        const url = data?.redirectUrl
+                        if (!url) throw new Error('Missing redirect URL')
+                        window.location.href = url
+                      } catch (e: any) {
+                        setError(e?.message || 'ვერ მოხერხდა გადახდის ინიციაცია')
+                      } finally {
+                        setLoading(false)
+                      }
+                    }}
+                    disabled={loading}
+                    className="w-full bg-gray-900 text-white dark:bg-white dark:text-gray-900 py-3 sm:py-3.5 px-4 rounded-lg font-medium hover:opacity-90 transition disabled:opacity-60"
+                  >
+                    {loading ? 'იტვირთება…' : 'გააქტიურე პრემიუმი — ₾20/თვე'}
                   </button>
-                  <p className="mt-2 text-xs text-gray-500 dark:text-gray-400 text-center">გადახდის სისტემა ჩაირთვება დომენის მიბმის შემდეგ</p>
+                  {error && (
+                    <p className="mt-2 text-xs text-red-600 dark:text-red-400 text-center">{error}</p>
+                  )}
                 </div>
               </div>
             </div>

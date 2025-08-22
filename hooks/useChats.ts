@@ -171,7 +171,8 @@ function chatReducer(state: ChatState, action: ChatAction): ChatState {
             return {
               ...chat,
               title: newTitle,
-              titleLocked: Boolean(chat.titleLocked) || (!!newTitle && newTitle !== chat.title),
+              // Do NOT lock on auto title; allow AI title override shortly after
+              titleLocked: Boolean(chat.titleLocked) || false,
               messages: updatedMessages
             };
           }

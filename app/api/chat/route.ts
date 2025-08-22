@@ -5,6 +5,7 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { getOrCreateSession } from "@/lib/session"
 import { addUsage, canConsume } from "@/lib/tokens"
+import { prisma } from "@/lib/prisma"
 // import { suggestTitleWithGroq } from "@/lib/groq"
 
 export const runtime = 'nodejs'
@@ -64,14 +65,19 @@ export async function POST(request: NextRequest) {
     // Identify actor
     const session = await getServerSession(authOptions)
     const cookieSess = getOrCreateSession()
-    const actor = session?.user?.id
-      ? { type: 'user' as const, id: session.user.id, plan: 'USER' as const }
-      : { type: 'guest' as const, id: cookieSess.guestId || cookieSess.sessionId }
+    // Load user plan from DB if logged in
+    let actor: any
+    if (session?.user?.id) {
+      const dbUser = await prisma.user.findUnique({ where: { id: session.user.id }, select: { plan: true } })
+      actor = { type: 'user' as const, id: session.user.id, plan: (dbUser?.plan || 'USER') as 'USER' | 'PREMIUM' }
+    } else {
+      actor = { type: 'guest' as const, id: cookieSess.guestId || cookieSess.sessionId }
+    }
 
     // Model handling: 'mini' (default) or 'aluda2'
     const selectedModel = (model === 'aluda2') ? 'aluda2' : 'mini'
     // Premium users default to aluda2 without extra token multiplier
-    const isPremium = false // TODO: read from DB when plan is enabled
+    const isPremium = actor.type === 'user' && actor.plan === 'PREMIUM'
     const tokenMultiplier = selectedModel === 'aluda2' && !isPremium && actor.type !== 'guest' ? 5 : 1
     // Guests cannot use aluda2
     if (actor.type === 'guest' && selectedModel === 'aluda2') {
