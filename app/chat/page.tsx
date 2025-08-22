@@ -83,7 +83,7 @@ export default function ChatPage() {
   }
 
   return (
-    <div className="flex h-screen md:h-screen bg-gray-50 dark:bg-chat-bg">
+    <div className="flex h-screen bg-gray-50 dark:bg-chat-bg">
       {/* Mobile Sidebar Overlay */}
       {isMobileSidebarOpen && (
         <div 
@@ -111,7 +111,7 @@ export default function ChatPage() {
       {/* Main Chat Area */}
       <div className="flex-1 flex flex-col bg-white dark:bg-chat-bg">
         {/* Header */}
-        <header className="bg-white dark:bg-chat-bg border-b border-gray-200 dark:border-gray-800 p-4 flex items-center justify-between">
+        <header className="sticky top-0 z-10 bg-white dark:bg-chat-bg border-b border-gray-200 dark:border-gray-800 p-4 flex items-center justify-between">
           <div className="flex items-center space-x-3">
             {/* Mobile menu button */}
             <button

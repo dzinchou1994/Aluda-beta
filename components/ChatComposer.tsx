@@ -726,8 +726,8 @@ export default function ChatComposer({ currentChatId, onChatCreated, session }: 
         ref={messagesContainerRef}
         className="flex-1 overflow-y-auto p-4 space-y-4 bg-white dark:bg-chat-bg"
         style={{ 
-          height: 'calc(100vh - 200px)',
-          maxHeight: 'calc(100vh - 200px)',
+          height: 'calc(100dvh - 160px)',
+          maxHeight: 'calc(100dvh - 160px)',
           overflowY: 'auto',
           // Avoid reflow jitter on some mobile browsers
           WebkitOverflowScrolling: 'touch'
