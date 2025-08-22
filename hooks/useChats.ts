@@ -122,22 +122,11 @@ function chatReducer(state: ChatState, action: ChatAction): ChatState {
     
     case 'CREATE_CHAT':
       console.log('Adding new chat:', action.payload.id);
-      const newState = { 
+      return { 
         ...state, 
         chats: [action.payload, ...state.chats],
         currentChatId: action.payload.id
       };
-      
-      // Immediately save to localStorage
-      try {
-        localStorage.setItem('aluda_chats', JSON.stringify(newState.chats));
-        localStorage.setItem('aluda_current_chat_id', action.payload.id);
-        console.log('Reducer: Immediately saved new chat to localStorage');
-      } catch (error) {
-        console.error('Reducer: Error saving to localStorage:', error);
-      }
-      
-      return newState;
     
     case 'UPDATE_CHAT':
       console.log('useChats: Updating chat:', action.payload)
@@ -164,7 +153,7 @@ function chatReducer(state: ChatState, action: ChatAction): ChatState {
           if (chat.id === action.payload.chatId) {
             const updatedMessages = [...chat.messages, action.payload.message];
             
-            // Update chat title based on first user message
+            // Robust auto-title: trigger when first message is appended and it's a non-greeting user text
             let newTitle = chat.title;
             const isGreeting = (text: string) => {
               const t = text.trim().toLowerCase();
@@ -172,10 +161,11 @@ function chatReducer(state: ChatState, action: ChatAction): ChatState {
                 'გამარჯობა', 'hello', 'hi', 'hey', 'გაუმარჯოს', 'სალამი'
               ].some(g => t === g || t.startsWith(g + ' '));
             }
-            // Only allow automatic title set once, and not on pure greeting
-            const canAutoTitle = chat.messages.length === 0 && action.payload.message.role === 'user' && !isGreeting(action.payload.message.content)
+            const isFirstAfterAppend = updatedMessages.length === 1 && action.payload.message.role === 'user'
+            const textContent = (action.payload.message.content || '').trim()
+            const canAutoTitle = isFirstAfterAppend && textContent.length > 0 && !isGreeting(textContent)
             if (canAutoTitle && !chat.titleLocked) {
-              newTitle = generateChatTitle(action.payload.message.content);
+              newTitle = generateChatTitle(textContent);
             }
             
             return {
