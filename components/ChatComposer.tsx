@@ -684,15 +684,15 @@ export default function ChatComposer({ currentChatId, onChatCreated, session }: 
   // Don't render until initialized
   if (!isInitialized) {
     return (
-      <div className="flex flex-col h-full bg-gradient-to-br from-gray-50 to-blue-50 dark:from-gray-900 dark:to-gray-900">
+      <div className="flex flex-col h-full bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-900">
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center animate-fade-in">
             <div className="relative">
-              <Loader2 className="h-12 w-12 animate-spin mx-auto mb-6 text-blue-500" />
-              <div className="absolute inset-0 bg-blue-500/20 rounded-full blur-xl animate-pulse"></div>
+              <Loader2 className="h-12 w-12 animate-spin mx-auto mb-6 text-gray-500 dark:text-gray-400" />
+              <div className="absolute inset-0 bg-gray-500/20 dark:bg-gray-400/20 rounded-full blur-xl animate-pulse"></div>
             </div>
-            <p className="text-gray-600 text-lg font-medium animate-fade-in-up">იტვირთება...</p>
-            <p className="text-gray-400 text-sm mt-2 animate-fade-in-up-delay">მზად ვართ საუბრისთვის</p>
+            <p className="text-gray-600 dark:text-gray-300 text-lg font-medium animate-fade-in-up">იტვირთება...</p>
+            <p className="text-gray-400 dark:text-gray-500 text-sm mt-2 animate-fade-in-up-delay">მზად ვართ საუბრისთვის</p>
           </div>
         </div>
       </div>
@@ -702,14 +702,14 @@ export default function ChatComposer({ currentChatId, onChatCreated, session }: 
   // Show refresh loading state
   if (isRefreshing) {
     return (
-      <div className="flex flex-col h-full bg-gradient-to-br from-gray-50 to-blue-50 dark:from-gray-900 dark:to-gray-900">
+      <div className="flex flex-col h-full bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-900">
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center animate-fade-in">
             <div className="relative">
-              <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center mx-auto mb-6 animate-pulse">
+              <div className="w-16 h-16 bg-gradient-to-r from-gray-500 to-gray-600 dark:from-gray-600 dark:to-gray-500 rounded-full flex items-center justify-center mx-auto mb-6 animate-pulse">
                 <MessageSquare className="h-8 w-8 text-white" />
               </div>
-              <div className="absolute inset-0 bg-blue-500/20 rounded-full blur-xl animate-pulse"></div>
+              <div className="absolute inset-0 bg-gray-500/20 dark:bg-gray-400/20 rounded-full blur-xl animate-pulse"></div>
             </div>
             <p className="text-gray-600 text-lg font-medium animate-fade-in-up">ქმნება ახალი ჩათი...</p>
             <p className="text-gray-400 text-sm mt-2 animate-fade-in-up-delay">გთხოვთ დაელოდოთ</p>
@@ -720,7 +720,7 @@ export default function ChatComposer({ currentChatId, onChatCreated, session }: 
   }
 
   return (
-    <div className="flex flex-col h-full bg-gradient-to-br from-gray-50 via-white to-blue-50 dark:bg-gray-900 transition-colors duration-200 min-w-0">
+    <div className="flex flex-col h-full bg-gradient-to-br from-gray-50 via-white to-gray-100 dark:bg-gray-900 transition-colors duration-200 min-w-0">
       {/* Messages Area - Fixed height with scroll */}
       <div 
         ref={messagesContainerRef}
