@@ -269,19 +269,26 @@ export default function Sidebar({
           </div>
         ) : (
           <div className="p-2 bg-gray-50 dark:bg-sidebar-dark rounded-lg">
-            <div className="flex items-center space-x-2 mb-2">
-              <div className="w-6 h-6 bg-gradient-to-r from-gray-400 to-gray-500 rounded-full flex items-center justify-center">
-                <User className="w-3 h-3 text-white" />
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <div className="w-6 h-6 bg-gradient-to-r from-gray-400 to-gray-500 rounded-full flex items-center justify-center">
+                  <User className="w-3 h-3 text-white" />
+                </div>
+                <button
+                  onClick={onSignIn}
+                  className="text-xs font-medium text-gray-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 transition-colors cursor-pointer"
+                >
+                  სტუმარი
+                </button>
               </div>
-              <span className="text-xs font-medium text-gray-900 dark:text-white">სტუმარი</span>
+              <button
+                onClick={onSignIn}
+                className="flex items-center justify-center space-x-1 px-3 py-1.5 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-all duration-200 text-xs"
+              >
+                <LogIn className="w-3 h-3" />
+                <span>შესვლა</span>
+              </button>
             </div>
-            <button
-              onClick={onSignIn}
-              className="w-full flex items-center justify-center space-x-1 p-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-all duration-200 text-xs"
-            >
-              <LogIn className="w-3 h-3" />
-              <span>შესვლა</span>
-            </button>
           </div>
         )}
       </div>

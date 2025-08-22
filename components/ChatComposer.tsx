@@ -477,27 +477,25 @@ export default function ChatComposer({ currentChatId, onChatCreated, session }: 
     }
   }, [attachedPreviewUrl])
 
-  // Simple scroll to bottom when messages change
+  // Smart scroll behavior when messages change
   useEffect(() => {
-    if (!messagesEndRef.current) return;
+    if (!messagesEndRef.current || !messagesContainerRef.current) return;
     
-    requestAnimationFrame(() => {
-      messagesEndRef.current?.scrollIntoView({ 
-        behavior: 'smooth', 
-        block: 'end',
-        inline: 'nearest'
+    const container = messagesContainerRef.current;
+    const userHasScrolled = container.dataset.userScrolled === 'true';
+    const isAtBottom = container.scrollHeight - container.scrollTop <= container.clientHeight + 50;
+    
+    // Only auto-scroll if user is at bottom AND hasn't manually scrolled up
+    if (isAtBottom && !userHasScrolled) {
+      requestAnimationFrame(() => {
+        messagesEndRef.current?.scrollIntoView({ 
+          behavior: 'smooth', 
+          block: 'end',
+          inline: 'nearest'
+        });
       });
-    });
-  }, [currentChatMessages.length]);
-
-  useEffect(() => {
-    if (!messagesEndRef.current) return;
-    messagesEndRef.current.scrollIntoView({ 
-      behavior: 'smooth', 
-      block: 'end',
-      inline: 'nearest'
-    });
-  }, [currentChatMessages.length, isLoading])
+    }
+  }, [currentChatMessages.length, isLoading]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -726,9 +724,21 @@ export default function ChatComposer({ currentChatId, onChatCreated, session }: 
 
   // Handle scroll events for smooth mobile experience
   const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
-    // Only handle scroll for mobile devices
     if (window.innerWidth <= 768) {
-      // Let the browser handle natural scrolling - no restrictions
+      const container = e.currentTarget;
+      const { scrollTop, scrollHeight, clientHeight } = container;
+      
+      // Store scroll position to prevent unwanted auto-scrolling
+      const isAtBottom = scrollHeight - scrollTop <= clientHeight + 10;
+      
+      // If user scrolls up, don't auto-scroll them back down
+      if (!isAtBottom) {
+        // User has manually scrolled up, respect their position
+        container.dataset.userScrolled = 'true';
+      } else {
+        // User is at bottom, allow auto-scrolling
+        container.dataset.userScrolled = 'false';
+      }
     }
   }
 
@@ -795,7 +805,7 @@ export default function ChatComposer({ currentChatId, onChatCreated, session }: 
           paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 100px)',
           WebkitOverflowScrolling: 'touch'
         }}
-
+        onScroll={handleScroll}
       >
         {/* Welcome Message */}
         {currentChatMessages.length === 0 ? (
