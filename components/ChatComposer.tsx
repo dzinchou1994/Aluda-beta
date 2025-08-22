@@ -15,25 +15,28 @@ import { useChatScroll } from '@/hooks/useChatScroll';
 import { useChatSubmit } from '@/hooks/useChatSubmit';
 
 interface ChatComposerProps {
+  currentChatId?: string;
   session: Session | null;
   onChatCreated: (chatId: string) => void;
 }
 
-export default function ChatComposer({ session, onChatCreated }: ChatComposerProps) {
+export default function ChatComposer({ currentChatId: propCurrentChatId, session, onChatCreated }: ChatComposerProps) {
   const router = useRouter();
   const { model } = useModel();
   const { usage, limits, setUsageLimits } = useTokens();
   const { 
     chats, 
-    currentChatId, 
+    currentChatId: contextCurrentChatId, 
     setCurrentChatId, 
     createNewChat, 
     addMessageToChat, 
     updateMessageInChat,
     renameChat,
-    isInitialized, 
-    isRefreshing 
+    isInitialized
   } = useChatsContext();
+
+  // Use prop currentChatId if provided, otherwise use context
+  const currentChatId = propCurrentChatId || contextCurrentChatId;
 
   // Local state
   const [message, setMessage] = useState('');
@@ -57,7 +60,7 @@ export default function ChatComposer({ session, onChatCreated }: ChatComposerPro
 
   const { isLoading, handleSubmit } = useChatSubmit({
     model,
-    currentChatId,
+    currentChatId: currentChatId || null,
     createNewChat,
     addMessageToChat,
     onChatCreated,
@@ -125,25 +128,7 @@ export default function ChatComposer({ session, onChatCreated }: ChatComposerPro
     );
   }
 
-  // Show refresh loading state
-  if (isRefreshing) {
-    return (
-      <div className="flex flex-col h-full bg-gradient-to-br from-gray-50 to-gray-100 dark:bg-chat-bg">
-        <div className="flex-1 flex items-center justify-center">
-          <div className="text-center animate-fade-in">
-            <div className="relative">
-              <div className="w-16 h-16 bg-gradient-to-r from-gray-500 to-gray-600 dark:from-gray-600 dark:to-gray-500 rounded-full flex items-center justify-center mx-auto mb-6 animate-pulse">
-                <Loader2 className="h-8 w-8 text-white" />
-              </div>
-              <div className="absolute inset-0 bg-gray-500/20 dark:bg-gray-400/20 rounded-full blur-xl animate-pulse"></div>
-            </div>
-            <p className="text-gray-600 text-lg font-medium animate-fade-in-up">ქმნება ახალი ჩათი...</p>
-            <p className="text-gray-400 text-sm mt-2 animate-fade-in-up-delay">გთხოვთ დაელოდოთ</p>
-          </div>
-        </div>
-      </div>
-    );
-  }
+
 
   return (
     <div className="flex flex-col h-full bg-white dark:bg-chat-bg transition-colors duration-200 min-w-0">
