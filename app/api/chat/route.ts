@@ -162,7 +162,7 @@ export async function POST(request: NextRequest) {
         }, { status: 500 })
       }
       // Create a more unique session ID for Flowise to prevent conversation mixing
-      const flowiseSessionId = `${actor.type}_${actor.id}_${currentChatId}`
+      flowiseSessionId = `${actor.type}_${actor.id}_${currentChatId}`
       
       flowiseResponse = await sendToFlowiseWithRetry({
         message: effectiveMessage,
