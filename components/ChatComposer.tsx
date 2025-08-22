@@ -860,8 +860,8 @@ export default function ChatComposer({ currentChatId, onChatCreated, session }: 
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Input Area - Sticky within chat container */}
-      <div className="sticky bottom-0 z-10 bg-white dark:bg-chat-bg shadow-lg">
+      {/* Input Area - Sticky within chat container, ensure mobile visibility */}
+      <div className="sticky bottom-0 z-20 bg-white dark:bg-chat-bg shadow-lg">
         <div className="max-w-4xl mx-auto p-3">
           <form onSubmit={handleSubmit} className="relative">
             {/* model switcher moved to Sidebar footer */}
