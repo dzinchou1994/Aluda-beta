@@ -725,18 +725,19 @@ export default function ChatComposer({ currentChatId, onChatCreated, session }: 
       {/* Messages Area - Fixed height with scroll */}
       <div 
         ref={messagesContainerRef}
-        className="flex-1 overflow-y-auto p-4 pb-24 space-y-4 bg-white dark:bg-chat-bg"
+        className="flex-1 overflow-y-auto p-4 space-y-4 bg-white dark:bg-chat-bg"
         style={{ 
           height: 'calc(100svh - 160px)',
           maxHeight: 'calc(100svh - 160px)',
           overflowY: 'auto',
+          paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 88px)',
           // Avoid reflow jitter on some mobile browsers
           WebkitOverflowScrolling: 'touch'
         }}
       >
         {/* Welcome Message */}
         {currentChatMessages.length === 0 ? (
-          <div className="flex flex-col items-center text-center animate-fade-in md:justify-center md:h-full mt-6 pb-24">
+          <div className="flex flex-col items-center text-center animate-fade-in md:justify-center md:h-full mt-6">
             <div className="w-16 h-16 md:w-20 md:h-20 bg-gradient-to-r from-gray-200 to-gray-300 dark:from-gray-800/50 dark:to-gray-700/50 rounded-full flex items-center justify-center mb-8 md:mb-6 animate-bounce">
               <MessageSquare className="h-8 w-8 md:h-10 md:w-10 text-gray-700 dark:text-gray-200" />
             </div>
