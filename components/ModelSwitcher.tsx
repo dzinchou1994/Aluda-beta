@@ -92,7 +92,7 @@ export default function ModelSwitcher() {
                 {getModelIcon('aluda2')}
                 <div>
                   <div className="text-white font-medium text-sm">Aluda 2.0</div>
-                  <div className="text-gray-400 text-xs">Our smartest model & more</div>
+                  <div className="text-gray-400 text-xs">ჩვენი ყველაზე ჭკვიანი მოდელი და მეტი</div>
                 </div>
               </div>
               {!hasPremium ? (
@@ -103,7 +103,7 @@ export default function ModelSwitcher() {
                     handleUpgrade();
                   }}
                 >
-                  Upgrade
+                  გაუმჯობესება
                 </button>
               ) : (
                 model === 'aluda2' && <Check className="h-3 w-3 text-white" />
@@ -118,7 +118,7 @@ export default function ModelSwitcher() {
                 {getModelIcon('mini')}
                 <div>
                   <div className="text-white font-medium text-sm">Aluda mini</div>
-                  <div className="text-gray-400 text-xs">Great for everyday tasks</div>
+                  <div className="text-gray-400 text-xs">კარგია ყოველდღიური ამოცანებისთვის</div>
                 </div>
               </div>
               {model === 'mini' && <Check className="h-3 w-3 text-white" />}
