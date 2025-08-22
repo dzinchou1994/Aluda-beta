@@ -88,7 +88,7 @@ function Suggestions({ onPick }: { onPick: (s: string) => void }) {
         <button
           key={`${suggestion}-${index}`}
           onClick={() => onPick(suggestion)}
-          className="px-4 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-full text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800/60 hover:border-gray-300 dark:hover:border-gray-500 hover:text-gray-900 dark:hover:text-gray-100 transition-all duration-200 shadow-sm hover:shadow-md animate-fade-in-up"
+          className="px-4 py-2 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-full text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600 hover:border-gray-300 dark:hover:border-gray-500 hover:text-gray-900 dark:hover:text-gray-100 transition-all duration-200 shadow-sm hover:shadow-md animate-fade-in-up"
           style={{ animationDelay: `${index * 100}ms` }}
           disabled={loading}
         >
@@ -684,7 +684,7 @@ export default function ChatComposer({ currentChatId, onChatCreated, session }: 
   // Don't render until initialized
   if (!isInitialized) {
     return (
-      <div className="flex flex-col h-full bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-900">
+      <div className="flex flex-col h-full bg-gradient-to-br from-gray-50 to-gray-100 dark:bg-chat-bg">
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center animate-fade-in">
             <div className="relative">
@@ -702,7 +702,7 @@ export default function ChatComposer({ currentChatId, onChatCreated, session }: 
   // Show refresh loading state
   if (isRefreshing) {
     return (
-      <div className="flex flex-col h-full bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-900">
+      <div className="flex flex-col h-full bg-gradient-to-br from-gray-50 to-gray-100 dark:bg-chat-bg">
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center animate-fade-in">
             <div className="relative">
@@ -720,7 +720,7 @@ export default function ChatComposer({ currentChatId, onChatCreated, session }: 
   }
 
   return (
-    <div className="flex flex-col h-full bg-gradient-to-br from-gray-50 via-white to-gray-100 dark:bg-gray-900 transition-colors duration-200 min-w-0">
+    <div className="flex flex-col h-full bg-gradient-to-br from-gray-50 via-white to-gray-100 dark:bg-chat-bg transition-colors duration-200 min-w-0">
       {/* Messages Area - Fixed height with scroll */}
       <div 
         ref={messagesContainerRef}
