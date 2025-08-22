@@ -88,7 +88,7 @@ export async function sendToFlowise({
       )
     }
     if (isMultipart) {
-      // First try EXACTLY the same shape as Flowise UI: JSON to /internal-prediction with uploads array
+      // Use prediction endpoint directly for file uploads since internal-prediction requires auth
       const arrayBuffer = await (file as any).arrayBuffer()
       const base64 = Buffer.from(arrayBuffer).toString('base64')
       const mime = (file as any)?.type || 'application/octet-stream'
@@ -103,66 +103,22 @@ export async function sendToFlowise({
         overrideConfig: requestBody.overrideConfig || {},
       }
 
-      response = await fetch(internalPredictionUrl, {
+      response = await fetch(predictionUrl, {
         method: 'POST',
         headers: { ...headers, 'Content-Type': 'application/json', Accept: 'text/event-stream, application/json' },
         body: JSON.stringify(jsonBody),
         signal: AbortSignal.timeout(60000),
       })
       endpointUsed = 'prediction'
-
-      // If internal-prediction fails, try regular prediction endpoint
-      let ctMultipart = response.headers.get('content-type') || ''
-      const isJsonOrSSE = ctMultipart.includes('application/json') || ctMultipart.includes('text/event-stream')
-      if (!response.ok || !isJsonOrSSE) {
-        const tryPrediction = await fetch(predictionUrl, {
-          method: 'POST',
-          headers: { ...headers, 'Content-Type': 'application/json', Accept: 'text/event-stream, application/json' },
-          body: JSON.stringify(jsonBody),
-          signal: AbortSignal.timeout(60000),
-        })
-        endpointUsed = 'prediction'
-        
-        const ct2 = tryPrediction.headers.get('content-type') || ''
-        if (!tryPrediction.ok || !(ct2.includes('application/json') || ct2.includes('text/event-stream'))) {
-          if (tryPrediction.status === 429) {
-            throw new Error('Rate limit exceeded. Please try again later.')
-          }
-          let errText2 = ''
-          let errJson2: any = null
-          try {
-            errText2 = await tryPrediction.text()
-            try { errJson2 = JSON.parse(errText2) } catch {}
-          } catch {}
-          const msg = errJson2?.message || errJson2?.error || errJson2?.stack || errText2
-          throw new Error(`Flowise JSON failed. internal-prediction(${response.status} ${ctMultipart})→prediction(${tryPrediction.status} ${ct2}). Error: ${String(msg).slice(0,200)}`)
-        }
-        response = tryPrediction
-      }
     } else {
-      // JSON mode: try prediction first
-      // Prefer internal-prediction when available for better SSE token stream
-      response = await fetch(internalPredictionUrl, {
+      // JSON mode: use prediction endpoint directly since internal-prediction requires auth
+      response = await fetch(predictionUrl, {
         method: 'POST',
         headers: { ...headers, 'Content-Type': 'application/json', Accept: 'text/event-stream, application/json' },
         body: JSON.stringify(requestBody),
         signal: AbortSignal.timeout(60000),
       })
       endpointUsed = 'prediction'
-
-      // Fallback if not OK or not JSON
-      let ct = response.headers.get('content-type') || ''
-      if (!response.ok || !ct.includes('application/json')) {
-        const errText = await response.text().catch(() => '')
-        console.warn('Prediction endpoint non-json/failed:', response.status, errText?.slice(0, 200))
-        response = await fetch(predictionUrl, {
-          method: 'POST',
-          headers: { ...headers, 'Content-Type': 'application/json', Accept: 'text/event-stream, application/json' },
-          body: JSON.stringify(requestBody),
-          signal: AbortSignal.timeout(60000),
-        })
-        endpointUsed = 'prediction'
-      }
     }
 
     if (!response.ok) {
@@ -389,11 +345,18 @@ export async function suggestTitleWithFlowise({
       `Question: ${question}`,
     ].join('\n')
 
+    // Use specific title generation chatflow if available, otherwise use provided override or main chatflow
+    const titleChatflowId = process.env.ALUDAAI_FLOWISE_CHATFLOW_ID_SUGGEST 
+      || "8d24523f-6d06-4c09-a475-61560d64b810" // Default title generation chatflow
+      || chatflowIdOverride
+      || process.env.ALUDAAI_FLOWISE_CHATFLOW_ID 
+      || process.env.FLOWISE_CHATFLOW_ID
+
     const res = await sendToFlowiseWithRetry({
       message: prompt,
       history: [],
       sessionId: `${sessionId}_title`,
-      chatflowIdOverride,
+      chatflowIdOverride: titleChatflowId,
     })
 
     const raw = (res.text || '').trim()

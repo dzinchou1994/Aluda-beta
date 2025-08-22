@@ -97,8 +97,8 @@ export async function POST(request: NextRequest) {
       }, { status: 402 })
     }
 
-    // Generate a simple chat ID if none provided
-    const currentChatId = chatId || `chat_${Date.now()}`
+    // Generate a unique chat ID with user context
+    const currentChatId = chatId || `${actor.type}_${actor.id}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
 
     // Check if client wants streaming
     const acceptHeader = request.headers.get('accept') || ''
@@ -127,6 +127,7 @@ export async function POST(request: NextRequest) {
     const startTime = Date.now()
     let flowiseResponse
     let usedOverride: string | undefined
+    let flowiseSessionId: string | undefined
     
     try {
       // Choose chatflow by model (force explicit IDs for both models)
@@ -160,10 +161,13 @@ export async function POST(request: NextRequest) {
           }
         }, { status: 500 })
       }
+      // Create a more unique session ID for Flowise to prevent conversation mixing
+      const flowiseSessionId = `${actor.type}_${actor.id}_${currentChatId}`
+      
       flowiseResponse = await sendToFlowiseWithRetry({
         message: effectiveMessage,
         history: [],
-        sessionId: currentChatId,
+        sessionId: flowiseSessionId,
         chatflowIdOverride,
         file: uploadedFile && selectedModel === 'aluda2' ? uploadedFile : undefined,
       })
@@ -193,7 +197,9 @@ export async function POST(request: NextRequest) {
     // Try to suggest a concise chat title via Flowise (best-effort)
     let aiTitle: string | undefined
     try {
-      aiTitle = await suggestTitleWithFlowise({ question: message, sessionId: currentChatId, chatflowIdOverride: undefined }) || undefined
+      if (flowiseSessionId) {
+        aiTitle = await suggestTitleWithFlowise({ question: message, sessionId: flowiseSessionId, chatflowIdOverride: undefined }) || undefined
+      }
     } catch {}
 
     return NextResponse.json({
