@@ -93,9 +93,9 @@ export default function Sidebar({
   }
 
   return (
-    <div className={`${showOnMobile ? 'flex w-full' : 'hidden md:flex md:w-56 lg:w-64'} bg-white dark:bg-sidebar-dark border-r border-gray-200 dark:border-gray-700 flex-col h-full transition-colors duration-200`}>
+    <div className={`${showOnMobile ? 'flex w-full' : 'hidden md:flex md:w-56 lg:w-64'} bg-white dark:bg-sidebar-dark border-r border-gray-200 dark:border-gray-800 flex-col h-full transition-colors duration-200`}>
       {/* Header */}
-      <div className="p-2.5 border-b border-gray-200 dark:border-gray-700">
+      <div className="p-2.5 border-b border-gray-200 dark:border-gray-800">
         <div className="flex items-center justify-between mb-4">
           <a href="/chat" className="flex items-center" aria-label="AludaAI">
             <div className="w-6 h-6 bg-gradient-to-r from-blue-600 to-purple-600 dark:from-black dark:to-gray-800 rounded-lg flex items-center justify-center mr-2">
@@ -221,7 +221,7 @@ export default function Sidebar({
               key={chat.id}
               className={`group flex items-center justify-between p-2 rounded-lg cursor-pointer transition-all duration-200 ${
                 currentChatId === chat.id
-                  ? "bg-gray-100 dark:bg-sidebar-dark border border-gray-300 dark:border-gray-700"
+                  ? "bg-gray-100 dark:bg-sidebar-dark border border-gray-300 dark:border-gray-800"
                   : "hover:bg-gray-50 dark:hover:bg-sidebar-dark"
               }`}
               onClick={() => onSelectChat(chat.id)}
@@ -248,7 +248,7 @@ export default function Sidebar({
                   <div
                     onClick={(e) => e.stopPropagation()}
                     onMouseDown={(e) => e.stopPropagation()}
-                    className="absolute right-0 mt-2 w-40 bg-white dark:bg-sidebar-dark border border-gray-200 dark:border-gray-700 rounded-md shadow-lg py-1 z-20 transform origin-top-right transition ease-out duration-150"
+                    className="absolute right-0 mt-2 w-40 bg-white dark:bg-sidebar-dark border border-gray-200 dark:border-gray-800 rounded-md shadow-lg py-1 z-20 transform origin-top-right transition ease-out duration-150"
                   >
                     <button
                       className="w-full flex items-center px-3 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-sidebar-dark"
@@ -285,7 +285,7 @@ export default function Sidebar({
       </div>
       
       {/* Footer: Model Switcher */}
-      <div className="p-2.5 border-t border-gray-200 dark:border-gray-700">
+      <div className="p-2.5 border-t border-gray-200 dark:border-gray-800">
         <div className="flex items-center justify-between">
           <span className="text-xs text-gray-500 dark:text-gray-400">მოდელი</span>
           <ModelSwitcher
