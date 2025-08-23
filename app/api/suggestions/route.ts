@@ -23,9 +23,9 @@ export async function GET(_req: NextRequest) {
 
     const seed = Math.floor(Math.random() * 1_000_000_000)
     const body = {
-      question: `Suggest exactly 4 short Georgian chat topics as a JSON array of strings. No extra text. Vary topics on each request. Seed: ${seed}`,
+      question: `Generate exactly 4 engaging Georgian chat suggestions in question format. Each should be a complete question that users can ask. Return as JSON array of strings. Examples: "მირჩიე ფილმი საღამოსთვის", "როგორ გავაუმჯობესო ძილის ხარისხი?". Seed: ${seed}`,
       history: [],
-      overrideConfig: { sessionId: `suggest_${Date.now()}_${seed}`, temperature: 0.9 }
+      overrideConfig: { sessionId: `suggest_${Date.now()}_${seed}`, temperature: 0.8 }
     }
 
     const res = await fetch(url, {

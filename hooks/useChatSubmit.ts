@@ -243,7 +243,8 @@ export function useChatSubmit({
       };
       addMessageToChat(activeChatId!, errorMessage);
     } finally {
-      // Reset loading state (input field is cleared in handleKeyDown)
+      // Always clear the input field and reset loading state
+      setMessage("");
       setIsLoading(false);
     }
   };

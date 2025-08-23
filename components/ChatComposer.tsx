@@ -98,8 +98,6 @@ export default function ChatComposer({ currentChatId: propCurrentChatId, session
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
-      // Clear input field immediately when Enter is pressed
-      setMessage("");
       handleSubmitWrapper(e as any);
     }
   };

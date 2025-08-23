@@ -347,7 +347,7 @@ export async function suggestTitleWithFlowise({
 
     // Use specific title generation chatflow if available, otherwise use provided override or main chatflow
     const titleChatflowId = process.env.ALUDAAI_FLOWISE_CHATFLOW_ID_SUGGEST 
-      || "8d24523f-6d06-4c09-a475-61560d64b810" // Default title generation chatflow
+      || "11cbe217-7e62-4fa6-8672-15111c8c9347" // Default title generation chatflow
       || chatflowIdOverride
       || process.env.ALUDAAI_FLOWISE_CHATFLOW_ID 
       || process.env.FLOWISE_CHATFLOW_ID
