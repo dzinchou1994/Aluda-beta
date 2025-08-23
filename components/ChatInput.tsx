@@ -67,7 +67,7 @@ export default function ChatInput({
   };
 
   return (
-    <div className="relative bg-white dark:bg-chat-bg shadow-lg border-t border-gray-200 dark:border-gray-700 md:border-t-0 mobile-input-container">
+    <div className="relative bg-white dark:bg-chat-bg shadow-lg border-t border-gray-200 dark:border-gray-700 md:border-t-0 mobile-input-container z-[110]">
       <div className="max-w-4xl mx-auto p-4 md:p-3 md:px-3">
         <form onSubmit={onSubmit} className="relative">
           {/* Unified container with input, image button and send button */}

@@ -8,7 +8,6 @@ import { useModel } from '@/context/ModelContext'
 import { Session } from "next-auth"
 import { useState, useEffect, useRef } from "react"
 import { Image as ImageIcon } from "lucide-react"
- 
 
 interface SidebarProps {
   chats: Array<{
