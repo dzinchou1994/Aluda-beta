@@ -202,11 +202,11 @@
   
   /* Ensure messages container has proper bottom spacing on mobile */
   .messages-container-mobile {
-    padding-bottom: calc(var(--input-area-height, 92px) + 24px) !important;
+    padding-bottom: calc(var(--input-area-height, 84px) + 12px) !important;
     /* Respect sticky header height */
-    padding-top: calc(var(--topbar-height, 64px) + 24px) !important;
+    padding-top: calc(var(--topbar-height, 56px) + 12px) !important;
     /* Ensure scroll anchoring doesn't hide content under header */
-    scroll-padding-top: calc(var(--topbar-height, 64px) + 24px);
+    scroll-padding-top: calc(var(--topbar-height, 56px) + 12px);
   }
   
   /* Ensure chat content has proper bottom spacing for fixed input */
@@ -234,20 +234,20 @@
   /* Better mobile keyboard handling */
   @media (max-height: 600px) {
     .messages-container-mobile {
-      padding-bottom: calc(var(--input-area-height, 92px) + 24px) !important;
+      padding-bottom: calc(var(--input-area-height, 84px) + 12px) !important;
     }
   }
   
   /* Ensure proper spacing without excessive padding */
   .mobile-input-container {
-    min-height: 80px;
+    min-height: 64px;
   }
   
   /* Clean mobile scrolling - remove conflicting styles */
   .messages-container-mobile {
     /* Natural, smooth scrolling behavior */
-    padding-top: calc(var(--topbar-height, 64px) + 24px) !important;
-    padding-bottom: calc(var(--input-area-height, 92px) + 24px) !important;
+    padding-top: calc(var(--topbar-height, 56px) + 12px) !important;
+    padding-bottom: calc(var(--input-area-height, 84px) + 12px) !important;
   }
   
   /* Additional mobile viewport fixes */
