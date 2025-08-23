@@ -158,9 +158,11 @@ export default function ChatComposer({ currentChatId: propCurrentChatId, session
       {/* Messages Area - Scrollable with proper mobile spacing */}
       <div 
         ref={messagesContainerRef}
-        className="flex-1 min-h-0 md:overflow-y-auto overflow-visible p-4 space-y-4 bg-white dark:bg-chat-bg overscroll-contain messages-container-mobile"
+        className="flex-1 min-h-0 overflow-y-auto p-4 space-y-4 bg-white dark:bg-chat-bg overscroll-contain messages-container-mobile"
         style={{ 
-          WebkitOverflowScrolling: 'touch'
+          WebkitOverflowScrolling: 'touch',
+          height: 'calc(100dvh - var(--topbar-height, 56px) - var(--input-area-height, 84px) - var(--kb-offset, 0px))',
+          maxHeight: 'calc(100dvh - var(--topbar-height, 56px) - var(--input-area-height, 84px) - var(--kb-offset, 0px))'
         }}
         onScroll={handleScroll}
       >
