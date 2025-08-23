@@ -226,7 +226,7 @@
   .messages-container-mobile {
     scroll-behavior: smooth;
     -webkit-overflow-scrolling: touch;
-    /* Use small viewport height for keyboard/chrome */
+    /* Main scroll container on mobile */
     height: auto;
     min-height: 0;
   }
