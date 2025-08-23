@@ -36,15 +36,39 @@ export function useMobileKeyboard() {
     }
 
     update()
+    // Run a few frames after mount to capture late layout/Font loads
+    let raf = 0
+    for (let i = 0; i < 5; i++) raf = requestAnimationFrame(update)
     visualViewport.addEventListener('resize', update)
     visualViewport.addEventListener('scroll', update)
+    // Update on page/container scroll (URL bar collapse/expand)
+    window.addEventListener('scroll', update, true)
+    // Observe header/input size changes
+    const ro = new (window as any).ResizeObserver ? new ResizeObserver(() => update()) : null
+    try {
+      const header = document.getElementById('chat-header')
+      if (header && ro) ro.observe(header)
+      const input = document.querySelector('#chat-input-wrapper') as HTMLElement | null
+      if (input && ro) ro.observe(input)
+    } catch {}
     window.addEventListener('orientationchange', update)
 
     return () => {
       try {
+        if (raf) cancelAnimationFrame(raf)
         visualViewport.removeEventListener('resize', update)
         visualViewport.removeEventListener('scroll', update)
+        window.removeEventListener('scroll', update, true)
         window.removeEventListener('orientationchange', update)
+        try {
+          const header = document.getElementById('chat-header')
+          const input = document.querySelector('#chat-input-wrapper') as HTMLElement | null
+          if ((window as any).ResizeObserver && ro) {
+            if (header) ro.unobserve(header)
+            if (input) ro.unobserve(input)
+            ro.disconnect()
+          }
+        } catch {}
         document.documentElement.style.removeProperty('--kb-offset')
         document.body.classList.remove('kb-open')
       } catch {}
