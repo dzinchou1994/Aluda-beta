@@ -44,7 +44,8 @@ export function useMobileKeyboard() {
     // Update on page/container scroll (URL bar collapse/expand)
     window.addEventListener('scroll', update, true)
     // Observe header/input size changes
-    const ro = new (window as any).ResizeObserver ? new ResizeObserver(() => update()) : null
+    const ResizeObserverCtor: any = (window as any).ResizeObserver
+    const ro = ResizeObserverCtor ? new ResizeObserverCtor(() => update()) : null
     try {
       const header = document.getElementById('chat-header')
       if (header && ro) ro.observe(header)
