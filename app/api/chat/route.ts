@@ -10,6 +10,25 @@ import { prisma } from "@/lib/prisma"
 
 export const runtime = 'nodejs'
 
+/**
+ * Clean AI response by removing unwanted characters and symbols
+ * This fixes issues where AI sometimes returns Chinese/Russian characters mixed with Georgian text
+ */
+function cleanAIResponse(text: string): string {
+  if (!text || typeof text !== 'string') return text;
+  
+  // Remove Chinese characters (CJK Unified Ideographs) - more specific ranges
+  let cleaned = text.replace(/[\u4e00-\u9fff]/g, '');
+  
+  // Remove Russian Cyrillic characters (excluding Georgian)
+  cleaned = cleaned.replace(/[\u0400-\u04FF]/g, '');
+  
+  // Clean up extra spaces but preserve text structure
+  cleaned = cleaned.replace(/\s+/g, ' ').trim();
+  
+  return cleaned;
+}
+
 export async function POST(request: NextRequest) {
   try {
     // Basic rate limit by IP
@@ -203,8 +222,10 @@ export async function POST(request: NextRequest) {
       console.error("Flowise API error:", error)
       console.error("Flowise context:", { hasFile: Boolean(uploadedFile), contentType, selectedModel })
       const hint = error?.message || 'Unknown error'
+      // Clean the error hint as well
+      const cleanedHint = cleanAIResponse(hint?.slice(0, 200) || '');
       flowiseResponse = {
-        text: `ბოდიში, ამ მომენტში ვერ შეგიძლიათ მიმართოთ. 💡 ${hint?.slice(0, 200)}`
+        text: `ბოდიში, ამ მომენტში ვერ შეგიძლიათ მიმართოთ. 💡 ${cleanedHint}`
       }
     }
 
@@ -258,8 +279,11 @@ export async function POST(request: NextRequest) {
     
     // aiTitle = titleResult
 
+    // Clean the AI response to remove unwanted characters
+    const cleanedText = cleanAIResponse(flowiseResponse.text);
+    
     return NextResponse.json({
-      text: flowiseResponse.text,
+      text: cleanedText,
       sources: flowiseResponse.sources,
       chatId: currentChatId,
       aiTitle,
@@ -275,7 +299,9 @@ export async function POST(request: NextRequest) {
     console.error("Chat API error:", error)
     const message = error?.message || 'Server error'
     const status = error?.status || 500
-    const payload: any = { error: message }
+    // Clean error messages as well
+    const cleanedError = cleanAIResponse(message)
+    const payload: any = { error: cleanedError }
     if (error?.retryAfter) payload.retryAfter = error.retryAfter
     return NextResponse.json(payload, { status })
   }

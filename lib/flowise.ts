@@ -24,6 +24,25 @@ export interface FlowiseError {
 }
 
 /**
+ * Clean AI response by removing unwanted characters and symbols
+ * This fixes issues where AI sometimes returns Chinese/Russian characters mixed with Georgian text
+ */
+function cleanAIResponse(text: string): string {
+  if (!text || typeof text !== 'string') return text;
+  
+  // Remove Chinese characters (CJK Unified Ideographs) - more specific ranges
+  let cleaned = text.replace(/[\u4e00-\u9fff]/g, '');
+  
+  // Remove Russian Cyrillic characters (excluding Georgian)
+  cleaned = cleaned.replace(/[\u0400-\u04FF]/g, '');
+  
+  // Clean up extra spaces but preserve text structure
+  cleaned = cleaned.replace(/\s+/g, ' ').trim();
+  
+  return cleaned;
+}
+
+/**
  * Send a message to Flowise via direct API
  */
 export async function sendToFlowise({
@@ -167,6 +186,9 @@ export async function sendToFlowise({
         ''
       ) || ''
 
+      // Clean the AI response to remove unwanted characters
+      text = cleanAIResponse(text);
+
       // If still empty, deep-scan common providers (LangChain/OpenAI/LLM) structures
       if (!text || String(text).trim().length === 0) {
         const isStringCandidate = (s: any) => typeof s === 'string' && s.trim().length > 0 && !/^data:[^;]+;base64,/i.test(s)
@@ -244,11 +266,15 @@ export async function sendToFlowise({
       }
       const combined = pieces.join('').trim()
       if (combined.length > 0) {
-        return { text: combined, sources: lastPayload?.sources || lastPayload?.documents || [], ...lastPayload, __meta: { chatflowId, host: normalizedHost, endpoint: endpointUsed } }
+        // Clean the combined streaming response
+        const cleanedCombined = cleanAIResponse(combined);
+        return { text: cleanedCombined, sources: lastPayload?.sources || lastPayload?.documents || [], ...lastPayload, __meta: { chatflowId, host: normalizedHost, endpoint: endpointUsed } }
       }
       if (lastPayload) {
         const text = lastPayload.text || lastPayload.response || lastPayload.answer || lastPayload.message || 'No response received'
-        return { text, sources: lastPayload.sources || lastPayload.documents || [], ...lastPayload, __meta: { chatflowId, host: normalizedHost, endpoint: endpointUsed } }
+        // Clean the lastPayload response
+        const cleanedText = cleanAIResponse(text);
+        return { text: cleanedText, sources: lastPayload.sources || lastPayload.documents || [], ...lastPayload, __meta: { chatflowId, host: normalizedHost, endpoint: endpointUsed } }
       }
       throw new Error(`SSE with no parsable data: ${raw.slice(0, 200)}`)
     }
@@ -259,7 +285,9 @@ export async function sendToFlowise({
         const asJson = JSON.parse(rawFallback)
         const txt = asJson?.text || asJson?.response || asJson?.answer || asJson?.message || ''
         if (txt && String(txt).trim().length > 0) {
-          return { text: txt, sources: asJson?.sources || asJson?.documents || [], ...asJson, __meta: { chatflowId, host: normalizedHost, endpoint: endpointUsed } }
+          // Clean the JSON fallback response
+          const cleanedTxt = cleanAIResponse(txt);
+          return { text: cleanedTxt, sources: asJson?.sources || asJson?.documents || [], ...asJson, __meta: { chatflowId, host: normalizedHost, endpoint: endpointUsed } }
         }
       } catch {}
       // Try SSE-like parse even if header not marked as event-stream
@@ -281,7 +309,9 @@ export async function sendToFlowise({
         }
         const combined = tokens.join('').trim()
         if (combined.length > 0) {
-          return { text: combined, sources: lastPayload?.sources || lastPayload?.documents || [], ...lastPayload, __meta: { chatflowId, host: normalizedHost, endpoint: endpointUsed } }
+          // Clean the combined fallback response
+          const cleanedCombined = cleanAIResponse(combined);
+          return { text: cleanedCombined, sources: lastPayload?.sources || lastPayload?.documents || [], ...lastPayload, __meta: { chatflowId, host: normalizedHost, endpoint: endpointUsed } }
         }
       }
       // If still nothing useful, return raw snippet instead of throwing so UI shows something
@@ -374,7 +404,9 @@ export async function suggestTitleWithFlowise({
     const raw = (res.text || '').trim()
     if (!raw) return null
     // remove surrounding quotes if any
-    const cleaned = raw.replace(/^"|"$/g, '')
+    let cleaned = raw.replace(/^"|"$/g, '')
+    // Clean the title as well to remove unwanted characters
+    cleaned = cleanAIResponse(cleaned)
     return cleaned
   } catch {
     return null
