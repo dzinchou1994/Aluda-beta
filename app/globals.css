@@ -228,6 +228,24 @@
     /* Prevent any potential flickering */
     will-change: auto;
     contain: layout style;
+    /* Ensure header border is fully visible */
+    box-sizing: border-box;
+    /* Add small margin to ensure border is not cut off */
+    margin-bottom: 1px;
+  }
+
+  /* Additional mobile header adjustments */
+  #chat-header {
+    /* Ensure proper top positioning */
+    top: env(safe-area-inset-top, 0px);
+    /* Account for the safe area in the visual height calculation */
+    padding-top: calc(1rem + env(safe-area-inset-top, 0px));
+  }
+
+  /* Ensure content doesn't get hidden behind fixed header */
+  .messages-container-spacing {
+    /* Extra top margin to ensure no overlap */
+    margin-top: 2px;
   }
 }
 

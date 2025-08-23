@@ -38,20 +38,78 @@ export function useMobileKeyboard() {
         const messagesContainer = document.querySelector('.messages-container-spacing') as HTMLElement
 
         if (header && messagesContainer) {
-          const headerHeight = header.getBoundingClientRect().height
+          // Get the actual visual height including borders and any visual elements
+          const headerRect = header.getBoundingClientRect()
+          const headerHeight = headerRect.height
+
+          // Get computed style to account for all visual elements
+          const headerStyle = getComputedStyle(header)
+          const headerPaddingTop = parseFloat(headerStyle.paddingTop)
+          const headerPaddingBottom = parseFloat(headerStyle.paddingBottom)
+          const headerBorderTop = parseFloat(headerStyle.borderTopWidth)
+          const headerBorderBottom = parseFloat(headerStyle.borderBottomWidth)
+
+          // Calculate total visual height including all elements
+          const visualHeaderHeight = headerHeight + headerBorderBottom // Add bottom border
+
           // Add safe area inset top for iOS devices
           const safeAreaTop = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--safe-area-inset-top') || '0')
-          const totalTopPadding = headerHeight + safeAreaTop + 8 // 8px extra spacing
+
+          // Add generous extra spacing to ensure no overlap
+          const totalTopPadding = Math.max(visualHeaderHeight + safeAreaTop + 20, 80) // Minimum 80px
+
+          console.log('Header measurement:', {
+            headerHeight,
+            visualHeaderHeight,
+            paddingTop: headerPaddingTop,
+            paddingBottom: headerPaddingBottom,
+            borderTop: headerBorderTop,
+            borderBottom: headerBorderBottom,
+            safeAreaTop,
+            totalTopPadding
+          })
+
           document.documentElement.style.setProperty('--header-spacing', `${totalTopPadding}px`)
           messagesContainer.style.paddingTop = `${totalTopPadding}px`
         }
 
         if (inputWrapper && messagesContainer) {
-          const inputHeight = inputWrapper.getBoundingClientRect().height
+          const inputRect = inputWrapper.getBoundingClientRect()
+          const inputHeight = inputRect.height
+
+          // Get computed style to account for all visual elements
+          const inputStyle = getComputedStyle(inputWrapper)
+          const inputPaddingTop = parseFloat(inputStyle.paddingTop)
+          const inputPaddingBottom = parseFloat(inputStyle.paddingBottom)
+          const inputBorderTop = parseFloat(inputStyle.borderTopWidth)
+          const inputBorderBottom = parseFloat(inputStyle.borderBottomWidth)
+          const inputMarginTop = parseFloat(inputStyle.marginTop)
+          const inputMarginBottom = parseFloat(inputStyle.marginBottom)
+
+          // Calculate total visual height including all elements
+          const visualInputHeight = inputHeight + inputBorderTop + inputMarginTop + inputMarginBottom
+
           // Add safe area inset bottom for iOS devices
           const safeAreaBottom = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--safe-area-inset-bottom') || '0')
           const keyboardOffset = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--kb-offset') || '0')
-          const totalBottomPadding = inputHeight + safeAreaBottom + keyboardOffset + 16 // 16px extra spacing
+
+          // Add generous extra spacing to ensure no overlap
+          const totalBottomPadding = Math.max(visualInputHeight + safeAreaBottom + keyboardOffset + 32, 100) // Minimum 100px
+
+          console.log('Input measurement:', {
+            inputHeight,
+            visualInputHeight,
+            paddingTop: inputPaddingTop,
+            paddingBottom: inputPaddingBottom,
+            borderTop: inputBorderTop,
+            borderBottom: inputBorderBottom,
+            marginTop: inputMarginTop,
+            marginBottom: inputMarginBottom,
+            safeAreaBottom,
+            keyboardOffset,
+            totalBottomPadding
+          })
+
           document.documentElement.style.setProperty('--input-spacing', `${totalBottomPadding}px`)
           messagesContainer.style.paddingBottom = `${totalBottomPadding}px`
         }
@@ -60,8 +118,15 @@ export function useMobileKeyboard() {
       }
     }
 
-    // Initial update
-    update()
+    // Initial update with small delay to ensure DOM is ready
+    setTimeout(() => {
+      update()
+    }, 100)
+
+    // Additional update after a short delay to catch any late DOM changes
+    setTimeout(() => {
+      update()
+    }, 300)
 
     // Add resize observer for header and input changes
     const ResizeObserverCtor: any = (window as any).ResizeObserver
