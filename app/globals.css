@@ -202,11 +202,11 @@
   
   /* Main scroll container paddings (apply to the parent that scrolls) */
   .chat-scroll-mobile {
-    /* Account for fixed header height on mobile (no extra gap) */
-    padding-top: var(--topbar-height, 56px) !important;
-    /* Reserve space for input + keyboard offset */
-    padding-bottom: calc(var(--input-area-height, 84px) + var(--kb-offset, 0px) + 12px) !important;
-    scroll-padding-top: var(--topbar-height, 56px);
+    /* Account for fixed header height on mobile */
+    padding-top: calc(var(--topbar-height, 56px) + 8px) !important;
+    /* Reserve space for input (no extra when keyboard closes) */
+    padding-bottom: calc(var(--input-area-height, 84px) + 6px) !important;
+    scroll-padding-top: calc(var(--topbar-height, 56px) + 8px);
     -webkit-overflow-scrolling: touch;
   }
   
