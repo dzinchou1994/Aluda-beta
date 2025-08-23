@@ -202,14 +202,16 @@
   
   /* Main scroll container paddings (apply to the parent that scrolls) */
   .chat-scroll-mobile {
-    padding-top: calc(var(--topbar-height, 56px) + 8px) !important;
+    /* No visual top padding here so header sits at very top */
+    padding-top: 0 !important;
     padding-bottom: calc(var(--input-area-height, 84px) + 12px) !important;
     scroll-padding-top: calc(var(--topbar-height, 56px) + 8px);
     -webkit-overflow-scrolling: touch;
   }
   
-  /* Messages container itself only needs small internal spacing */
+  /* Messages content spacing: ensure first message clear of sticky header */
   .chat-content-mobile {
+    padding-top: calc(var(--topbar-height, 56px) + 8px) !important;
     padding-bottom: 0 !important;
   }
   
