@@ -155,14 +155,13 @@ export default function ChatComposer({ currentChatId: propCurrentChatId, session
 
   return (
     <div className="flex flex-col h-full bg-white dark:bg-chat-bg transition-colors duration-200 min-w-0">
-      {/* Messages Area - Scrollable with proper mobile spacing */}
-      <div 
+      {/* Messages Area - Scrollable content with bottom padding for fixed input */}
+      <div
         ref={messagesContainerRef}
-        className="flex-1 min-h-0 overflow-y-auto p-4 space-y-4 bg-white dark:bg-chat-bg overscroll-contain messages-container-mobile"
-        style={{ 
+        className="flex-1 min-h-0 overflow-y-auto p-4 space-y-4 bg-white dark:bg-chat-bg overscroll-contain pb-24 md:pb-6 messages-with-fixed-input"
+        style={{
           WebkitOverflowScrolling: 'touch',
-          height: 'calc(100dvh - var(--topbar-height, 56px) - var(--input-area-height, 84px) - var(--kb-offset, 0px))',
-          maxHeight: 'calc(100dvh - var(--topbar-height, 56px) - var(--input-area-height, 84px) - var(--kb-offset, 0px))'
+          // Let flexbox handle the height - no complex calculations needed
         }}
         onScroll={handleScroll}
       >
