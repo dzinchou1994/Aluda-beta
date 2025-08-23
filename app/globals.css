@@ -197,9 +197,11 @@
   
   /* Ensure messages container has proper bottom spacing on mobile */
   .messages-container-mobile {
-    padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 120px) !important;
-    /* Remove conflicting padding styles */
-    padding-top: 16px !important;
+    padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 120px + var(--kb-offset, 0px)) !important;
+    /* Keep content clear of sticky top bar */
+    padding-top: calc(env(safe-area-inset-top, 0px) + var(--topbar-height, 64px) + 8px) !important;
+    /* Ensure scroll anchoring doesn't hide content behind header */
+    scroll-padding-top: calc(env(safe-area-inset-top, 0px) + var(--topbar-height, 64px) + 8px);
   }
   
   /* Ensure chat content has proper bottom spacing for fixed input */
@@ -220,8 +222,8 @@
     scroll-behavior: smooth;
     -webkit-overflow-scrolling: touch;
     /* Use small viewport height for keyboard/chrome */
-    height: calc(100svh - 120px - var(--kb-offset, 0px));
-    min-height: calc(100svh - 120px - var(--kb-offset, 0px));
+    height: auto;
+    min-height: 0;
   }
   
   /* Better mobile keyboard handling */
@@ -239,14 +241,14 @@
   /* Clean mobile scrolling - remove conflicting styles */
   .messages-container-mobile {
     /* Natural, smooth scrolling behavior */
-    padding-top: 16px !important;
-    padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 120px) !important;
+    padding-top: calc(env(safe-area-inset-top, 0px) + var(--topbar-height, 64px) + 8px) !important;
+    padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 120px + var(--kb-offset, 0px)) !important;
   }
   
   /* Additional mobile viewport fixes */
 .messages-container-mobile {
-  /* Use small viewport height minus header and input heights */
-  max-height: calc(100svh - 80px - 120px - var(--kb-offset, 0px));
+  /* Use parent flex sizing; avoid viewport height traps on mobile */
+  max-height: none;
   /* Ensure proper overflow handling */
   overflow-y: auto;
   /* Prevent horizontal scroll */
