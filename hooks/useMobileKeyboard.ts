@@ -25,7 +25,7 @@ export function useMobileKeyboard() {
           const topbarHeight = Math.round(header.getBoundingClientRect().height)
           document.documentElement.style.setProperty('--topbar-height', `${topbarHeight}px`)
         }
-        const input = document.querySelector('.mobile-input-container') as HTMLElement | null
+        const input = document.querySelector('#chat-input-wrapper') as HTMLElement | null
         if (input) {
           const inputHeight = Math.round(input.getBoundingClientRect().height)
           document.documentElement.style.setProperty('--input-area-height', `${inputHeight}px`)
