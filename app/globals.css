@@ -174,7 +174,7 @@
 @media (max-width: 768px) {
   /* Ensure proper viewport height on mobile */
   .mobile-input-container {
-    position: sticky;
+    position: fixed;
     left: 0;
     right: 0;
     z-index: 1000;
@@ -182,8 +182,8 @@
     border-top: 1px solid #e5e7eb;
     box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.1);
     padding-bottom: env(safe-area-inset-bottom, 0px);
-    /* In-flow sticky at bottom avoids overlap */
-    bottom: 0;
+    /* Fixed at bottom, offset by keyboard */
+    bottom: var(--kb-offset, 0px);
     transform: translateZ(0);
     will-change: bottom;
   }
@@ -202,10 +202,10 @@
   
   /* Main scroll container paddings (apply to the parent that scrolls) */
   .chat-scroll-mobile {
-    /* Single scroll container with in-flow sticky header/input */
-    padding-top: 0 !important;
-    padding-bottom: 8px !important;
-    scroll-padding-top: 0;
+    /* Reserve space for fixed header and fixed input */
+    padding-top: calc(env(safe-area-inset-top, 0px) + var(--topbar-height, 56px)) !important;
+    padding-bottom: calc(env(safe-area-inset-bottom, 0px) + var(--input-area-height, 84px) + var(--kb-offset, 0px) + 8px) !important;
+    scroll-padding-top: calc(env(safe-area-inset-top, 0px) + var(--topbar-height, 56px));
     -webkit-overflow-scrolling: touch;
   }
   
@@ -215,8 +215,8 @@
     padding-bottom: 0 !important;
   }
 
-  /* Use sticky header; occupies layout space and avoids overlap */
-  #chat-header { position: sticky !important; top: env(safe-area-inset-top, 0px); }
+  /* Fixed header to keep always visible */
+  #chat-header { position: fixed !important; top: env(safe-area-inset-top, 0px); left: 0; right: 0; }
   
   /* Ensure input area is always visible on mobile */
   .mobile-input-container {
@@ -277,14 +277,14 @@
   
   /* Mobile keyboard fixes */
   .mobile-input-container {
-    position: sticky;
+    position: fixed;
     left: 0;
     right: 0;
     z-index: 200;
     background: white;
     border-top: 1px solid #e5e7eb;
     box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.1);
-    bottom: 0;
+    bottom: var(--kb-offset, 0px);
   }
   
   /* Dark mode support */
