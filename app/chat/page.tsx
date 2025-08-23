@@ -95,7 +95,7 @@ export default function ChatPage() {
   }
 
   return (
-    <div className="flex h-screen bg-gray-50 dark:bg-chat-bg">
+    <div className="flex h-screen min-h-[100dvh] bg-gray-50 dark:bg-chat-bg">
       {/* Mobile Sidebar Overlay */}
       {isMobileSidebarOpen && (
         <div 
