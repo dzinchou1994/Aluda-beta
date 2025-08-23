@@ -52,16 +52,19 @@ export function useChatScroll({ messagesLength, isLoading }: UseChatScrollProps)
   // Handle mobile input focus to maintain scroll position
   const handleInputFocus = () => {
     if (window.innerWidth <= 768) {
-      // On mobile, scroll to show the last message without excessive spacing
+      // Pin to bottom on focus
+      const container = messagesContainerRef.current
+      if (container) container.dataset.userScrolled = 'false'
       setTimeout(() => {
-        if (messagesEndRef.current) {
+        if (messagesEndRef.current && messagesContainerRef.current) {
+          messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight
           messagesEndRef.current.scrollIntoView({ 
-            behavior: 'smooth', 
+            behavior: 'auto', 
             block: 'end',
             inline: 'nearest'
           })
         }
-      }, 100)
+      }, 50)
     }
   };
 
@@ -69,14 +72,13 @@ export function useChatScroll({ messagesLength, isLoading }: UseChatScrollProps)
   const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>, setMessage: (value: string) => void) => {
     setMessage(e.target.value)
     
-    // On mobile, maintain scroll position when typing
+    // On mobile, always pin to bottom while typing
     if (window.innerWidth <= 768 && messagesContainerRef.current) {
       const container = messagesContainerRef.current
-      const isAtBottom = container.scrollHeight - container.scrollTop <= container.clientHeight + 10
-      
-      if (isAtBottom) {
-        // If we're at the bottom, stay there
-        setTimeout(() => {
+      container.dataset.userScrolled = 'false'
+      requestAnimationFrame(() => {
+        try {
+          container.scrollTop = container.scrollHeight
           if (messagesEndRef.current) {
             messagesEndRef.current.scrollIntoView({ 
               behavior: 'auto', 
@@ -84,8 +86,8 @@ export function useChatScroll({ messagesLength, isLoading }: UseChatScrollProps)
               inline: 'nearest'
             })
           }
-        }, 50)
-      }
+        } catch {}
+      })
     }
   };
 
