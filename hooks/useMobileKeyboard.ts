@@ -70,6 +70,9 @@ export function useMobileKeyboard() {
           })
 
           document.documentElement.style.setProperty('--header-spacing', `${totalTopPadding}px`)
+          document.documentElement.style.setProperty('--header-height', `${headerHeight}px`)
+
+          // For the new approach, we still need padding for proper spacing
           messagesContainer.style.paddingTop = `${totalTopPadding}px`
         }
 
@@ -111,6 +114,9 @@ export function useMobileKeyboard() {
           })
 
           document.documentElement.style.setProperty('--input-spacing', `${totalBottomPadding}px`)
+          document.documentElement.style.setProperty('--input-area-height', `${inputHeight}px`)
+
+          // For the new approach, we still need padding for proper spacing
           messagesContainer.style.paddingBottom = `${totalBottomPadding}px`
         }
       } catch (error) {
@@ -152,7 +158,9 @@ export function useMobileKeyboard() {
         window.removeEventListener('orientationchange', update)
         document.documentElement.style.removeProperty('--kb-offset')
         document.documentElement.style.removeProperty('--header-spacing')
+        document.documentElement.style.removeProperty('--header-height')
         document.documentElement.style.removeProperty('--input-spacing')
+        document.documentElement.style.removeProperty('--input-area-height')
         document.body.classList.remove('kb-open')
       }
     }
@@ -168,7 +176,9 @@ export function useMobileKeyboard() {
         window.removeEventListener('orientationchange', update)
         document.documentElement.style.removeProperty('--kb-offset')
         document.documentElement.style.removeProperty('--header-spacing')
+        document.documentElement.style.removeProperty('--header-height')
         document.documentElement.style.removeProperty('--input-spacing')
+        document.documentElement.style.removeProperty('--input-area-height')
         document.body.classList.remove('kb-open')
       } catch {}
     }

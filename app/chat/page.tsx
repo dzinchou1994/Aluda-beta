@@ -121,11 +121,11 @@ export default function ChatPage() {
       </div>
 
       {/* Main Chat Area */}
-      <div className="flex-1 flex flex-col bg-white dark:bg-chat-bg relative">
+      <div className="flex-1 flex flex-col bg-white dark:bg-chat-bg relative chat-main-container">
         {/* Header - Fixed at top on mobile, static on desktop */}
         <header
           id="chat-header"
-          className="fixed top-0 left-0 right-0 z-40 bg-white dark:bg-chat-bg border-b border-gray-200 dark:border-gray-800 p-4 flex items-center justify-between md:static md:z-auto md:p-4 md:border-b-0"
+          className="sticky top-0 z-40 bg-white dark:bg-chat-bg border-b border-gray-200 dark:border-gray-800 p-4 flex items-center justify-between md:static md:z-auto md:p-4 md:border-b-0"
         >
           <div className="flex items-center space-x-3">
             {/* Mobile menu button */}
@@ -252,15 +252,13 @@ export default function ChatPage() {
           <UserSettingsModal open={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} userEmail={session?.user?.email} />
         )}
 
-        {/* Chat Content - Scrollable area with dynamic spacing */}
-        <div className="flex-1 min-h-0 bg-gray-50 dark:bg-chat-bg transition-colors duration-200 min-w-0 overflow-hidden">
-          <div className="h-full md:pt-0"> {/* Dynamic padding managed by useMobileKeyboard hook */}
-            <ChatComposer
-              currentChatId={currentChatId}
-              onChatCreated={handleChatCreated}
-              session={session}
-            />
-          </div>
+        {/* Chat Content - Scrollable area with proper height calculations */}
+        <div className="chat-content-area flex-1 min-h-0 bg-gray-50 dark:bg-chat-bg transition-colors duration-200 min-w-0 overflow-hidden">
+          <ChatComposer
+            currentChatId={currentChatId}
+            onChatCreated={handleChatCreated}
+            session={session}
+          />
         </div>
       </div>
 

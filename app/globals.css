@@ -170,7 +170,7 @@
   background: linear-gradient(to right, #2563eb, #7c3aed) !important;
 }
 
-/* Mobile-specific styles for dynamic fixed layout */
+/* Mobile-specific styles for proper height calculations */
 @media (max-width: 768px) {
   /* Ensure proper mobile viewport handling */
   html, body {
@@ -201,13 +201,29 @@
     box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.3);
   }
 
+  /* Main chat container - proper height calculation */
+  .chat-main-container {
+    /* Account for fixed input area in height calculation */
+    height: calc(100dvh - var(--input-area-height, 100px) - var(--kb-offset, 0px)) !important;
+    max-height: calc(100dvh - var(--input-area-height, 100px) - var(--kb-offset, 0px)) !important;
+    /* Ensure proper scrolling behavior */
+    overflow: hidden;
+  }
+
   /* Dynamic messages container spacing - managed by JavaScript */
   .messages-container-spacing {
+    /* Height calculation that accounts for header and input */
+    height: calc(100dvh - var(--header-spacing, 80px) - var(--input-spacing, 100px) - var(--kb-offset, 0px)) !important;
+    max-height: calc(100dvh - var(--header-spacing, 80px) - var(--input-spacing, 100px) - var(--kb-offset, 0px)) !important;
     /* Padding is set dynamically by useMobileKeyboard hook */
-    /* This prevents overlap and ensures proper spacing */
-    will-change: padding;
+    will-change: padding, height;
     /* Prevent flickering by stabilizing layout */
     contain: layout style paint;
+    /* Ensure scrolling works properly */
+    overflow-y: auto;
+    overflow-x: hidden;
+    /* Webkit optimizations */
+    -webkit-overflow-scrolling: touch;
   }
 
   /* Smooth transitions for keyboard appearance */
@@ -223,29 +239,22 @@
     overflow: hidden;
   }
 
-  /* Ensure fixed header doesn't cause layout issues */
+  /* Sticky header styling */
   #chat-header {
-    /* Prevent any potential flickering */
-    will-change: auto;
-    contain: layout style;
-    /* Ensure header border is fully visible */
-    box-sizing: border-box;
-    /* Add small margin to ensure border is not cut off */
-    margin-bottom: 1px;
-  }
-
-  /* Additional mobile header adjustments */
-  #chat-header {
-    /* Ensure proper top positioning */
-    top: env(safe-area-inset-top, 0px);
-    /* Account for the safe area in the visual height calculation */
+    /* Ensure proper sticky behavior */
+    position: sticky;
+    top: 0;
+    z-index: 40;
+    /* Account for safe area */
     padding-top: calc(1rem + env(safe-area-inset-top, 0px));
   }
 
-  /* Ensure content doesn't get hidden behind fixed header */
-  .messages-container-spacing {
-    /* Extra top margin to ensure no overlap */
-    margin-top: 2px;
+  /* Ensure chat content takes remaining space */
+  .chat-content-area {
+    flex: 1;
+    min-height: 0;
+    /* Proper height calculation */
+    height: calc(100% - var(--header-spacing, 80px)) !important;
   }
 }
 
