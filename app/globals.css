@@ -226,8 +226,8 @@
     -webkit-overflow-scrolling: touch;
     /* Remove any default margins */
     margin: 0 !important;
-    /* Reduce bottom padding on mobile for tighter spacing */
-    padding-bottom: 0.5rem !important;
+    /* Minimal bottom padding for very tight spacing */
+    padding-bottom: 0.1rem !important;
   }
 
   /* Smooth transitions for keyboard appearance */
