@@ -63,6 +63,10 @@ export function useChatScroll({ messagesLength, isLoading }: UseChatScrollProps)
             block: 'end',
             inline: 'nearest'
           })
+          // Additionally force the window viewport to bottom (iOS Safari)
+          try {
+            window.scrollTo({ top: document.body.scrollHeight, behavior: 'auto' })
+          } catch {}
         }
       }, 50)
     }
@@ -86,6 +90,8 @@ export function useChatScroll({ messagesLength, isLoading }: UseChatScrollProps)
               inline: 'nearest'
             })
           }
+          // Also ensure the window itself is scrolled to bottom
+          window.scrollTo({ top: document.body.scrollHeight, behavior: 'auto' })
         } catch {}
       })
     }
