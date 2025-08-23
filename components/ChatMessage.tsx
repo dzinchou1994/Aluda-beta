@@ -11,10 +11,10 @@ interface ChatMessageProps {
 }
 
 export default function ChatMessage({ message, index, shouldAnimate }: ChatMessageProps) {
-  // Only use typing effect for new AI messages that are currently being typed
+  // FIXED: Only use typing effect for truly new AI messages
   // Old messages should show content directly without typing effect
-  const isNewMessage = message.content === '' || shouldAnimate;
-  const shouldUseTypingEffect = message.role === 'assistant' && isNewMessage && message.content;
+  // shouldAnimate should only be true for messages that are actually being created right now
+  const shouldUseTypingEffect = message.role === 'assistant' && shouldAnimate && message.content;
   
   const { displayedText, isTyping, startTyping, isComplete } = useTypingEffect({
     text: message.content || '',
@@ -205,7 +205,7 @@ export default function ChatMessage({ message, index, shouldAnimate }: ChatMessa
             </div>
           </div>
         ) : (
-          // AI message - show content directly for old messages, use typing effect for new ones
+          // AI message - FIXED: show content directly for old messages, use typing effect only for new ones
           <div className="w-full text-gray-900 dark:text-white text-sm leading-relaxed whitespace-normal break-words">
             {shouldUseTypingEffect && isTyping ? renderAssistantContent(displayedText) : renderAssistantContent(message.content)}
           </div>

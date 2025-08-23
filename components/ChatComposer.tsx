@@ -44,7 +44,6 @@ export default function ChatComposer({ currentChatId: propCurrentChatId, session
   const [attachedPreviewUrl, setAttachedPreviewUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [openMenuChatId, setOpenMenuChatId] = useState<string | null>(null);
-  const renderedMessageIdsRef = useRef<Set<string>>(new Set());
 
   // Use custom hooks
   const {
@@ -169,9 +168,11 @@ export default function ChatComposer({ currentChatId: propCurrentChatId, session
         ) : (
           <div className="space-y-4">
             {currentChatMessages.map((msg, index) => {
-              const hasRendered = renderedMessageIdsRef.current.has(msg.id);
-              const shouldAnimate = !hasRendered;
-              if (!hasRendered) renderedMessageIdsRef.current.add(msg.id);
+              // Check if this is a truly new message or just loaded from storage
+              // Only animate messages that are being created right now, not old ones from storage
+              const isLastMessage = index === currentChatMessages.length - 1;
+              const isCurrentMessageBeingTyped = isLoading && isLastMessage && msg.role === 'assistant';
+              const shouldAnimate = isCurrentMessageBeingTyped;
 
               return (
                 <ChatMessage
