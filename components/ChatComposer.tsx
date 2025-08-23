@@ -13,6 +13,7 @@ import ChatMessage from './ChatMessage';
 import ChatInput from './ChatInput';
 import { useChatScroll } from '@/hooks/useChatScroll';
 import { useChatSubmit } from '@/hooks/useChatSubmit';
+import { useMobileKeyboard } from '@/hooks/useMobileKeyboard';
 
 interface ChatComposerProps {
   currentChatId?: string;
@@ -21,6 +22,7 @@ interface ChatComposerProps {
 }
 
 export default function ChatComposer({ currentChatId: propCurrentChatId, session, onChatCreated }: ChatComposerProps) {
+  useMobileKeyboard();
   const router = useRouter();
   const { model } = useModel();
   const { usage, limits, setUsageLimits } = useTokens();
