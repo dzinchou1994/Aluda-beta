@@ -252,9 +252,9 @@ export default function ChatPage() {
           <UserSettingsModal open={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} userEmail={session?.user?.email} />
         )}
 
-        {/* Chat Content - Scrollable area with top padding for fixed header on mobile */}
+        {/* Chat Content - Scrollable area with dynamic spacing */}
         <div className="flex-1 min-h-0 bg-gray-50 dark:bg-chat-bg transition-colors duration-200 min-w-0 overflow-hidden">
-          <div className="h-full pt-16 md:pt-0"> {/* Top padding only on mobile for fixed header */}
+          <div className="h-full md:pt-0"> {/* Dynamic padding managed by useMobileKeyboard hook */}
             <ChatComposer
               currentChatId={currentChatId}
               onChatCreated={handleChatCreated}

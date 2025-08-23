@@ -170,12 +170,14 @@
   background: linear-gradient(to right, #2563eb, #7c3aed) !important;
 }
 
-/* Mobile-specific styles for the new fixed layout */
+/* Mobile-specific styles for dynamic fixed layout */
 @media (max-width: 768px) {
   /* Ensure proper mobile viewport handling */
   html, body {
     height: 100dvh;
     overflow: hidden;
+    /* Prevent iOS bounce scrolling */
+    overscroll-behavior: none;
   }
 
   /* Fixed input positioning with keyboard support */
@@ -189,7 +191,8 @@
     border-top: 1px solid #e5e7eb;
     box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.1);
     padding-bottom: env(safe-area-inset-bottom, 0px);
-    transition: bottom 0.3s ease;
+    /* Smooth but not too slow transition */
+    transition: bottom 0.2s ease-out;
   }
 
   .dark .mobile-input-fixed {
@@ -198,15 +201,74 @@
     box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.3);
   }
 
-  /* Ensure messages don't get hidden behind fixed input */
-  .messages-with-fixed-input {
-    padding-bottom: 120px; /* Extra space for fixed input */
+  /* Dynamic messages container spacing - managed by JavaScript */
+  .messages-container-spacing {
+    /* Padding is set dynamically by useMobileKeyboard hook */
+    /* This prevents overlap and ensures proper spacing */
+    will-change: padding;
+    /* Prevent flickering by stabilizing layout */
+    contain: layout style paint;
   }
 
   /* Smooth transitions for keyboard appearance */
   .kb-open .mobile-input-fixed {
     will-change: bottom;
     transform: translateZ(0); /* Hardware acceleration */
+  }
+
+  /* Prevent layout shift during keyboard transitions */
+  .kb-open {
+    /* Ensure body doesn't resize during keyboard transitions */
+    height: 100dvh;
+    overflow: hidden;
+  }
+
+  /* Ensure fixed header doesn't cause layout issues */
+  #chat-header {
+    /* Prevent any potential flickering */
+    will-change: auto;
+    contain: layout style;
+  }
+}
+
+/* Prevent layout shifts and flickering during input interactions */
+.unified-input-container {
+  /* Prevent layout shifts during focus/blur */
+  will-change: transform;
+  /* Use hardware acceleration */
+  transform: translateZ(0);
+}
+
+/* Smooth transitions for input focus states */
+.unified-input-container:focus-within {
+  /* Prevent sudden layout changes */
+  transition: all 0.15s ease-out;
+}
+
+/* Prevent text area height changes from causing layout shifts */
+textarea {
+  /* Prevent layout shifts during typing */
+  contain: layout style;
+  /* Smooth resize animation */
+  transition: height 0.15s ease-out;
+}
+
+/* Optimize input interactions for mobile */
+@media (max-width: 768px) {
+  /* Prevent iOS zoom on input focus */
+  input, textarea {
+    font-size: 16px;
+    /* Prevent layout shifts */
+    transform: translateZ(0);
+  }
+
+  /* Reduce transition duration on mobile for snappier feel */
+  .unified-input-container {
+    transition-duration: 0.1s;
+  }
+
+  textarea {
+    transition-duration: 0.1s;
   }
 }
 
