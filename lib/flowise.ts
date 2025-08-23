@@ -61,11 +61,19 @@ export async function sendToFlowise({
   // Flowise UI uses this endpoint for chat with files
   const chatflowChatUrl = `${normalizedHost}/api/v1/chatflows/${chatflowId}/chat`
   
-  const headers: Record<string, string> = {};
+  const headers: Record<string, string> = {
+    // Performance optimization: keep connection alive (but use valid format)
+    'Connection': 'keep-alive',
+    // Accept both streaming and JSON for better compatibility
+    'Accept': 'text/event-stream, application/json, */*',
+  };
 
   if (apiKey) {
     headers['Authorization'] = `Bearer ${apiKey}`;
   }
+
+  // Optimize: reduce timeout for faster failure detection
+  const timeoutMs = 30000; // Reduced from 60000 to 30000
 
   const requestBody: FlowiseRequest = {
     question: message,
@@ -105,18 +113,18 @@ export async function sendToFlowise({
 
       response = await fetch(predictionUrl, {
         method: 'POST',
-        headers: { ...headers, 'Content-Type': 'application/json', Accept: 'text/event-stream, application/json' },
+        headers: { ...headers, 'Content-Type': 'application/json' },
         body: JSON.stringify(jsonBody),
-        signal: AbortSignal.timeout(60000),
+        signal: AbortSignal.timeout(timeoutMs),
       })
       endpointUsed = 'prediction'
     } else {
       // JSON mode: use prediction endpoint directly since internal-prediction requires auth
       response = await fetch(predictionUrl, {
         method: 'POST',
-        headers: { ...headers, 'Content-Type': 'application/json', Accept: 'text/event-stream, application/json' },
+        headers: { ...headers, 'Content-Type': 'application/json' },
         body: JSON.stringify(requestBody),
-        signal: AbortSignal.timeout(60000),
+        signal: AbortSignal.timeout(timeoutMs),
       })
       endpointUsed = 'prediction'
     }
@@ -298,26 +306,30 @@ export async function sendToFlowise({
 }
 
 /**
- * Retry wrapper for Flowise API calls
+ * Retry wrapper for Flowise API calls - OPTIMIZED for speed
  */
 export async function sendToFlowiseWithRetry(
   params: Parameters<typeof sendToFlowise>[0],
-  maxRetries: number = 2
+  maxRetries: number = 1  // Reduced from 2 to 1 for faster response
 ): Promise<FlowiseResponse> {
   let lastError: Error;
   
-  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+  // OPTIMIZATION: For test model, use faster retry settings
+  const isTestModel = params.chatflowIdOverride === '286c3991-be03-47f3-aa47-56a6b65c5d00'
+  const effectiveMaxRetries = isTestModel ? 0 : maxRetries // No retries for test model
+  
+  for (let attempt = 1; attempt <= effectiveMaxRetries + 1; attempt++) {
     try {
       return await sendToFlowise(params);
     } catch (error) {
       lastError = error instanceof Error ? error : new Error('Unknown error');
       
-      if (attempt === maxRetries) {
+      if (attempt > effectiveMaxRetries) {
         break;
       }
       
-      // Wait before retrying (exponential backoff)
-      const delay = Math.min(1000 * Math.pow(2, attempt - 1), 5000);
+      // Reduced delay for faster retry
+      const delay = Math.min(500 * Math.pow(2, attempt - 1), 2000); // Reduced from 1000-5000 to 500-2000
       await new Promise(resolve => setTimeout(resolve, delay));
     }
   }

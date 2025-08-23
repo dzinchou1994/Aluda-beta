@@ -19,6 +19,7 @@ export async function POST(request: NextRequest) {
     let chatId: string | undefined
     let model: string | undefined
     let uploadedFile: File | null = null
+    let historyFromRequest: any[] = []
 
     if (contentType.includes('multipart/form-data')) {
       const form = await request.formData()
@@ -45,6 +46,9 @@ export async function POST(request: NextRequest) {
       message = json?.message || ''
       chatId = json?.chatId
       model = json?.model
+      // Get history from request if provided
+      historyFromRequest = json?.history || []
+      console.log('Chat API: Received history:', historyFromRequest.length, 'messages')
     }
 
     if (!message?.trim() && !uploadedFile) {
@@ -74,27 +78,32 @@ export async function POST(request: NextRequest) {
       actor = { type: 'guest' as const, id: cookieSess.guestId || cookieSess.sessionId }
     }
 
-    // Model handling: 'mini' (default) or 'aluda2'
-    const selectedModel = (model === 'aluda2') ? 'aluda2' : 'mini'
+    // Model handling: 'mini' (default), 'aluda2', or 'test'
+    const selectedModel = (model === 'aluda2') ? 'aluda2' : (model === 'test') ? 'test' : 'mini'
     // Premium users default to aluda2 without extra token multiplier
     const isPremium = actor.type === 'user' && actor.plan === 'PREMIUM'
-    const tokenMultiplier = selectedModel === 'aluda2' && !isPremium && actor.type !== 'guest' ? 5 : 1
-    // Guests cannot use aluda2
+    // Test model is free and unlimited for everyone
+    const tokenMultiplier = selectedModel === 'test' ? 0 : (selectedModel === 'aluda2' && !isPremium && actor.type !== 'guest' ? 5 : 1)
+    // Guests cannot use aluda2, but can use test model
     if (actor.type === 'guest' && selectedModel === 'aluda2') {
       return NextResponse.json({ error: 'გაიარეთ ავტორიზაცია Aluda 2.0-ისთვის', redirect: '/auth/signin' }, { status: 402 })
     }
 
-    // Rough token estimate (chars/4)
-    const estimatedTokens = Math.ceil((message?.length || 0) / 4) * tokenMultiplier
-    const { allowed, limits, usage } = await canConsume(actor, estimatedTokens)
-    if (!allowed) {
-      const target = actor.type === 'guest' ? '/auth/signin' : '/buy'
-      return NextResponse.json({
-        error: 'ტოკენების ლიმიტი ამოიწურა',
-        redirect: target,
-        limits,
-        usage,
-      }, { status: 402 })
+    // For test model, skip token consumption check
+    let estimatedTokens = 0
+    if (selectedModel !== 'test') {
+      // Rough token estimate (chars/4)
+      estimatedTokens = Math.ceil((message?.length || 0) / 4) * tokenMultiplier
+      const { allowed, limits, usage } = await canConsume(actor, estimatedTokens)
+      if (!allowed) {
+        const target = actor.type === 'guest' ? '/auth/signin' : '/buy'
+        return NextResponse.json({
+          error: 'ტოკენების ლიმიტი ამოიწურა',
+          redirect: target,
+          limits,
+          usage,
+        }, { status: 402 })
+      }
     }
 
     // Generate a unique chat ID with user context
@@ -130,11 +139,13 @@ export async function POST(request: NextRequest) {
     let flowiseSessionId: string | undefined
     
     try {
-      // Choose chatflow by model (force explicit IDs for both models)
+      // Choose chatflow by model (force explicit IDs for all models)
       const chatflowIdOverride = selectedModel === 'aluda2'
         ? (process.env.ALUDAAI_FLOWISE_CHATFLOW_ID_ALUDAA2
           || process.env.FLOWISE_CHATFLOW_ID_ALUDAA2
           || (process.env as any).ALUDAAI_FLOWISE_CHATFLOW_ID_ALUDA2)
+        : selectedModel === 'test'
+        ? '286c3991-be03-47f3-aa47-56a6b65c5d00' // Test model chatflow ID
         : (process.env.ALUDAAI_FLOWISE_CHATFLOW_ID || process.env.FLOWISE_CHATFLOW_ID)
       // Flowise often ignores image-only requests if the 'question' is empty.
       // Provide a concise default in ka-GE when an image is sent without text for Aluda 2.0.
@@ -149,6 +160,7 @@ export async function POST(request: NextRequest) {
         chatflowIdOverride,
         envMini: process.env.ALUDAAI_FLOWISE_CHATFLOW_ID || process.env.FLOWISE_CHATFLOW_ID,
         envA2: process.env.ALUDAAI_FLOWISE_CHATFLOW_ID_ALUDAA2 || process.env.FLOWISE_CHATFLOW_ID_ALUDAA2 || (process.env as any).ALUDAAI_FLOWISE_CHATFLOW_ID_ALUDA2,
+        testModel: '286c3991-be03-47f3-aa47-56a6b65c5d00',
       })
 
       // If Aluda2 chosen but no override configured, fail early instead of silently falling back to mini
@@ -161,12 +173,28 @@ export async function POST(request: NextRequest) {
           }
         }, { status: 500 })
       }
-      // Create a more unique session ID for Flowise to prevent conversation mixing
-      flowiseSessionId = `${actor.type}_${actor.id}_${currentChatId}`
+      
+      // OPTIMIZATION: Create a stable session ID for Flowise conversation continuity
+      // IMPORTANT: Use the chatId directly as sessionId for Flowise memory to work
+      if (chatId) {
+        flowiseSessionId = chatId // Use chatId directly for consistent session tracking
+      } else {
+        flowiseSessionId = `${actor.type}_${actor.id}_${selectedModel}_${Date.now()}`
+      }
+      
+      console.log('Chat API: Using Flowise sessionId:', flowiseSessionId)
+      
+      // Convert history to Flowise format
+      const flowiseHistory = historyFromRequest.map((msg: any) => ({
+        role: (msg.role === 'user' ? 'user' : 'assistant') as 'user' | 'assistant',
+        content: msg.content || ''
+      })).slice(-10) // Keep only last 10 messages for performance
+      
+      console.log('Chat API: Sending history to Flowise:', flowiseHistory.length, 'messages')
       
       flowiseResponse = await sendToFlowiseWithRetry({
         message: effectiveMessage,
-        history: [],
+        history: flowiseHistory,
         sessionId: flowiseSessionId,
         chatflowIdOverride,
         file: uploadedFile && selectedModel === 'aluda2' ? uploadedFile : undefined,
@@ -192,15 +220,43 @@ export async function POST(request: NextRequest) {
 
     // Estimate assistant tokens as well
     const assistantTokens = Math.ceil((flowiseResponse.text?.length || 0) / 4) * tokenMultiplier
-    await addUsage(actor, estimatedTokens + assistantTokens)
+    // Only track token usage for non-test models
+    if (selectedModel !== 'test') {
+      await addUsage(actor, estimatedTokens + assistantTokens)
+    }
 
     // Try to suggest a concise chat title via Flowise (best-effort)
-    let aiTitle: string | undefined
-    try {
-      if (flowiseSessionId) {
-        aiTitle = await suggestTitleWithFlowise({ question: message, sessionId: flowiseSessionId, chatflowIdOverride: undefined }) || undefined
-      }
-    } catch {}
+    // TEMPORARILY DISABLED for performance improvement
+    let aiTitle: string | undefined = undefined
+    
+    // OPTIMIZATION: Start title suggestion in parallel (non-blocking)
+    // const titlePromise = (async () => {
+    //   try {
+    //     // Only suggest title for new chats or if explicitly requested
+    //     const shouldSuggestTitle = !chatId || chatId === currentChatId
+    //     if (shouldSuggestTitle && flowiseSessionId) {
+    //       // Make title suggestion non-blocking and faster
+    //       const titleResult = await suggestTitleWithFlowise({ 
+    //         question: message, 
+    //         sessionId: flowiseSessionId, 
+    //         chatflowIdOverride: undefined 
+    //       }).catch(() => null)
+    //       
+    //       return titleResult || undefined
+    //     }
+    //   } catch {
+    //     return undefined
+    //   }
+    //   return undefined
+    // })()
+    
+    // Wait for title suggestion with a short timeout (non-blocking)
+    // const titleResult = await Promise.race([
+    //   titlePromise,
+    //   new Promise<undefined>(resolve => setTimeout(() => resolve(undefined), 1500)) // Reduced from 2000ms to 1500ms
+    // ])
+    
+    // aiTitle = titleResult
 
     return NextResponse.json({
       text: flowiseResponse.text,

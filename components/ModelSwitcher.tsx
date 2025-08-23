@@ -28,7 +28,7 @@ export default function ModelSwitcher() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const handleModelSelect = (newModel: 'mini' | 'aluda2') => {
+  const handleModelSelect = (newModel: 'mini' | 'aluda2' | 'test') => {
     setModel(newModel);
     setIsOpen(false);
   };
@@ -38,34 +38,40 @@ export default function ModelSwitcher() {
     setIsOpen(false);
   };
 
-  const getModelDisplayName = (modelName: 'mini' | 'aluda2') => {
+  const getModelDisplayName = (modelName: 'mini' | 'aluda2' | 'test') => {
     switch (modelName) {
       case 'mini':
         return 'Aluda mini';
       case 'aluda2':
         return 'Aluda 2.0';
+      case 'test':
+        return 'Aluda Test';
       default:
         return 'Aluda mini';
     }
   };
 
-  const getModelDescription = (modelName: 'mini' | 'aluda2') => {
+  const getModelDescription = (modelName: 'mini' | 'aluda2' | 'test') => {
     switch (modelName) {
       case 'mini':
         return 'Great for everyday tasks';
       case 'aluda2':
         return 'Our smartest model & more';
+      case 'test':
+        return 'Free unlimited testing model';
       default:
         return 'Great for everyday tasks';
     }
   };
 
-  const getModelIcon = (modelName: 'mini' | 'aluda2') => {
+  const getModelIcon = (modelName: 'mini' | 'aluda2' | 'test') => {
     switch (modelName) {
       case 'mini':
         return <Zap className="h-4 w-4" />;
       case 'aluda2':
         return <Sparkles className="h-4 w-4" />;
+      case 'test':
+        return <Zap className="h-4 w-4 text-green-400" />;
       default:
         return <Zap className="h-4 w-4" />;
     }
@@ -85,6 +91,20 @@ export default function ModelSwitcher() {
       {/* Dropdown Menu - Always opens downward */}
       {isOpen && (
         <div className="absolute top-full left-0 right-0 mt-2 bg-gray-800 rounded-lg border border-gray-600 shadow-xl z-50 min-w-[320px] max-w-[380px]">
+          {/* Aluda Test Option (Free & Unlimited) */}
+          <div className="p-3 border-b border-gray-600 cursor-pointer hover:bg-gray-700 transition-colors duration-200" onClick={() => handleModelSelect('test')}>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                {getModelIcon('test')}
+                <div>
+                  <div className="text-white font-medium text-sm">Aluda Test</div>
+                  <div className="text-gray-400 text-xs">უფასო და ულიმიტო ტესტირების მოდელი</div>
+                </div>
+              </div>
+              {model === 'test' && <Check className="h-4 w-4 text-white" />}
+            </div>
+          </div>
+
           {/* Aluda 2.0 Option (Premium) */}
           <div className="p-3 border-b border-gray-600 cursor-pointer hover:bg-gray-700 transition-colors duration-200" onClick={() => hasPremium && handleModelSelect('aluda2')}>
             <div className="flex items-center justify-between">

@@ -12,6 +12,7 @@ interface UseChatSubmitProps {
   setCurrentChatId: (chatId: string) => void;
   setError: (error: string) => void;
   renameChat: (chatId: string, title: string) => void;
+  getCurrentChatMessages: () => Message[];
 }
 
 export function useChatSubmit({
@@ -24,6 +25,7 @@ export function useChatSubmit({
   setCurrentChatId,
   setError,
   renameChat,
+  getCurrentChatMessages,
 }: UseChatSubmitProps) {
   const [isLoading, setIsLoading] = useState(false);
 
@@ -38,12 +40,12 @@ export function useChatSubmit({
   ) => {
     e.preventDefault();
     
-    // If image is attached for Aluda 2.0 and user also typed text, ensure image is ready first
+    // OPTIMIZATION: Reduce image preparation delay
     if (model === 'aluda2' && attachedImage && !attachedPreviewUrl) {
-      await new Promise((r) => setTimeout(r, 50));
+      await new Promise((r) => setTimeout(r, 25)); // Reduced from 50ms to 25ms
     }
     
-    // Allow image-only request for Aluda 2.0
+    // Allow image-only request for Aluda 2.0, but not for test model
     if (!(message.trim().length > 0 || (model === 'aluda2' && attachedImage))) return;
 
     const isImageOnly = model === 'aluda2' && attachedImage && message.trim().length === 0;
@@ -96,19 +98,34 @@ export function useChatSubmit({
           body: form
         });
       } else {
+        // Get current chat history to send to API
+        const currentMessages = getCurrentChatMessages();
+        // Convert to format expected by API (exclude the message we're about to send)
+        const historyForAPI = currentMessages.map(msg => ({
+          role: msg.role,
+          content: msg.content
+        }));
+        
+        console.log('Frontend: Sending history to API:', historyForAPI.length, 'messages');
+        
         responsePromise = fetch("/api/chat", {
           method: "POST",
           headers: { 
             "Content-Type": "application/json"
           },
-          body: JSON.stringify({ message: messageToSend, chatId: activeChatId, model }),
+          body: JSON.stringify({ 
+            message: messageToSend, 
+            chatId: activeChatId, 
+            model,
+            history: historyForAPI
+          }),
         });
       }
 
-      // Immediately render the user's message without waiting for server reply
+      // OPTIMIZATION: Immediately render the user's message and reduce delay
       addMessageToChat(activeChatId, pendingUserMessage);
       onChatCreated(activeChatId);
-      setTimeout(() => setCurrentChatId(activeChatId), 50);
+      setTimeout(() => setCurrentChatId(activeChatId), 25); // Reduced from 50ms to 25ms
 
       const response = await responsePromise;
       

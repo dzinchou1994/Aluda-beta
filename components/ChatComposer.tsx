@@ -68,6 +68,7 @@ export default function ChatComposer({ currentChatId: propCurrentChatId, session
     setCurrentChatId,
     setError,
     renameChat,
+    getCurrentChatMessages: () => chats.find(c => c.id === currentChatId)?.messages || [],
   });
 
   // Wrapper for handleSubmit to handle local state
@@ -82,7 +83,7 @@ export default function ChatComposer({ currentChatId: propCurrentChatId, session
       setMessage
     );
     
-    // Scroll to bottom after submitting to show the new message and input area
+    // OPTIMIZATION: Reduce scroll delay for better responsiveness
     setTimeout(() => {
       if (messagesEndRef.current) {
         messagesEndRef.current.scrollIntoView({ 
@@ -91,7 +92,7 @@ export default function ChatComposer({ currentChatId: propCurrentChatId, session
           inline: 'nearest'
         });
       }
-    }, 100);
+    }, 50); // Reduced from 100ms to 50ms
   };
 
   // Handle key events
