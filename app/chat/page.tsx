@@ -121,7 +121,7 @@ export default function ChatPage() {
       </div>
       
       {/* Main Chat Area */}
-      <div className="flex-1 min-h-0 flex flex-col bg-white dark:bg-chat-bg overflow-y-auto">
+      <div className="flex-1 min-h-0 flex flex-col bg-white dark:bg-chat-bg overflow-y-auto chat-scroll-mobile">
         {/* Header */}
         <header id="chat-header" className="sticky top-0 z-10 bg-white dark:bg-chat-bg border-b border-gray-200 dark:border-gray-800 p-4 flex items-center justify-between">
           <div className="flex items-center space-x-3">

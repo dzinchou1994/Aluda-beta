@@ -200,16 +200,15 @@
     padding-right: 16px;
   }
   
-  /* Ensure messages container has proper bottom spacing on mobile */
-  .messages-container-mobile {
+  /* Main scroll container paddings (apply to the parent that scrolls) */
+  .chat-scroll-mobile {
+    padding-top: calc(var(--topbar-height, 56px) + 8px) !important;
     padding-bottom: calc(var(--input-area-height, 84px) + 12px) !important;
-    /* Respect sticky header height */
-    padding-top: calc(var(--topbar-height, 56px) + 12px) !important;
-    /* Ensure scroll anchoring doesn't hide content under header */
-    scroll-padding-top: calc(var(--topbar-height, 56px) + 12px);
+    scroll-padding-top: calc(var(--topbar-height, 56px) + 8px);
+    -webkit-overflow-scrolling: touch;
   }
   
-  /* Ensure chat content has proper bottom spacing for fixed input */
+  /* Messages container itself only needs small internal spacing */
   .chat-content-mobile {
     padding-bottom: 0 !important;
   }
@@ -222,20 +221,18 @@
     z-index: 200;
   }
   
-  /* Smooth mobile scrolling */
+  /* Messages container: remove extra top/bottom padding (handled by parent) */
   .messages-container-mobile {
     scroll-behavior: smooth;
-    -webkit-overflow-scrolling: touch;
-    /* Main scroll container on mobile */
     height: auto;
     min-height: 0;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
   }
   
   /* Better mobile keyboard handling */
   @media (max-height: 600px) {
-    .messages-container-mobile {
-      padding-bottom: calc(var(--input-area-height, 84px) + 12px) !important;
-    }
+    .chat-scroll-mobile { padding-bottom: calc(var(--input-area-height, 84px) + 12px) !important; }
   }
   
   /* Ensure proper spacing without excessive padding */
