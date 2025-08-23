@@ -51,8 +51,9 @@
 /* Responsive chat bubble sizing */
 @media (max-width: 768px) {
   :root {
-    /* Approximate input area height (container + paddings/buttons) */
+    /* Will be updated dynamically; set sensible defaults */
     --input-area-height: 92px;
+    --topbar-height: 64px;
   }
   .chat-bubble {
     max-width: 85%;
@@ -202,10 +203,10 @@
   /* Ensure messages container has proper bottom spacing on mobile */
   .messages-container-mobile {
     padding-bottom: calc(env(safe-area-inset-bottom, 0px) + var(--input-area-height, 92px) + var(--kb-offset, 0px)) !important;
-    /* On mobile header is not sticky; keep small top padding */
-    padding-top: 8px !important;
-    /* Ensure scroll anchoring behaves correctly */
-    scroll-padding-top: 8px;
+    /* Respect sticky header height */
+    padding-top: calc(env(safe-area-inset-top, 0px) + var(--topbar-height, 64px) + 8px) !important;
+    /* Ensure scroll anchoring doesn't hide content under header */
+    scroll-padding-top: calc(env(safe-area-inset-top, 0px) + var(--topbar-height, 64px) + 8px);
   }
   
   /* Ensure chat content has proper bottom spacing for fixed input */
@@ -245,7 +246,7 @@
   /* Clean mobile scrolling - remove conflicting styles */
   .messages-container-mobile {
     /* Natural, smooth scrolling behavior */
-    padding-top: 8px !important;
+    padding-top: calc(env(safe-area-inset-top, 0px) + var(--topbar-height, 64px) + 8px) !important;
     padding-bottom: calc(env(safe-area-inset-bottom, 0px) + var(--input-area-height, 92px) + var(--kb-offset, 0px)) !important;
   }
   

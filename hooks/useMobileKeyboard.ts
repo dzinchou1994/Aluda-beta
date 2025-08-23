@@ -18,6 +18,19 @@ export function useMobileKeyboard() {
       const vvTop = (visualViewport as any).offsetTop || 0
       const overlap = Math.max(0, Math.round(innerH - vvH - vvTop))
       document.documentElement.style.setProperty('--kb-offset', `${overlap}px`)
+      // Measure header and input heights to drive paddings precisely
+      try {
+        const header = document.getElementById('chat-header')
+        if (header) {
+          const topbarHeight = Math.round(header.getBoundingClientRect().height)
+          document.documentElement.style.setProperty('--topbar-height', `${topbarHeight}px`)
+        }
+        const input = document.querySelector('.mobile-input-container') as HTMLElement | null
+        if (input) {
+          const inputHeight = Math.round(input.getBoundingClientRect().height)
+          document.documentElement.style.setProperty('--input-area-height', `${inputHeight}px`)
+        }
+      } catch {}
       if (overlap > 0) document.body.classList.add('kb-open')
       else document.body.classList.remove('kb-open')
     }
