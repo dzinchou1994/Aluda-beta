@@ -174,7 +174,7 @@
 @media (max-width: 768px) {
   /* Ensure proper viewport height on mobile */
   .mobile-input-container {
-    position: fixed;
+    position: sticky;
     left: 0;
     right: 0;
     z-index: 1000;
@@ -182,8 +182,8 @@
     border-top: 1px solid #e5e7eb;
     box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.1);
     padding-bottom: env(safe-area-inset-bottom, 0px);
-    /* Keep input above keyboard */
-    bottom: var(--kb-offset, 0px);
+    /* Stick to bottom of scroll container */
+    bottom: 0;
     transform: translateZ(0);
     will-change: bottom;
   }
@@ -203,10 +203,10 @@
   /* Ensure messages container has proper bottom spacing on mobile */
   .messages-container-mobile {
     padding-bottom: calc(var(--input-area-height, 84px) + 12px) !important;
-    /* Respect sticky header height */
-    padding-top: calc(var(--topbar-height, 56px) + 12px) !important;
+    /* Header is in flow and sticky; minimal top padding */
+    padding-top: 12px !important;
     /* Ensure scroll anchoring doesn't hide content under header */
-    scroll-padding-top: calc(var(--topbar-height, 56px) + 12px);
+    scroll-padding-top: 12px;
   }
   
   /* Ensure chat content has proper bottom spacing for fixed input */
@@ -275,14 +275,14 @@
   
   /* Mobile keyboard fixes */
   .mobile-input-container {
-    position: fixed;
+    position: sticky;
     left: 0;
     right: 0;
     z-index: 200;
     background: white;
     border-top: 1px solid #e5e7eb;
     box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.1);
-    bottom: var(--kb-offset, 0px);
+    bottom: 0;
   }
   
   /* Dark mode support */
