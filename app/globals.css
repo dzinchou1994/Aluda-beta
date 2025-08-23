@@ -174,7 +174,7 @@
 @media (max-width: 768px) {
   /* Ensure proper viewport height on mobile */
   .mobile-input-container {
-    position: fixed;
+    position: sticky;
     left: 0;
     right: 0;
     z-index: 1000;
@@ -182,8 +182,8 @@
     border-top: 1px solid #e5e7eb;
     box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.1);
     padding-bottom: env(safe-area-inset-bottom, 0px);
-    /* Keep input above keyboard */
-    bottom: var(--kb-offset, 0px);
+    /* In-flow sticky at bottom avoids overlap */
+    bottom: 0;
     transform: translateZ(0);
     will-change: bottom;
   }
@@ -202,11 +202,10 @@
   
   /* Main scroll container paddings (apply to the parent that scrolls) */
   .chat-scroll-mobile {
-    /* Account for fixed header height on mobile */
-    padding-top: calc(var(--topbar-height, 56px) + 8px) !important;
-    /* Reserve space for input (no extra when keyboard closes) */
-    padding-bottom: calc(var(--input-area-height, 84px) + 6px) !important;
-    scroll-padding-top: calc(var(--topbar-height, 56px) + 8px);
+    /* Single scroll container with in-flow sticky header/input */
+    padding-top: 0 !important;
+    padding-bottom: 8px !important;
+    scroll-padding-top: 0;
     -webkit-overflow-scrolling: touch;
   }
   
@@ -216,13 +215,8 @@
     padding-bottom: 0 !important;
   }
 
-  /* Force header fixed on mobile to avoid sticky inconsistencies */
-  #chat-header {
-    position: fixed !important;
-    top: env(safe-area-inset-top, 0px);
-    left: 0;
-    right: 0;
-  }
+  /* Use sticky header; occupies layout space and avoids overlap */
+  #chat-header { position: sticky !important; top: env(safe-area-inset-top, 0px); }
   
   /* Ensure input area is always visible on mobile */
   .mobile-input-container {
@@ -283,14 +277,14 @@
   
   /* Mobile keyboard fixes */
   .mobile-input-container {
-    position: fixed;
+    position: sticky;
     left: 0;
     right: 0;
     z-index: 200;
     background: white;
     border-top: 1px solid #e5e7eb;
     box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.1);
-    bottom: var(--kb-offset, 0px);
+    bottom: 0;
   }
   
   /* Dark mode support */
