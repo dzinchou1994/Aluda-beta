@@ -209,9 +209,9 @@
     -webkit-overflow-scrolling: touch;
   }
   
-  /* Messages content spacing: ensure first message clear of sticky header */
+  /* Messages content: no top gap; parent handles scroll-padding-top */
   .chat-content-mobile {
-    padding-top: calc(var(--topbar-height, 56px) + 8px) !important;
+    padding-top: 0 !important;
     padding-bottom: 0 !important;
   }
   
