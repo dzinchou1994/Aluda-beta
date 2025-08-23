@@ -202,8 +202,8 @@
   
   /* Main scroll container paddings (apply to the parent that scrolls) */
   .chat-scroll-mobile {
-    /* No visual top padding here so header sits at very top */
-    padding-top: 0 !important;
+    /* Account for fixed header height on mobile */
+    padding-top: calc(env(safe-area-inset-top, 0px) + var(--topbar-height, 56px) + 8px) !important;
     padding-bottom: calc(var(--input-area-height, 84px) + 12px) !important;
     scroll-padding-top: calc(var(--topbar-height, 56px) + 8px);
     -webkit-overflow-scrolling: touch;
@@ -213,6 +213,14 @@
   .chat-content-mobile {
     padding-top: 0 !important;
     padding-bottom: 0 !important;
+  }
+
+  /* Force header fixed on mobile to avoid sticky inconsistencies */
+  #chat-header {
+    position: fixed !important;
+    top: env(safe-area-inset-top, 0px);
+    left: 0;
+    right: 0;
   }
   
   /* Ensure input area is always visible on mobile */
