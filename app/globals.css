@@ -191,8 +191,8 @@
     border-top: 1px solid #e5e7eb;
     box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.1);
     padding-bottom: env(safe-area-inset-bottom, 0px);
-    /* Smooth but not too slow transition */
-    transition: bottom 0.2s ease-out;
+    /* Avoid animating position to prevent flicker during typing */
+    transition: none;
   }
 
   .dark .mobile-input-fixed {

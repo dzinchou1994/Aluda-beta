@@ -12,7 +12,14 @@ export function useMobileKeyboard() {
     const visualViewport: VisualViewport | undefined = (window as any).visualViewport
     if (!visualViewport) return
 
+    let rafId: number | null = null
     const update = () => {
+      if (rafId) cancelAnimationFrame(rafId)
+      // Throttle with rAF to avoid rapid layout thrashing while typing
+      rafId = requestAnimationFrame(() => doUpdate())
+    }
+
+    const doUpdate = () => {
       const innerH = window.innerHeight || 0
       const vvH = visualViewport.height || innerH
       const vvTop = (visualViewport as any).offsetTop || 0
@@ -117,7 +124,10 @@ export function useMobileKeyboard() {
           document.documentElement.style.setProperty('--input-area-height', `${inputHeight}px`)
 
           // For the new approach, we still need padding for proper spacing
-          messagesContainer.style.paddingBottom = `${totalBottomPadding}px`
+          // Do NOT include keyboard offset in padding; the input is already repositioned with --kb-offset.
+          // Including it here causes the content to jump and reveal a large gray area while typing.
+          const bottomWithoutKb = Math.max(visualInputHeight + safeAreaBottom + 32, 100)
+          messagesContainer.style.paddingBottom = `${bottomWithoutKb}px`
         }
       } catch (error) {
         console.warn('Error updating fixed element spacing:', error)
@@ -162,6 +172,7 @@ export function useMobileKeyboard() {
         document.documentElement.style.removeProperty('--input-spacing')
         document.documentElement.style.removeProperty('--input-area-height')
         document.body.classList.remove('kb-open')
+        if (rafId) cancelAnimationFrame(rafId)
       }
     }
 
@@ -180,6 +191,7 @@ export function useMobileKeyboard() {
         document.documentElement.style.removeProperty('--input-spacing')
         document.documentElement.style.removeProperty('--input-area-height')
         document.body.classList.remove('kb-open')
+        if (rafId) cancelAnimationFrame(rafId)
       } catch {}
     }
   }, [])
