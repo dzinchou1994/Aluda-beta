@@ -38,6 +38,42 @@ export default function ChatMessage({ message, index, shouldAnimate }: ChatMessa
     let text = raw;
     // Make sure horizontal rules are on their own lines
     text = text.replace(/---/g, '\n---\n');
+
+    // Split lines and apply inline list heuristics per line
+    const lines = text.split('\n');
+    const processedLines = lines.map((line) => {
+      let current = line;
+
+      // Heuristic for inline numbered lists: require at least two occurrences of "N. "
+      // This avoids false positives like years ("2024.") or decimals ("3.14")
+      const numberedPattern = /(^|\s)(\d{1,2})\.\s+/g; // 1-2 digits followed by ". "
+      const countMatches = (s: string, re: RegExp) => {
+        let count = 0;
+        s.replace(re, () => { count++; return ''; });
+        return count;
+      };
+      if (countMatches(current, numberedPattern) >= 2) {
+        current = current.replace(numberedPattern, (_m: string, _sep: string, num: string, offset: number) => {
+          const atStart = offset === 0;
+          const prefix = atStart ? '' : '\n';
+          return `${prefix}${num}. `;
+        });
+      }
+
+      // Heuristic for inline bullets "- " or "* ": require at least two occurrences on the same line
+      const bulletPattern = /(^|\s)([-*])\s+/g;
+      if (countMatches(current, bulletPattern) >= 2) {
+        current = current.replace(bulletPattern, (_m: string, _sep: string, bullet: string, offset: number) => {
+          const atStart = offset === 0;
+          const prefix = atStart ? '' : '\n';
+          return `${prefix}${bullet} `;
+        });
+      }
+
+      return current;
+    });
+
+    text = processedLines.join('\n');
     return text;
   };
 
