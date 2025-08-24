@@ -35,7 +35,6 @@ export default function ChatInput({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [isMobileUA, setIsMobileUA] = useState(false);
-  const [isFocused, setIsFocused] = useState(false);
 
   useEffect(() => {
     try {
@@ -91,26 +90,6 @@ export default function ChatInput({
     }
   };
 
-  const handleFocus = () => {
-    setIsFocused(true);
-    onFocus();
-    // Force scroll to input on mobile
-    if (isMobileUA) {
-      setTimeout(() => {
-        try {
-          const inputWrapper = document.getElementById('chat-input-wrapper');
-          if (inputWrapper) {
-            inputWrapper.scrollIntoView({ block: 'end', behavior: 'auto' });
-          }
-        } catch {}
-      }, 50);
-    }
-  };
-
-  const handleBlur = () => {
-    setIsFocused(false);
-  };
-
   return (
     <div className="fixed bottom-0 left-0 right-0 bg-white dark:bg-chat-bg shadow-lg z-50 mobile-input-fixed md:relative md:bottom-auto md:left-auto md:right-auto md:shadow-none md:z-auto">
       <div className="max-w-4xl mx-auto px-3 pb-3 pt-1 md:px-3 md:pb-3 md:pt-1" id="chat-input-wrapper">
@@ -151,8 +130,7 @@ export default function ChatInput({
                 }
               }}
               onKeyDown={onKeyDown}
-              onFocus={handleFocus}
-              onBlur={handleBlur}
+              onFocus={onFocus}
               placeholder="დაწერეთ თქვენი შეტყობინება..."
               className="auto-resize flex-1 resize-none bg-transparent border-none outline-none text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 text-base md:text-lg py-2 min-h-[24px] max-h-[35vh] md:max-h-[40vh] overflow-y-auto"
               rows={1}
