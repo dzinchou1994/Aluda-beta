@@ -39,7 +39,22 @@ export default function ChatPage() {
   useEffect(() => {
     try {
       document.body.classList.add('chat-page')
-      return () => { document.body.classList.remove('chat-page') }
+
+      // Also lock the root element for consistent behavior on iOS/Safari
+      const root = document.documentElement
+      const prevRootOverflow = root.style.overflow
+      const prevRootHeight = root.style.height
+      const prevRootOverscroll = (root.style as any).overscrollBehavior || ''
+      root.style.overflow = 'hidden'
+      root.style.height = '100dvh'
+      ;(root.style as any).overscrollBehavior = 'none'
+
+      return () => {
+        document.body.classList.remove('chat-page')
+        root.style.overflow = prevRootOverflow
+        root.style.height = prevRootHeight
+        ;(root.style as any).overscrollBehavior = prevRootOverscroll
+      }
     } catch {}
   }, [])
 
