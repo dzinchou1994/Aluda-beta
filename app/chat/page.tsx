@@ -125,7 +125,7 @@ export default function ChatPage() {
         {/* Header - Fixed at top on mobile, static on desktop */}
         <header
           id="chat-header"
-          className="sticky top-0 z-40 bg-white dark:bg-chat-bg border-b border-gray-200 dark:border-gray-800 p-4 flex items-center justify-between md:static md:z-auto md:p-4 md:border-b-0"
+          className="sticky top-0 z-40 bg-white dark:bg-chat-bg border-b border-gray-200 dark:border-gray-800 p-4 flex items-center justify-between md:static md:z-auto md:p-4"
         >
           <div className="flex items-center space-x-3">
             {/* Mobile menu button */}
