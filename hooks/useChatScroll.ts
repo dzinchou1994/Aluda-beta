@@ -8,6 +8,8 @@ interface UseChatScrollProps {
 export function useChatScroll({ messagesLength, isLoading }: UseChatScrollProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
+  // Throttle scroll adjustments on mobile to avoid flicker while typing (iOS)
+  const lastAdjustRef = useRef<number>(0);
 
   // Smart scroll behavior when messages change
   useEffect(() => {
@@ -63,10 +65,6 @@ export function useChatScroll({ messagesLength, isLoading }: UseChatScrollProps)
             block: 'end',
             inline: 'nearest'
           })
-          // Additionally force the window viewport to bottom (iOS Safari)
-          try {
-            window.scrollTo({ top: document.body.scrollHeight, behavior: 'auto' })
-          } catch {}
         }
       }, 50)
     }
@@ -78,22 +76,25 @@ export function useChatScroll({ messagesLength, isLoading }: UseChatScrollProps)
     
     // On mobile, always pin to bottom while typing
     if (window.innerWidth <= 768 && messagesContainerRef.current) {
-      const container = messagesContainerRef.current
-      container.dataset.userScrolled = 'false'
-      requestAnimationFrame(() => {
-        try {
-          container.scrollTop = container.scrollHeight
-          if (messagesEndRef.current) {
-            messagesEndRef.current.scrollIntoView({ 
-              behavior: 'auto', 
-              block: 'end',
-              inline: 'nearest'
-            })
-          }
-          // Also ensure the window itself is scrolled to bottom
-          window.scrollTo({ top: document.body.scrollHeight, behavior: 'auto' })
-        } catch {}
-      })
+      const now = Date.now()
+      // Throttle to at most ~5 times per second
+      if (now - lastAdjustRef.current >= 200) {
+        lastAdjustRef.current = now
+        const container = messagesContainerRef.current
+        container.dataset.userScrolled = 'false'
+        requestAnimationFrame(() => {
+          try {
+            container.scrollTop = container.scrollHeight
+            if (messagesEndRef.current) {
+              messagesEndRef.current.scrollIntoView({ 
+                behavior: 'auto', 
+                block: 'end',
+                inline: 'nearest'
+              })
+            }
+          } catch {}
+        })
+      }
     }
   };
 
