@@ -358,6 +358,9 @@ export default function Sidebar({
           </>
         ) : (
           <div className="flex items-center justify-start gap-2">
+            <div className="w-9 h-9 rounded-full bg-gray-400 dark:bg-gray-700 flex items-center justify-center">
+              <User className="w-4.5 h-4.5 text-white" />
+            </div>
             <span className="flex-1 text-left text-xs font-medium text-gray-900 dark:text-white truncate">სტუმარი</span>
             <button
               onClick={onSignIn}
