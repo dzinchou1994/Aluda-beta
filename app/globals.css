@@ -176,7 +176,7 @@
 /* Mobile-specific styles for proper height calculations */
 @media (max-width: 768px) {
   /* Ensure proper mobile viewport handling */
-  html, body {
+  body.chat-page {
     height: 100dvh;
     overflow: hidden;
     /* Prevent iOS bounce scrolling */

@@ -35,6 +35,14 @@ export default function ChatPage() {
     return () => clearTimeout(timer)
   }, [])
 
+  // Tag body to scope mobile overflow-hidden only on chat page
+  useEffect(() => {
+    try {
+      document.body.classList.add('chat-page')
+      return () => { document.body.classList.remove('chat-page') }
+    } catch {}
+  }, [])
+
   const handleNewChat = () => {
     // Creating a chat already sets currentChatId in the reducer.
     // Avoid immediately calling selectChat to prevent a duplicate stub chat.
