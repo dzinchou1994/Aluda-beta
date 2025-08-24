@@ -56,17 +56,20 @@ export function useChatScroll({ messagesLength, isLoading }: UseChatScrollProps)
     if (window.innerWidth <= 768) {
       // Pin to bottom on focus
       const container = messagesContainerRef.current
-      if (container) container.dataset.userScrolled = 'false'
-      setTimeout(() => {
-        if (messagesEndRef.current && messagesContainerRef.current) {
-          messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight
-          messagesEndRef.current.scrollIntoView({ 
-            behavior: 'auto', 
-            block: 'end',
-            inline: 'nearest'
-          })
-        }
-      }, 20)
+      if (container) {
+        container.dataset.userScrolled = 'false'
+        // Scroll to bottom smoothly
+        setTimeout(() => {
+          if (container && messagesEndRef.current) {
+            container.scrollTop = container.scrollHeight
+            messagesEndRef.current.scrollIntoView({ 
+              behavior: 'smooth', 
+              block: 'end',
+              inline: 'nearest'
+            })
+          }
+        }, 100)
+      }
     }
   };
 
@@ -74,28 +77,8 @@ export function useChatScroll({ messagesLength, isLoading }: UseChatScrollProps)
   const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>, setMessage: (value: string) => void) => {
     setMessage(e.target.value)
     
-    // On mobile, always pin to bottom while typing
-    if (window.innerWidth <= 768 && messagesContainerRef.current) {
-      const now = Date.now()
-      // Throttle to at most ~5 times per second
-      if (now - lastAdjustRef.current >= 200) {
-        lastAdjustRef.current = now
-        const container = messagesContainerRef.current
-        container.dataset.userScrolled = 'false'
-        requestAnimationFrame(() => {
-          try {
-            container.scrollTop = container.scrollHeight
-            if (messagesEndRef.current) {
-              messagesEndRef.current.scrollIntoView({ 
-                behavior: 'auto', 
-                block: 'end',
-                inline: 'nearest'
-              })
-            }
-          } catch {}
-        })
-      }
-    }
+    // Don't auto-scroll during typing to prevent jumping
+    // Let the focus handler manage initial positioning
   };
 
   return {

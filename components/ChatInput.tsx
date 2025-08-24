@@ -158,22 +158,8 @@ export default function ChatInput({
               onKeyDown={onKeyDown}
               onFocus={(e) => {
                 onFocus();
-                // Simple scroll into view on mobile when focused
-                if (isMobileUA) {
-                  setTimeout(() => {
-                    e.target.scrollIntoView({ 
-                      block: 'end', 
-                      behavior: 'smooth',
-                      inline: 'nearest'
-                    });
-                    
-                    // Also ensure messages container is at bottom
-                    const messagesContainer = document.querySelector('.messages-container-spacing') as HTMLElement | null
-                    if (messagesContainer) {
-                      messagesContainer.scrollTop = messagesContainer.scrollHeight
-                    }
-                  }, 100);
-                }
+                // Let the useChatScroll hook handle the scrolling
+                // No additional scroll logic here to prevent conflicts
               }}
               placeholder="მკითხე რაც გინდა"
               className="auto-resize flex-1 resize-none bg-transparent border-none outline-none text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 text-base md:text-lg py-2 min-h-[24px] max-h-[35vh] md:max-h-[40vh] overflow-y-auto"
