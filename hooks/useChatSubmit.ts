@@ -29,6 +29,16 @@ export function useChatSubmit({
 }: UseChatSubmitProps) {
   const [isLoading, setIsLoading] = useState(false);
 
+  const forceScrollBottom = () => {
+    try {
+      const container = document.querySelector('.messages-container-spacing') as HTMLElement | null
+      if (container) {
+        container.dataset.userScrolled = 'false'
+        container.scrollTop = container.scrollHeight
+      }
+    } catch {}
+  }
+
   const handleSubmit = async (
     e: React.FormEvent,
     message: string,
@@ -164,6 +174,8 @@ export function useChatSubmit({
         };
         console.log('Client-side: Adding AI message to chat:', aiMessage);
         addMessageToChat(activeChatId, aiMessage);
+        // Force scroll when AI starts answering
+        forceScrollBottom();
         
         let fullContent = '';
         const decoder = new TextDecoder();
@@ -230,6 +242,8 @@ export function useChatSubmit({
           };
           console.log('Adding AI message:', aiMessage);
           addMessageToChat(activeChatId, aiMessage);
+          // Force scroll when AI message appears
+          forceScrollBottom();
         } else {
           console.warn('No AI content found in response:', responseData);
         }
@@ -262,6 +276,8 @@ export function useChatSubmit({
         content: `❌ ${error.message || "შეცდომა მოხდა შეტყობინების გაგზავნისას."}`,
       };
       addMessageToChat(activeChatId!, errorMessage);
+      // Ensure errors also bring the view to the bottom so user sees it
+      forceScrollBottom();
     } finally {
       // Reset loading state only (input was already cleared on send)
       setIsLoading(false);
