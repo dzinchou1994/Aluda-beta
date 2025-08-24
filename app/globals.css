@@ -183,10 +183,10 @@
     overscroll-behavior: none;
   }
 
-  /* Fixed input positioning with keyboard support */
+  /* Fixed input positioning - simple and stable */
   .mobile-input-fixed {
     position: fixed !important;
-    bottom: var(--kb-offset, 0px) !important;
+    bottom: 0 !important;
     left: 0 !important;
     right: 0 !important;
     z-index: 50 !important;
@@ -194,7 +194,7 @@
     border-top: 1px solid #e5e7eb;
     box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.1);
     padding-bottom: env(safe-area-inset-bottom, 0px);
-    /* Avoid animating position to prevent flicker during typing */
+    /* No transitions to prevent jumping */
     transition: none;
   }
 

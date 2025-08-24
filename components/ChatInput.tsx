@@ -177,7 +177,19 @@ export default function ChatInput({
                 // On mobile rows will update in the effect; avoid setting height directly to prevent flicker
               }}
               onKeyDown={onKeyDown}
-              onFocus={onFocus}
+              onFocus={(e) => {
+                onFocus();
+                // Simple scroll into view on mobile when focused
+                if (isMobileUA) {
+                  setTimeout(() => {
+                    e.target.scrollIntoView({ 
+                      block: 'end', 
+                      behavior: 'smooth',
+                      inline: 'nearest'
+                    });
+                  }, 100);
+                }
+              }}
               placeholder="მკითხე რაც გინდა"
               className="auto-resize flex-1 resize-none bg-transparent border-none outline-none text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 text-base md:text-lg py-2 min-h-[24px] max-h-[35vh] md:max-h-[40vh] overflow-y-auto"
               rows={isMobileUA ? mobileRows : 1}
