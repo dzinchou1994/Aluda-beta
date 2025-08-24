@@ -35,6 +35,8 @@ export default function ChatInput({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [isMobileUA, setIsMobileUA] = useState(false);
+  const [mobileRows, setMobileRows] = useState(1);
+  const lineHeightRef = useRef<number>(20);
 
   useEffect(() => {
     try {
@@ -43,7 +45,18 @@ export default function ChatInput({
     } catch {}
   }, []);
 
-  // Auto-resize textarea to mimic ChatGPT composer behavior
+  // Measure actual line-height once the textarea is mounted
+  useEffect(() => {
+    const el = textareaRef.current
+    if (!el) return
+    try {
+      const cs = getComputedStyle(el)
+      const lh = parseFloat(cs.lineHeight || '20')
+      if (!Number.isNaN(lh) && lh > 0) lineHeightRef.current = lh
+    } catch {}
+  }, []);
+
+  // Auto-resize textarea (desktop only)
   const autoResize = useCallback(() => {
     if (isMobileUA) return; // Avoid JS-driven resize on mobile to prevent flicker
     const el = textareaRef.current;
@@ -53,10 +66,33 @@ export default function ChatInput({
     el.style.height = `${el.scrollHeight}px`;
   }, [isMobileUA]);
 
-  // Recalculate height whenever message changes (including programmatic clears)
+  // Recalculate height/rows whenever message changes (including programmatic clears)
   useEffect(() => {
-    if (!isMobileUA) autoResize();
-  }, [message, autoResize, isMobileUA]);
+    const el = textareaRef.current
+    if (!el) return
+
+    if (!isMobileUA) {
+      autoResize();
+      return
+    }
+
+    // On mobile: adjust rows based on content without setting pixel height
+    requestAnimationFrame(() => {
+      try {
+        const maxRows = 7
+        // Temporarily set rows to 1 to measure scrollHeight accurately
+        el.rows = 1
+        const contentHeight = el.scrollHeight
+        const lh = lineHeightRef.current || 20
+        // Estimate rows needed; ensure at least 1
+        const needed = Math.max(1, Math.ceil(contentHeight / lh))
+        const clamped = Math.min(maxRows, needed)
+        if (clamped !== mobileRows) setMobileRows(clamped)
+        // Restore rows to clamped value
+        el.rows = clamped
+      } catch {}
+    })
+  }, [message, autoResize, isMobileUA, mobileRows]);
 
   const handleImageAttach = () => {
     if (isLoading) return;
@@ -128,12 +164,13 @@ export default function ChatInput({
                   // Ensure height follows content during typing (desktop only)
                   requestAnimationFrame(autoResize);
                 }
+                // On mobile rows will update in the effect; avoid setting height directly to prevent flicker
               }}
               onKeyDown={onKeyDown}
               onFocus={onFocus}
               placeholder="მკითხე რაც გინდა"
               className="auto-resize flex-1 resize-none bg-transparent border-none outline-none text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 text-base md:text-lg py-2 min-h-[24px] max-h-[35vh] md:max-h-[40vh] overflow-y-auto"
-              rows={1}
+              rows={isMobileUA ? mobileRows : 1}
               disabled={isLoading}
             />
             
@@ -143,7 +180,7 @@ export default function ChatInput({
               className="ml-2 sm:ml-3 w-10 h-10 sm:w-12 sm:h-12 send-button bg-blue-500 dark:bg-blue-600 text-white rounded-full hover:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-gray-800 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center shadow-lg hover:shadow-xl hover:scale-105"
             >
               {isLoading ? (
-                <Loader2 className="h-5 w-5 animate-spin" />
+                <Loader2 className="ჰ-5 w-5 animate-spin" />
               ) : (
                 <Send className="h-5 w-5" />
               )}
@@ -153,15 +190,15 @@ export default function ChatInput({
           {/* Image preview chip */}
           {attachedPreviewUrl && (
             <div className="mt-2 flex items-center gap-2">
-              <div className="w-12 h-12 rounded-md overflow-hidden border border-gray-200 dark:border-gray-700 shadow-sm">
+              <div className="w-12 ჰ-12 rounded-md overflow-hidden border border-gray-200 dark:border-gray-700 shadow-sm">
                 <img src={attachedPreviewUrl} alt="attachment preview" className="w-full h-full object-cover" />
               </div>
               <button
                 type="button"
                 onClick={removeImage}
-                className="inline-flex items-center gap-1 text-xs px-2 py-1 rounded-md border border-gray-300 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-200"
+                className="inline-flex items-center gap-ი text-xs px-2 py-1 rounded-md border border-gray-300 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-200"
               >
-                <X className="w-3 h-3" />
+                <X className="w-3 ჰ-3" />
                 მოცილება
               </button>
             </div>
