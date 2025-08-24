@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useState } from 'react';
+import { useRef, useState, useEffect, useCallback } from 'react';
 import { Send, Loader2, Image as ImageIcon, X } from 'lucide-react';
 import { useModel } from '@/context/ModelContext';
 
@@ -33,6 +33,21 @@ export default function ChatInput({
 }: ChatInputProps) {
   const { model } = useModel();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // Auto-resize textarea to mimic ChatGPT composer behavior
+  const autoResize = useCallback(() => {
+    const el = textareaRef.current;
+    if (!el) return;
+    el.style.height = 'auto';
+    // Cap height via CSS max-height; overflow handled via CSS
+    el.style.height = `${el.scrollHeight}px`;
+  }, []);
+
+  // Recalculate height whenever message changes (including programmatic clears)
+  useEffect(() => {
+    autoResize();
+  }, [message, autoResize]);
 
   const handleImageAttach = () => {
     if (isLoading) return;
@@ -96,12 +111,17 @@ export default function ChatInput({
             </button>
 
             <textarea
+              ref={textareaRef}
               value={message}
-              onChange={onInputChange}
+              onChange={(e) => {
+                onInputChange(e);
+                // Ensure height follows content during typing
+                requestAnimationFrame(autoResize);
+              }}
               onKeyDown={onKeyDown}
               onFocus={onFocus}
               placeholder="დაწერეთ თქვენი შეტყობინება..."
-              className="flex-1 resize-none bg-transparent border-none outline-none text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 text-base md:text-lg py-2 min-h-[24px] max-h-40"
+              className="flex-1 resize-none bg-transparent border-none outline-none text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 text-base md:text-lg py-2 min-h-[24px] max-h-[35vh] md:max-h-[40vh] overflow-y-auto"
               rows={1}
               disabled={isLoading}
             />
