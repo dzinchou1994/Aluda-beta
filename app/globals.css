@@ -216,11 +216,11 @@
   /* Dynamic messages container spacing - managed by JavaScript */
   .messages-container-spacing {
     /* Height calculation that accounts for header and input */
-    height: calc(100dvh - var(--header-spacing, 72px) - var(--input-spacing, 88px) - var(--kb-offset, 0px)) !important;
-    max-height: calc(100dvh - var(--header-spacing, 72px) - var(--input-spacing, 88px) - var(--kb-offset, 0px)) !important;
+    height: calc(100dvh - var(--header-spacing, 72px) - var(--input-spacing, 88px)) !important;
+    max-height: calc(100dvh - var(--header-spacing, 72px) - var(--input-spacing, 88px)) !important;
     /* Padding is set dynamically by useMobileKeyboard hook */
     /* Prevent flickering by stabilizing layout */
-    contain: layout style paint;
+    /* removed contain to reduce paint/layout jank on iOS */
     /* Ensure scrolling works properly */
     overflow-y: auto;
     overflow-x: hidden;
@@ -238,7 +238,7 @@
     /* Ensure body doesn't resize during keyboard transitions */
     height: 100dvh;
     overflow: hidden;
-    padding-bottom: var(--kb-offset, 0px); /* ensure viewport accounts for keyboard height */
+    /* removed body padding-bottom; input already repositions with --kb-offset */
   }
 
   /* Sticky header styling */
