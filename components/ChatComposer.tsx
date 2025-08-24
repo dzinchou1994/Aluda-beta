@@ -167,7 +167,23 @@ export default function ChatComposer({ currentChatId: propCurrentChatId, session
     );
   }
 
-
+  // On first mount, nudge scroll to bottom for mobile to avoid first-focus issue
+  useEffect(() => {
+    try {
+      const container = messagesContainerRef.current as HTMLDivElement | null
+      if (!container) return
+      const nudge = () => {
+        container.dataset.userScrolled = 'false'
+        container.scrollTop = container.scrollHeight
+        messagesEndRef.current?.scrollIntoView({ behavior: 'auto', block: 'end', inline: 'nearest' })
+      }
+      if (window.innerWidth <= 768) {
+        setTimeout(nudge, 50)
+        setTimeout(nudge, 150)
+        requestAnimationFrame(nudge)
+      }
+    } catch {}
+  }, [])
 
   return (
     <div className="flex flex-col h-full bg-white dark:bg-chat-bg transition-colors duration-200 min-w-0">

@@ -63,6 +63,9 @@ export function useChatScroll({ messagesLength, isLoading }: UseChatScrollProps)
           if (container && messagesEndRef.current) {
             container.scrollTop = container.scrollHeight
             messagesEndRef.current.scrollIntoView({ behavior: 'smooth', block: 'end', inline: 'nearest' })
+            // Also ensure the input wrapper itself is brought into view
+            const inputWrapper = document.getElementById('chat-input-wrapper')
+            inputWrapper?.scrollIntoView({ block: 'end', behavior: 'smooth', inline: 'nearest' })
           }
         }
         setTimeout(doScroll, 50)
