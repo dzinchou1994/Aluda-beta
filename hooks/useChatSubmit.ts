@@ -30,12 +30,23 @@ export function useChatSubmit({
   const [isLoading, setIsLoading] = useState(false);
 
   const forceScrollBottom = () => {
-    try {
+    const scrollOnce = () => {
       const container = document.querySelector('.messages-container-spacing') as HTMLElement | null
       if (container) {
         container.dataset.userScrolled = 'false'
         container.scrollTop = container.scrollHeight
       }
+    }
+    try {
+      // Immediate attempt
+      scrollOnce()
+      // Next paint
+      requestAnimationFrame(() => {
+        scrollOnce()
+        // Short delay to ensure DOM has appended new nodes
+        setTimeout(scrollOnce, 30)
+        setTimeout(scrollOnce, 80)
+      })
     } catch {}
   }
 
@@ -209,6 +220,8 @@ export function useChatSubmit({
                     console.log('Received token:', parsed.data, 'Full content so far:', fullContent);
                     // Update the message content in real-time
                     updateMessageInChat(activeChatId, aiMessageId, { content: fullContent });
+                    // Keep the view pinned to bottom as tokens arrive
+                    forceScrollBottom();
                   } else if (parsed.event === 'start') {
                     console.log('Streaming started');
                   } else {
