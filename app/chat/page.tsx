@@ -95,7 +95,7 @@ export default function ChatPage() {
   }
 
   return (
-    <div className="flex h-screen min-h-[100dvh] bg-gray-50 dark:bg-chat-bg">
+    <div className="flex h-screen min-h-[100dvh] bg-white dark:bg-chat-bg">
       {/* Mobile Sidebar Overlay */}
       {isMobileSidebarOpen && (
         <div
@@ -253,7 +253,7 @@ export default function ChatPage() {
         )}
 
         {/* Chat Content - Scrollable area with proper height calculations */}
-        <div className="chat-content-area flex-1 min-h-0 bg-gray-50 dark:bg-chat-bg transition-colors duration-200 min-w-0 overflow-hidden">
+        <div className="chat-content-area flex-1 min-h-0 bg-white dark:bg-chat-bg transition-colors duration-200 min-w-0 overflow-hidden">
           <ChatComposer
             currentChatId={currentChatId}
             onChatCreated={handleChatCreated}
