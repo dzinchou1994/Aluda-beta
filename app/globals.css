@@ -295,6 +295,15 @@ textarea {
     transform: translateZ(0);
   }
 
+  /* Fixed height for textarea on mobile to prevent layout shifts */
+  textarea.auto-resize {
+    height: 44px !important;
+    min-height: 44px !important;
+    max-height: 44px !important;
+    resize: none !important;
+    overflow-y: hidden !important;
+  }
+
   /* Reduce transition duration on mobile for snappier feel */
   .unified-input-container {
     transition-duration: 0.1s;

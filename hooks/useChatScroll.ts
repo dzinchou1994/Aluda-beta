@@ -59,16 +59,15 @@ export function useChatScroll({ messagesLength, isLoading }: UseChatScrollProps)
       if (container) {
         container.dataset.userScrolled = 'false'
         // Scroll to bottom smoothly
-        setTimeout(() => {
+        const doScroll = () => {
           if (container && messagesEndRef.current) {
             container.scrollTop = container.scrollHeight
-            messagesEndRef.current.scrollIntoView({ 
-              behavior: 'smooth', 
-              block: 'end',
-              inline: 'nearest'
-            })
+            messagesEndRef.current.scrollIntoView({ behavior: 'smooth', block: 'end', inline: 'nearest' })
           }
-        }, 100)
+        }
+        setTimeout(doScroll, 50)
+        setTimeout(doScroll, 150)
+        requestAnimationFrame(doScroll)
       }
     }
   };
@@ -76,9 +75,14 @@ export function useChatScroll({ messagesLength, isLoading }: UseChatScrollProps)
   // Handle mobile input change to maintain scroll position
   const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>, setMessage: (value: string) => void) => {
     setMessage(e.target.value)
-    
-    // Don't auto-scroll during typing to prevent jumping
-    // Let the focus handler manage initial positioning
+    // On mobile, keep pinned to bottom while typing so input stays visible
+    if (window.innerWidth <= 768) {
+      const container = messagesContainerRef.current
+      if (container) {
+        container.dataset.userScrolled = 'false'
+        container.scrollTop = container.scrollHeight
+      }
+    }
   };
 
   return {
