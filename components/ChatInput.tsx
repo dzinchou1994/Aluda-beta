@@ -83,10 +83,10 @@ export default function ChatInput({
 
   return (
     <div className="fixed bottom-0 left-0 right-0 bg-white dark:bg-chat-bg shadow-lg border-t border-gray-200 dark:border-gray-700 z-50 mobile-input-fixed md:relative md:bottom-auto md:left-auto md:right-auto md:shadow-none md:border-t md:z-auto">
-      <div className="max-w-4xl mx-auto p-3 md:p-3 md:px-3" id="chat-input-wrapper">
+      <div className="max-w-4xl mx-auto px-3 pb-3 pt-1 md:px-3 md:pb-3 md:pt-1" id="chat-input-wrapper">
         <form onSubmit={onSubmit} className="relative">
           {/* Unified container with input, image button and send button */}
-          <div className="flex items-end sm:items-center unified-input-container bg-white dark:bg-input-bg border border-gray-300 dark:border-gray-700 rounded-xl p-2 md:p-3 shadow-sm transition-all duration-200 md:rounded-xl rounded-lg md:border md:border-gray-300 md:dark:border-gray-700">
+          <div className="flex items-end sm:items-center unified-input-container bg-white dark:bg-input-bg border border-gray-300 dark:border-gray-700 rounded-xl p-2 md:p-3 shadow-sm transition-colors md:rounded-xl rounded-lg md:border md:border-gray-300 md:dark:border-gray-700">
             {/* Hidden file input */}
             <input
               ref={fileInputRef}

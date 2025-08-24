@@ -272,12 +272,10 @@
   transition: all 0.15s ease-out;
 }
 
-/* Prevent text area height changes from causing layout shifts */
+/* Textarea behavior in chat composer - avoid flicker while typing */
 textarea {
-  /* Prevent layout shifts during typing */
-  contain: layout style;
-  /* Smooth resize animation */
-  transition: height 0.15s ease-out;
+  contain: none;
+  transition: none;
 }
 
 /* Optimize input interactions for mobile */
@@ -295,7 +293,7 @@ textarea {
   }
 
   textarea {
-    transition-duration: 0.1s;
+    transition-duration: 0s;
   }
 }
 
