@@ -265,6 +265,15 @@ export default function Sidebar({
               >
                 {session.user?.name || session.user?.email}
               </button>
+              <button
+                onClick={(e) => { e.stopPropagation(); setIsUserPanelOpen(prev => !prev) }}
+                className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 rounded-md"
+                title="პარამეტრები"
+                aria-haspopup="menu"
+                aria-expanded={isUserPanelOpen}
+              >
+                <MoreVertical className="w-4 h-4" />
+              </button>
             </div>
 
             {/* Floating panel */}
@@ -348,11 +357,13 @@ export default function Sidebar({
             )}
           </>
         ) : (
-          <div className="flex items-center justify-start">
+          <div className="flex items-center justify-start gap-2">
+            <span className="flex-1 text-left text-xs font-medium text-gray-900 dark:text-white truncate">სტუმარი</span>
             <button
               onClick={onSignIn}
               className="w-9 h-9 rounded-full bg-gradient-to-r from-gray-400 to-gray-500 flex items-center justify-center hover:ring-2 hover:ring-gray-300 dark:hover:ring-gray-600 transition-all"
               title="შესვლა"
+              aria-label="შესვლა"
             >
               <LogIn className="w-4 h-4 text-white" />
             </button>
