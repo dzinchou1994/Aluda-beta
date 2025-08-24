@@ -13,6 +13,7 @@ export function useMobileKeyboard() {
     if (!visualViewport) return
 
     let rafId: number | null = null
+    let lastKbOffset = 0
     const update = () => {
       if (rafId) cancelAnimationFrame(rafId)
       // Throttle with rAF to avoid rapid layout thrashing while typing
@@ -25,8 +26,11 @@ export function useMobileKeyboard() {
       const vvTop = (visualViewport as any).offsetTop || 0
       const overlap = Math.max(0, Math.round(innerH - vvH - vvTop))
 
-      // Add keyboard offset
-      document.documentElement.style.setProperty('--kb-offset', `${overlap}px`)
+      // Add keyboard offset (but only when change is meaningful to avoid pixel jitter)
+      if (Math.abs(overlap - lastKbOffset) >= 3) {
+        lastKbOffset = overlap
+        document.documentElement.style.setProperty('--kb-offset', `${overlap}px`)
+      }
 
       if (overlap > 0) {
         document.body.classList.add('kb-open')

@@ -228,8 +228,7 @@
 
   /* Smooth transitions for keyboard appearance */
   .kb-open .mobile-input-fixed {
-    will-change: bottom;
-    transform: translateZ(0); /* Hardware acceleration */
+    will-change: auto;
   }
 
   /* Prevent layout shift during keyboard transitions */
@@ -259,12 +258,7 @@
 }
 
 /* Prevent layout shifts and flickering during input interactions */
-.unified-input-container {
-  /* Prevent layout shifts during focus/blur */
-  will-change: transform;
-  /* Use hardware acceleration */
-  transform: translateZ(0);
-}
+.unified-input-container {}
 
 /* Smooth transitions for input focus states */
 .unified-input-container:focus-within {
