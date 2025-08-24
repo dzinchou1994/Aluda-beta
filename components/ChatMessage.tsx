@@ -32,16 +32,12 @@ export default function ChatMessage({ message, index, shouldAnimate }: ChatMessa
   }, [shouldUseTypingEffect, startTyping, isComplete]);
 
   // Preprocess content to enforce formatting rules:
-  // - Ensure numbered items (e.g., "1. ") start on a new line even if inline with text
   // - Ensure '---' becomes a dedicated separator line
   const preprocessContent = (raw: string) => {
     if (!raw) return '';
     let text = raw;
     // Make sure horizontal rules are on their own lines
     text = text.replace(/---/g, '\n---\n');
-    // Insert a newline before numbered list items that appear mid-line
-    // e.g., "... რაიმე: 1. პირველი 2. მეორე" => split before each N. 
-    text = text.replace(/([^\n])\s*(\d+\.\s)/g, (_m, before: string, num: string) => `${before}\n${num}`);
     return text;
   };
 
