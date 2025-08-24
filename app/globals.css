@@ -274,6 +274,14 @@ textarea {
   transition: none;
 }
 
+/* iOS-specific: prevent flicker by letting native content size manage height */
+@supports (-webkit-touch-callout: none) {
+  textarea.auto-resize {
+    height: auto !important;
+    -webkit-text-size-adjust: 100%;
+  }
+}
+
 /* Optimize input interactions for mobile */
 @media (max-width: 768px) {
   /* Prevent iOS zoom on input focus */
