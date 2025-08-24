@@ -159,7 +159,7 @@ export default function ChatComposer({ currentChatId: propCurrentChatId, session
       {/* Messages Area - Scrollable content with dynamic spacing for fixed elements */}
       <div
         ref={messagesContainerRef}
-        className={`flex-1 min-h-0 p-4 space-y-4 bg-white dark:bg-chat-bg messages-container-spacing ${hasScrollableContent ? 'overflow-y-auto overscroll-contain' : 'overflow-hidden'}`}
+        className={`flex-1 min-h-0 px-3 md:px-4 pt-2 md:pt-3 pb-3 md:pb-4 space-y-3 md:space-y-4 bg-white dark:bg-chat-bg messages-container-spacing ${hasScrollableContent ? 'overflow-y-auto overscroll-contain' : 'overflow-hidden'}`}
         style={{
           WebkitOverflowScrolling: hasScrollableContent ? 'touch' as any : 'auto',
           // Let flexbox handle the height - spacing is managed dynamically

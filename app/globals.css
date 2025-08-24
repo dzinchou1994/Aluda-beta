@@ -213,10 +213,10 @@
   /* Dynamic messages container spacing - managed by JavaScript */
   .messages-container-spacing {
     /* Height calculation that accounts for header and input */
-    height: calc(100dvh - var(--header-spacing, 80px) - var(--input-spacing, 100px) - var(--kb-offset, 0px)) !important;
-    max-height: calc(100dvh - var(--header-spacing, 80px) - var(--input-spacing, 100px) - var(--kb-offset, 0px)) !important;
+    height: calc(100dvh - var(--header-spacing, 72px) - var(--input-spacing, 88px) - var(--kb-offset, 0px)) !important;
+    max-height: calc(100dvh - var(--header-spacing, 72px) - var(--input-spacing, 88px) - var(--kb-offset, 0px)) !important;
     /* Padding is set dynamically by useMobileKeyboard hook */
-    will-change: padding, height;
+    will-change: height;
     /* Prevent flickering by stabilizing layout */
     contain: layout style paint;
     /* Ensure scrolling works properly */

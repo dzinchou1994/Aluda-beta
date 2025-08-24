@@ -82,7 +82,7 @@ export default function ChatInput({
   };
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-white dark:bg-chat-bg shadow-lg border-t border-gray-200 dark:border-gray-700 z-50 mobile-input-fixed md:relative md:bottom-auto md:left-auto md:right-auto md:shadow-none md:border-t md:z-auto">
+    <div className="fixed bottom-0 left-0 right-0 bg-white dark:bg-chat-bg shadow-lg z-50 mobile-input-fixed md:relative md:bottom-auto md:left-auto md:right-auto md:shadow-none md:z-auto">
       <div className="max-w-4xl mx-auto px-3 pb-3 pt-1 md:px-3 md:pb-3 md:pt-1" id="chat-input-wrapper">
         <form onSubmit={onSubmit} className="relative">
           {/* Unified container with input, image button and send button */}
