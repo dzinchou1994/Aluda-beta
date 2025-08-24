@@ -27,15 +27,23 @@ export function useMobileKeyboard() {
 
     const update = () => {
       // During active typing, defer updates briefly to prevent input blinking
+      // But if the keyboard is opening (large overlap increase), update immediately
       const now = Date.now()
-      if (now - lastTypeTs < TYPING_LOCK_MS) {
-        if (typingLockTimer) clearTimeout(typingLockTimer)
-        typingLockTimer = window.setTimeout(() => {
-          if (rafId) cancelAnimationFrame(rafId)
-          rafId = requestAnimationFrame(() => doUpdate())
-        }, TYPING_LOCK_MS)
-        return
-      }
+      try {
+        const innerH = window.innerHeight || 0
+        const vvH = visualViewport.height || innerH
+        const vvTop = (visualViewport as any).offsetTop || 0
+        const overlapNow = Math.max(0, Math.round(innerH - vvH - vvTop))
+        const openingKeyboard = overlapNow - lastKbOffset >= 40
+        if (!openingKeyboard && now - lastTypeTs < TYPING_LOCK_MS) {
+          if (typingLockTimer) clearTimeout(typingLockTimer)
+          typingLockTimer = window.setTimeout(() => {
+            if (rafId) cancelAnimationFrame(rafId)
+            rafId = requestAnimationFrame(() => doUpdate())
+          }, TYPING_LOCK_MS)
+          return
+        }
+      } catch {}
       if (rafId) cancelAnimationFrame(rafId)
       // Throttle with rAF to avoid rapid layout thrashing while typing
       rafId = requestAnimationFrame(() => doUpdate())

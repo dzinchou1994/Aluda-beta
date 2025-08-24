@@ -238,6 +238,7 @@
     /* Ensure body doesn't resize during keyboard transitions */
     height: 100dvh;
     overflow: hidden;
+    padding-bottom: var(--kb-offset, 0px); /* ensure viewport accounts for keyboard height */
   }
 
   /* Sticky header styling */

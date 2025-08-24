@@ -66,7 +66,7 @@ export function useChatScroll({ messagesLength, isLoading }: UseChatScrollProps)
             inline: 'nearest'
           })
         }
-      }, 50)
+      }, 20)
     }
   };
 
