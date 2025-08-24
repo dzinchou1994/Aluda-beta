@@ -173,7 +173,7 @@ export default function ChatInput({
               className="ml-2 sm:ml-3 w-10 h-10 sm:w-12 sm:h-12 send-button bg-blue-500 dark:bg-blue-600 text-white rounded-full hover:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-gray-800 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center shadow-lg hover:shadow-xl hover:scale-105"
             >
               {isLoading ? (
-                <Loader2 className="ჰ-5 w-5 animate-spin" />
+                <Loader2 className="h-5 w-5 animate-spin" />
               ) : (
                 <Send className="h-5 w-5" />
               )}
@@ -183,15 +183,15 @@ export default function ChatInput({
           {/* Image preview chip */}
           {attachedPreviewUrl && (
             <div className="mt-2 flex items-center gap-2">
-              <div className="w-12 ჰ-12 rounded-md overflow-hidden border border-gray-200 dark:border-gray-700 shadow-sm">
+              <div className="w-12 h-12 rounded-md overflow-hidden border border-gray-200 dark:border-gray-700 shadow-sm">
                 <img src={attachedPreviewUrl} alt="attachment preview" className="w-full h-full object-cover" />
               </div>
               <button
                 type="button"
                 onClick={removeImage}
-                className="inline-flex items-center gap-ი text-xs px-2 py-1 rounded-md border border-gray-300 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-200"
+                className="inline-flex items-center gap-1 text-xs px-2 py-1 rounded-md border border-gray-300 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-200"
               >
-                <X className="w-3 ჰ-3" />
+                <X className="w-3 h-3" />
                 მოცილება
               </button>
             </div>
