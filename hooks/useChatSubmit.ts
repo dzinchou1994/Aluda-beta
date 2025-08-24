@@ -71,6 +71,9 @@ export function useChatSubmit({
     };
     
     setIsLoading(true);
+
+    // CLEAR INPUT IMMEDIATELY ON SEND (decouple from AI response)
+    setMessage("");
     
     try {
       const useMultipart = model === 'aluda2' && attachedImage;
@@ -260,8 +263,7 @@ export function useChatSubmit({
       };
       addMessageToChat(activeChatId!, errorMessage);
     } finally {
-      // Always clear the input field and reset loading state
-      setMessage("");
+      // Reset loading state only (input was already cleared on send)
       setIsLoading(false);
     }
   };
