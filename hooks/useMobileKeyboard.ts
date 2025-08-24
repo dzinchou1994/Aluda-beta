@@ -10,6 +10,14 @@ export function useMobileKeyboard() {
     if (typeof window === 'undefined') return
 
     const root = document.documentElement
+    const body = document.body
+
+    // Keep previous inline styles to restore later
+    let prevRootOverflow = ''
+    let prevBodyOverflow = ''
+    let prevRootHeight = ''
+    let prevBodyHeight = ''
+    let pageScrollTemporarilyEnabled = false
 
     const updateLayoutVars = () => {
       try {
@@ -20,6 +28,30 @@ export function useMobileKeyboard() {
         root.style.setProperty('--input-spacing', `${Math.round(inputHeight)}px`)
         root.style.setProperty('--header-spacing', `${Math.round(headerHeight)}px`)
       } catch {}
+    }
+
+    const temporarilyEnablePageScroll = () => {
+      if (pageScrollTemporarilyEnabled) return
+      pageScrollTemporarilyEnabled = true
+      // Save current inline styles
+      prevRootOverflow = root.style.overflow
+      prevBodyOverflow = body.style.overflow
+      prevRootHeight = root.style.height
+      prevBodyHeight = body.style.height
+      // Allow page to scroll even if CSS sets overflow hidden on mobile
+      root.style.overflow = 'auto'
+      body.style.overflow = 'auto'
+      root.style.height = 'auto'
+      body.style.height = 'auto'
+    }
+
+    const restorePageScroll = () => {
+      if (!pageScrollTemporarilyEnabled) return
+      pageScrollTemporarilyEnabled = false
+      root.style.overflow = prevRootOverflow
+      body.style.overflow = prevBodyOverflow
+      root.style.height = prevRootHeight
+      body.style.height = prevBodyHeight
     }
 
     const ensureInputVisible = () => {
@@ -36,6 +68,21 @@ export function useMobileKeyboard() {
           messagesContainer.dataset.userScrolled = 'false'
           messagesContainer.scrollTop = messagesContainer.scrollHeight
         }
+
+        // Also nudge the whole page to bottom for the first-focus case on iOS
+        const scrollToBottom = () => {
+          const scrollingEl = document.scrollingElement || document.documentElement
+          try {
+            scrollingEl.scrollTo({ top: scrollingEl.scrollHeight, behavior: 'smooth' })
+          } catch {
+            // Fallback without smooth
+            scrollingEl.scrollTop = scrollingEl.scrollHeight
+            window.scrollTo(0, document.body.scrollHeight)
+          }
+        }
+        requestAnimationFrame(scrollToBottom)
+        setTimeout(scrollToBottom, 80)
+        setTimeout(scrollToBottom, 180)
       } catch (error) {
         console.warn('Error ensuring input visibility:', error)
       }
@@ -47,9 +94,21 @@ export function useMobileKeyboard() {
         // Mark keyboard open state on focus for mobile
         if (window.innerWidth <= 768) {
           document.body.classList.add('kb-open')
+          // Allow page scrolling for the first-focus scenario
+          temporarilyEnablePageScroll()
         }
         setTimeout(ensureInputVisible, 100)
       }
+    }
+
+    const onFocusOut = () => {
+      // Restore scroll shortly after focus leaves inputs
+      setTimeout(() => {
+        const ae = document.activeElement
+        if (!(ae instanceof HTMLInputElement) && !(ae instanceof HTMLTextAreaElement)) {
+          restorePageScroll()
+        }
+      }, 200)
     }
 
     const onInput = () => {
@@ -70,7 +129,13 @@ export function useMobileKeyboard() {
         document.body.classList.toggle('kb-open', keyboardLikelyOpen)
         updateLayoutVars()
         // Nudge scroll to bottom when viewport changes to keep input visible
-        setTimeout(ensureInputVisible, 50)
+        if (keyboardLikelyOpen) {
+          temporarilyEnablePageScroll()
+          setTimeout(ensureInputVisible, 50)
+        } else {
+          // Keyboard closing, restore original page scroll restrictions
+          restorePageScroll()
+        }
       } catch {}
     }
 
@@ -79,6 +144,7 @@ export function useMobileKeyboard() {
 
     // Event listeners
     document.addEventListener('focusin', onFocusIn, { passive: true })
+    document.addEventListener('focusout', onFocusOut, { passive: true })
     document.addEventListener('input', onInput, { passive: true })
     window.addEventListener('orientationchange', onViewportChange)
     window.addEventListener('resize', onViewportChange)
@@ -86,10 +152,12 @@ export function useMobileKeyboard() {
 
     return () => {
       document.removeEventListener('focusin', onFocusIn)
+      document.removeEventListener('focusout', onFocusOut)
       document.removeEventListener('input', onInput)
       window.removeEventListener('orientationchange', onViewportChange)
       window.removeEventListener('resize', onViewportChange)
       ;(window as any).visualViewport?.removeEventListener('resize', onViewportChange)
+      restorePageScroll()
     }
   }, [])
 }
