@@ -247,8 +247,8 @@ export default function Sidebar({
       <div className="p-2.5 border-t border-gray-200 dark:border-gray-800 relative">
         {session ? (
           <>
-            {/* Avatar button only */}
-            <div className="flex items-center justify-start">
+            {/* Collapsed row: avatar + username */}
+            <div className="flex items-center justify-start gap-2">
               <button
                 onClick={(e) => { e.stopPropagation(); setIsUserPanelOpen(prev => !prev) }}
                 className="w-9 h-9 rounded-full bg-gray-600 dark:bg-gray-700 flex items-center justify-center hover:ring-2 hover:ring-gray-300 dark:hover:ring-gray-600 transition-all"
@@ -256,6 +256,14 @@ export default function Sidebar({
                 aria-expanded={isUserPanelOpen}
               >
                 <User className="w-4.5 h-4.5 text-white" />
+              </button>
+              <button
+                onClick={(e) => { e.stopPropagation(); setIsUserPanelOpen(prev => !prev) }}
+                className="flex-1 text-left text-xs font-medium text-gray-900 dark:text-white truncate hover:text-blue-600 dark:hover:text-blue-400"
+                title={session.user?.email || 'მომხმარებელი'}
+                aria-label="მომხმარებლის ინფორმაცია"
+              >
+                {session.user?.name || session.user?.email}
               </button>
             </div>
 
