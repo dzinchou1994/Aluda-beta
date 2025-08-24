@@ -177,10 +177,11 @@
 @media (max-width: 768px) {
   /* Ensure proper mobile viewport handling */
   html, body {
-    height: 100dvh;
-    overflow: hidden;
-    /* Prevent iOS bounce scrolling */
-    overscroll-behavior: none;
+    /* Allow normal page scrolling; height as minimum to avoid clamp */
+    min-height: 100dvh;
+    overflow: auto;
+    /* Reduce bounce without fully blocking scroll */
+    overscroll-behavior: contain;
   }
 
   /* Fixed input positioning - simple and stable */
