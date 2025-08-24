@@ -341,29 +341,9 @@ textarea {
     /* Allow container to grow with textarea */
     align-items: flex-start !important;
     /* Ensure container expands properly */
-    width: 100%;
-    /* No transitions to prevent blinking */
-    transition: none !important;
-  }
-
-  /* Expandable input wrapper */
-  .expandable-input-wrapper {
-    /* Allow wrapper to expand */
-    min-height: auto;
-    /* No transitions to prevent blinking */
-    transition: none !important;
-  }
-
-  /* Expandable input area container */
-  .expandable-input-area {
-    /* This container will expand with the textarea */
     min-height: 44px; /* Minimum height for single line */
-    /* Allow natural expansion */
-    height: auto;
-    /* No transitions to prevent blinking */
-    transition: none !important;
-    /* Prevent layout shifts */
-    contain: layout style;
+    /* Smooth container transitions */
+    transition: all 0.1s ease-out;
   }
 }
 
