@@ -213,8 +213,8 @@
   /* Dynamic messages container spacing - managed by JavaScript */
   .messages-container-spacing {
     /* Height calculation that accounts for header and input */
-    height: calc(100dvh - var(--header-spacing, 60px) - var(--input-spacing, 60px) - var(--kb-offset, 0px)) !important;
-    max-height: calc(100dvh - var(--header-spacing, 60px) - var(--input-spacing, 60px) - var(--kb-offset, 0px)) !important;
+    height: calc(100dvh - var(--header-spacing, 80px) - var(--input-spacing, 100px) - var(--kb-offset, 0px)) !important;
+    max-height: calc(100dvh - var(--header-spacing, 80px) - var(--input-spacing, 100px) - var(--kb-offset, 0px)) !important;
     /* Padding is set dynamically by useMobileKeyboard hook */
     will-change: padding, height;
     /* Prevent flickering by stabilizing layout */
@@ -224,10 +224,6 @@
     overflow-x: hidden;
     /* Webkit optimizations */
     -webkit-overflow-scrolling: touch;
-    /* Remove any default margins */
-    margin: 0 !important;
-    /* Reduce bottom padding on mobile for tighter spacing */
-    padding-bottom: 0.5rem !important;
   }
 
   /* Smooth transitions for keyboard appearance */

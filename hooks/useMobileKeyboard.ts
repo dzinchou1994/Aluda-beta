@@ -55,8 +55,8 @@ export function useMobileKeyboard() {
           // Add safe area inset top for iOS devices
           const safeAreaTop = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--safe-area-inset-top') || '0')
 
-          // Add appropriate spacing without excessive padding
-          const totalTopPadding = Math.max(visualHeaderHeight + safeAreaTop + 8, 60) // Reduced spacing
+          // Add generous extra spacing to ensure no overlap
+          const totalTopPadding = Math.max(visualHeaderHeight + safeAreaTop + 20, 80) // Minimum 80px
 
           console.log('Header measurement:', {
             headerHeight,
@@ -96,8 +96,8 @@ export function useMobileKeyboard() {
           const safeAreaBottom = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--safe-area-inset-bottom') || '0')
           const keyboardOffset = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--kb-offset') || '0')
 
-          // Add appropriate spacing without excessive padding
-          const totalBottomPadding = Math.max(visualInputHeight + safeAreaBottom + keyboardOffset + 8, 60) // Reduced spacing
+          // Add generous extra spacing to ensure no overlap
+          const totalBottomPadding = Math.max(visualInputHeight + safeAreaBottom + keyboardOffset + 32, 100) // Minimum 100px
 
           console.log('Input measurement:', {
             inputHeight,
