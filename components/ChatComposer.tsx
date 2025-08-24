@@ -183,7 +183,9 @@ export default function ChatComposer({ currentChatId: propCurrentChatId, session
       >
         {/* Welcome Message */}
         {currentChatMessages.length === 0 ? (
-          <WelcomeMessage />
+          <div className="pt-8 pb-4">
+            <WelcomeMessage />
+          </div>
         ) : (
           <div className="space-y-4">
             {currentChatMessages.map((msg, index) => {
