@@ -80,10 +80,20 @@ export default function ChatInput({
     requestAnimationFrame(() => {
       try {
         const maxRows = 7
+        const cs = getComputedStyle(el)
+        const padY = (parseFloat(cs.paddingTop || '0') || 0) + (parseFloat(cs.paddingBottom || '0') || 0)
+        const lh = lineHeightRef.current || 20
+
+        // If empty, force 1 row baseline
+        if (!message || message.length === 0) {
+          if (mobileRows !== 1) setMobileRows(1)
+          el.rows = 1
+          return
+        }
+
         // Temporarily set rows to 1 to measure scrollHeight accurately
         el.rows = 1
-        const contentHeight = el.scrollHeight
-        const lh = lineHeightRef.current || 20
+        const contentHeight = Math.max(0, el.scrollHeight - padY)
         // Estimate rows needed; ensure at least 1
         const needed = Math.max(1, Math.ceil(contentHeight / lh))
         const clamped = Math.min(maxRows, needed)
