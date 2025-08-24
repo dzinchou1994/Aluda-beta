@@ -14,7 +14,28 @@ export function useMobileKeyboard() {
 
     let rafId: number | null = null
     let lastKbOffset = 0
+    let lastInnerH = 0
+    let lastVvH = 0
+    let lastTypeTs = 0
+    let typingLockTimer: number | null = null
+    const TYPING_LOCK_MS = 160
+
+    const handleType = () => {
+      lastTypeTs = Date.now()
+    }
+    document.addEventListener('keydown', handleType, { passive: true })
+
     const update = () => {
+      // During active typing, defer updates briefly to prevent input blinking
+      const now = Date.now()
+      if (now - lastTypeTs < TYPING_LOCK_MS) {
+        if (typingLockTimer) clearTimeout(typingLockTimer)
+        typingLockTimer = window.setTimeout(() => {
+          if (rafId) cancelAnimationFrame(rafId)
+          rafId = requestAnimationFrame(() => doUpdate())
+        }, TYPING_LOCK_MS)
+        return
+      }
       if (rafId) cancelAnimationFrame(rafId)
       // Throttle with rAF to avoid rapid layout thrashing while typing
       rafId = requestAnimationFrame(() => doUpdate())
@@ -39,7 +60,12 @@ export function useMobileKeyboard() {
       }
 
       // Update spacing for fixed elements
-      updateFixedElementSpacing()
+      // Update spacing only when viewport sizes meaningfully change
+      if (Math.abs(innerH - lastInnerH) >= 2 || Math.abs(vvH - lastVvH) >= 2) {
+        lastInnerH = innerH
+        lastVvH = vvH
+        updateFixedElementSpacing()
+      }
     }
 
     const updateFixedElementSpacing = () => {
@@ -170,6 +196,7 @@ export function useMobileKeyboard() {
         visualViewport.removeEventListener('resize', update)
         visualViewport.removeEventListener('scroll', update)
         window.removeEventListener('orientationchange', update)
+        document.removeEventListener('keydown', handleType)
         document.documentElement.style.removeProperty('--kb-offset')
         document.documentElement.style.removeProperty('--header-spacing')
         document.documentElement.style.removeProperty('--header-height')
@@ -177,6 +204,7 @@ export function useMobileKeyboard() {
         document.documentElement.style.removeProperty('--input-area-height')
         document.body.classList.remove('kb-open')
         if (rafId) cancelAnimationFrame(rafId)
+        if (typingLockTimer) clearTimeout(typingLockTimer)
       }
     }
 
@@ -189,6 +217,7 @@ export function useMobileKeyboard() {
         visualViewport.removeEventListener('resize', update)
         visualViewport.removeEventListener('scroll', update)
         window.removeEventListener('orientationchange', update)
+        document.removeEventListener('keydown', handleType)
         document.documentElement.style.removeProperty('--kb-offset')
         document.documentElement.style.removeProperty('--header-spacing')
         document.documentElement.style.removeProperty('--header-height')
@@ -196,6 +225,7 @@ export function useMobileKeyboard() {
         document.documentElement.style.removeProperty('--input-area-height')
         document.body.classList.remove('kb-open')
         if (rafId) cancelAnimationFrame(rafId)
+        if (typingLockTimer) clearTimeout(typingLockTimer)
       } catch {}
     }
   }, [])

@@ -1,5 +1,8 @@
+/* stylelint-disable-next-line */
 @tailwind base;
+/* stylelint-disable-next-line */
 @tailwind components;
+/* stylelint-disable-next-line */
 @tailwind utilities;
 
 /* User Chat Bubble Styles */
@@ -258,7 +261,6 @@
 }
 
 /* Prevent layout shifts and flickering during input interactions */
-.unified-input-container {}
 
 /* Smooth transitions for input focus states */
 .unified-input-container:focus-within {
