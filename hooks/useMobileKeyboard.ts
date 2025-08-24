@@ -47,11 +47,9 @@ export function useMobileKeyboard() {
       const vvTop = (visualViewport as any).offsetTop || 0
       const overlap = Math.max(0, Math.round(innerH - vvH - vvTop))
 
-      // Add keyboard offset (but only when change is meaningful to avoid pixel jitter)
-      if (Math.abs(overlap - lastKbOffset) >= 3) {
-        lastKbOffset = overlap
-        document.documentElement.style.setProperty('--kb-offset', `${overlap}px`)
-      }
+      // Do not apply keyboard offset to layout to avoid iOS reflows during typing
+      // Keep the measurement for potential future use
+      lastKbOffset = overlap
 
       if (overlap > 0) {
         document.body.classList.add('kb-open')
@@ -197,7 +195,7 @@ export function useMobileKeyboard() {
         visualViewport.removeEventListener('scroll', update)
         window.removeEventListener('orientationchange', update)
         document.removeEventListener('keydown', handleType)
-        document.documentElement.style.removeProperty('--kb-offset')
+        // No kb-offset used anymore
         document.documentElement.style.removeProperty('--header-spacing')
         document.documentElement.style.removeProperty('--header-height')
         document.documentElement.style.removeProperty('--input-spacing')
@@ -218,7 +216,7 @@ export function useMobileKeyboard() {
         visualViewport.removeEventListener('scroll', update)
         window.removeEventListener('orientationchange', update)
         document.removeEventListener('keydown', handleType)
-        document.documentElement.style.removeProperty('--kb-offset')
+        // No kb-offset used anymore
         document.documentElement.style.removeProperty('--header-spacing')
         document.documentElement.style.removeProperty('--header-height')
         document.documentElement.style.removeProperty('--input-spacing')
