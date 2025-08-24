@@ -131,7 +131,7 @@ export default function ChatInput({
               }}
               onKeyDown={onKeyDown}
               onFocus={onFocus}
-              placeholder="დაწერეთ თქვენი შეტყობინება..."
+              placeholder="მკითხე რაც გინდა"
               className="auto-resize flex-1 resize-none bg-transparent border-none outline-none text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 text-base md:text-lg py-2 min-h-[24px] max-h-[35vh] md:max-h-[40vh] overflow-y-auto"
               rows={1}
               disabled={isLoading}
