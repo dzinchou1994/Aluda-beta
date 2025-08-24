@@ -111,7 +111,7 @@
   color-scheme: dark;
 }
 
-/* Smooth transitions for theme switching */
+/* Smooth transitions for theme switching (desktop only; mobile overrides below) */
 * {
   transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
 }
@@ -219,7 +219,6 @@
     height: calc(100dvh - var(--header-spacing, 72px) - var(--input-spacing, 88px)) !important;
     max-height: calc(100dvh - var(--header-spacing, 72px) - var(--input-spacing, 88px)) !important;
     /* Padding is set dynamically by useMobileKeyboard hook */
-    will-change: height;
     /* Prevent flickering by stabilizing layout */
     contain: layout style paint;
     /* Ensure scrolling works properly */
@@ -284,6 +283,9 @@ textarea {
 
 /* Optimize input interactions for mobile */
 @media (max-width: 768px) {
+  /* Disable global transitions on mobile to avoid repaint flicker while typing */
+  * { transition: none !important; }
+
   /* Prevent iOS zoom on input focus */
   input, textarea {
     font-size: 16px;
