@@ -57,13 +57,13 @@ export function useMobileKeyboard() {
           // Add safe area inset top for iOS devices
           const safeAreaTop = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--safe-area-inset-top') || '0')
 
-          const totalTopPadding = Math.max(visualHeaderHeight + safeAreaTop + 20, 80)
+          // Reduced extra buffer and minimum
+          const totalTopPadding = Math.max(visualHeaderHeight + safeAreaTop + 8, 56)
 
           document.documentElement.style.setProperty('--header-spacing', `${totalTopPadding}px`)
           document.documentElement.style.setProperty('--header-height', `${headerHeight}px`)
 
-          // Ensure messages have correct top padding (JS-managed)
-          messagesContainer.style.paddingTop = `${totalTopPadding}px`
+          // Do NOT set messagesContainer.style.paddingTop here to avoid double-spacing
         }
 
         if (inputWrapper && messagesContainer) {
@@ -79,13 +79,13 @@ export function useMobileKeyboard() {
 
           const safeAreaBottom = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--safe-area-inset-bottom') || '0')
 
-          // Do NOT include keyboard offset in padding; the input is repositioned with --kb-offset.
-          const bottomWithoutKb = Math.max(visualInputHeight + safeAreaBottom + 32, 100)
+          // Reduced buffer and minimum; do NOT include keyboard offset here
+          const bottomWithoutKb = Math.max(visualInputHeight + safeAreaBottom + 24, 72)
 
           document.documentElement.style.setProperty('--input-spacing', `${bottomWithoutKb}px`)
           document.documentElement.style.setProperty('--input-area-height', `${inputHeight}px`)
 
-          messagesContainer.style.paddingBottom = `${bottomWithoutKb}px`
+          // Do NOT set messagesContainer.style.paddingBottom to avoid double-spacing
         }
       } catch (error) {
         // Swallow layout measurement issues silently in production
