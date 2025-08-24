@@ -76,32 +76,12 @@ export default function ChatInput({
       return
     }
 
-    // On mobile: adjust rows based on content without setting pixel height
-    requestAnimationFrame(() => {
-      try {
-        const maxRows = 7
-        const cs = getComputedStyle(el)
-        const padY = (parseFloat(cs.paddingTop || '0') || 0) + (parseFloat(cs.paddingBottom || '0') || 0)
-        const lh = lineHeightRef.current || 20
-
-        // If empty, force 1 row baseline
-        if (!message || message.length === 0) {
-          if (mobileRows !== 1) setMobileRows(1)
-          el.rows = 1
-          return
-        }
-
-        // Temporarily set rows to 1 to measure scrollHeight accurately
-        el.rows = 1
-        const contentHeight = Math.max(0, el.scrollHeight - padY)
-        // Estimate rows needed; ensure at least 1
-        const needed = Math.max(1, Math.ceil(contentHeight / lh))
-        const clamped = Math.min(maxRows, needed)
-        if (clamped !== mobileRows) setMobileRows(clamped)
-        // Restore rows to clamped value
-        el.rows = clamped
-      } catch {}
-    })
+    // On mobile: use fixed height to prevent layout shifts
+    // Don't change rows dynamically as it causes jumping
+    if (mobileRows !== 1) {
+      setMobileRows(1)
+      el.rows = 1
+    }
   }, [message, autoResize, isMobileUA, mobileRows]);
 
   const handleImageAttach = () => {
@@ -170,11 +150,10 @@ export default function ChatInput({
               value={message}
               onChange={(e) => {
                 onInputChange(e);
+                // Only auto-resize on desktop to prevent mobile layout shifts
                 if (!isMobileUA) {
-                  // Ensure height follows content during typing (desktop only)
                   requestAnimationFrame(autoResize);
                 }
-                // On mobile rows will update in the effect; avoid setting height directly to prevent flicker
               }}
               onKeyDown={onKeyDown}
               onFocus={(e) => {
@@ -187,6 +166,12 @@ export default function ChatInput({
                       behavior: 'smooth',
                       inline: 'nearest'
                     });
+                    
+                    // Also ensure messages container is at bottom
+                    const messagesContainer = document.querySelector('.messages-container-spacing') as HTMLElement | null
+                    if (messagesContainer) {
+                      messagesContainer.scrollTop = messagesContainer.scrollHeight
+                    }
                   }, 100);
                 }
               }}
