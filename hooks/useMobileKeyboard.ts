@@ -49,6 +49,20 @@ export function useMobileKeyboard() {
       rafId = requestAnimationFrame(() => doUpdate())
     }
 
+    const ensureInputVisible = () => {
+      try {
+        const inputWrapper = document.getElementById('chat-input-wrapper')
+        if (inputWrapper) {
+          inputWrapper.scrollIntoView({ block: 'end', behavior: 'auto' })
+        }
+        const messagesContainer = document.querySelector('.messages-container-spacing') as HTMLElement | null
+        if (messagesContainer) {
+          messagesContainer.dataset.userScrolled = 'false'
+          messagesContainer.scrollTop = messagesContainer.scrollHeight
+        }
+      } catch {}
+    }
+
     const doUpdate = () => {
       const innerH = window.innerHeight || 0
       const vvH = visualViewport.height || innerH
@@ -63,6 +77,9 @@ export function useMobileKeyboard() {
 
       if (overlap > 0) {
         document.body.classList.add('kb-open')
+        // Make sure the composer stays visible when keyboard is open
+        requestAnimationFrame(() => ensureInputVisible())
+        setTimeout(() => ensureInputVisible(), 80)
       } else {
         document.body.classList.remove('kb-open')
       }
