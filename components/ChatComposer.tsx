@@ -168,7 +168,7 @@ export default function ChatComposer({ currentChatId: propCurrentChatId, session
       >
         {/* Welcome Message */}
         {currentChatMessages.length === 0 ? (
-          <WelcomeMessage onPickSuggestion={setMessage} />
+          <WelcomeMessage />
         ) : (
           <div className="space-y-4">
             {currentChatMessages.map((msg, index) => {
