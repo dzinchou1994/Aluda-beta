@@ -96,8 +96,9 @@ export function useMobileKeyboard() {
           const safeAreaBottom = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--safe-area-inset-bottom') || '0')
           const keyboardOffset = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--kb-offset') || '0')
 
-          // Minimal spacing for tight layout
-          const totalBottomPadding = Math.max(visualInputHeight + safeAreaBottom + keyboardOffset + 2, 45) // Very minimal spacing
+          // Dynamic spacing that adapts to input height
+          const baseSpacing = 45 // Base minimum spacing
+          const dynamicSpacing = Math.max(visualInputHeight + safeAreaBottom + keyboardOffset + 2, baseSpacing)
 
           console.log('Input measurement:', {
             inputHeight,
@@ -110,14 +111,14 @@ export function useMobileKeyboard() {
             marginBottom: inputMarginBottom,
             safeAreaBottom,
             keyboardOffset,
-            totalBottomPadding
+            dynamicSpacing
           })
 
-          document.documentElement.style.setProperty('--input-spacing', `${totalBottomPadding}px`)
+          document.documentElement.style.setProperty('--input-spacing', `${dynamicSpacing}px`)
           document.documentElement.style.setProperty('--input-area-height', `${inputHeight}px`)
 
           // For the new approach, we still need padding for proper spacing
-          messagesContainer.style.paddingBottom = `${totalBottomPadding}px`
+          messagesContainer.style.paddingBottom = `${dynamicSpacing}px`
         }
       } catch (error) {
         console.warn('Error updating fixed element spacing:', error)

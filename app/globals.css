@@ -320,6 +320,31 @@ textarea {
     /* Very fast transition for smooth feel */
     transition: height 0.03s ease-out;
   }
+
+  /* Dynamic input height containers */
+  .dynamic-input-height {
+    /* Allow the container to grow with content */
+    max-height: 200px; /* Limit maximum expansion */
+    /* Smooth height transitions */
+    transition: max-height 0.15s ease-out;
+  }
+
+  .dynamic-input-wrapper {
+    /* Allow wrapper to expand */
+    min-height: auto;
+    /* Smooth transitions */
+    transition: all 0.15s ease-out;
+  }
+
+  /* Make unified container flexible for growing textarea */
+  .unified-input-container {
+    /* Allow container to grow with textarea */
+    align-items: flex-start !important;
+    /* Ensure container expands properly */
+    min-height: 44px; /* Minimum height for single line */
+    /* Smooth container transitions */
+    transition: all 0.1s ease-out;
+  }
 }
 
 
