@@ -47,9 +47,11 @@ export function useMobileKeyboard() {
       const vvTop = (visualViewport as any).offsetTop || 0
       const overlap = Math.max(0, Math.round(innerH - vvH - vvTop))
 
-      // Do not apply keyboard offset to layout to avoid iOS reflows during typing
-      // Keep the measurement for potential future use
-      lastKbOffset = overlap
+      // Apply kb-offset back only to input positioning; heavy layout recalcs are throttled elsewhere
+      if (Math.abs(overlap - lastKbOffset) >= 3) {
+        lastKbOffset = overlap
+        document.documentElement.style.setProperty('--kb-offset', `${overlap}px`)
+      }
 
       if (overlap > 0) {
         document.body.classList.add('kb-open')
@@ -58,8 +60,8 @@ export function useMobileKeyboard() {
       }
 
       // Update spacing for fixed elements
-      // Update spacing only when viewport sizes meaningfully change
-      if (Math.abs(innerH - lastInnerH) >= 2 || Math.abs(vvH - lastVvH) >= 2) {
+      // Update spacing only when viewport sizes meaningfully change (throttled by typing lock in caller)
+      if (Math.abs(innerH - lastInnerH) >= 4 || Math.abs(vvH - lastVvH) >= 4) {
         lastInnerH = innerH
         lastVvH = vvH
         updateFixedElementSpacing()

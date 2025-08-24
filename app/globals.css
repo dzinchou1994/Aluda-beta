@@ -186,7 +186,7 @@
   /* Fixed input positioning with keyboard support */
   .mobile-input-fixed {
     position: fixed !important;
-    bottom: 0 !important;
+    bottom: var(--kb-offset, 0px) !important;
     left: 0 !important;
     right: 0 !important;
     z-index: 50 !important;
@@ -216,8 +216,8 @@
   /* Dynamic messages container spacing - managed by JavaScript */
   .messages-container-spacing {
     /* Height calculation that accounts for header and input */
-    height: calc(100dvh - var(--header-spacing, 72px) - var(--input-spacing, 88px)) !important;
-    max-height: calc(100dvh - var(--header-spacing, 72px) - var(--input-spacing, 88px)) !important;
+    height: calc(100dvh - var(--header-spacing, 72px) - var(--input-spacing, 88px) - var(--kb-offset, 0px)) !important;
+    max-height: calc(100dvh - var(--header-spacing, 72px) - var(--input-spacing, 88px) - var(--kb-offset, 0px)) !important;
     /* Padding is set dynamically by useMobileKeyboard hook */
     /* Prevent flickering by stabilizing layout */
     contain: layout style paint;
