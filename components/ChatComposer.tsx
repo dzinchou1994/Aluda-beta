@@ -73,8 +73,9 @@ export default function ChatComposer({ currentChatId: propCurrentChatId, session
   });
 
   // Wrapper for handleSubmit to handle local state
-  const handleSubmitWrapper = async (e: React.FormEvent) => {
-    await handleSubmit(
+  const handleSubmitWrapper = (e: React.FormEvent) => {
+    // Start sending without awaiting the AI response
+    void handleSubmit(
       e,
       message,
       attachedImage,
@@ -83,17 +84,31 @@ export default function ChatComposer({ currentChatId: propCurrentChatId, session
       setAttachedPreviewUrl,
       setMessage
     );
-    
-    // OPTIMIZATION: Reduce scroll delay for better responsiveness
-    setTimeout(() => {
-      if (messagesEndRef.current) {
-        messagesEndRef.current.scrollIntoView({ 
-          behavior: 'smooth', 
-          block: 'end',
-          inline: 'nearest'
-        });
+
+    // Force immediate scroll to bottom, even if user had scrolled up
+    try {
+      const container = messagesContainerRef.current as HTMLDivElement | null
+      if (container) {
+        container.dataset.userScrolled = 'false'
+        container.scrollTop = container.scrollHeight
       }
-    }, 50); // Reduced from 100ms to 50ms
+    } catch {}
+
+    // Also ensure anchor-based scroll for robustness
+    requestAnimationFrame(() => {
+      messagesEndRef.current?.scrollIntoView({ 
+        behavior: 'smooth', 
+        block: 'end',
+        inline: 'nearest'
+      });
+    });
+    setTimeout(() => {
+      messagesEndRef.current?.scrollIntoView({ 
+        behavior: 'smooth', 
+        block: 'end',
+        inline: 'nearest'
+      });
+    }, 100);
   };
 
   // Handle key events
