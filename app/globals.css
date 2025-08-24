@@ -220,14 +220,13 @@
     max-height: calc(100dvh - var(--header-spacing, 72px) - var(--input-spacing, 88px)) !important;
     /* Provide bottom scroll padding so last line is not cropped under input */
     scroll-padding-bottom: 12px;
-    /* Padding is set dynamically by useMobileKeyboard hook */
-    /* Prevent flickering by stabilizing layout */
-    /* removed contain to reduce paint/layout jank on iOS */
-    /* Ensure scrolling works properly */
-    overflow-y: auto;
+    /* Always allow scrolling for input visibility */
+    overflow-y: auto !important;
     overflow-x: hidden;
     /* Webkit optimizations */
     -webkit-overflow-scrolling: touch;
+    /* Ensure minimum height for scrolling */
+    min-height: 200px;
   }
 
   /* Smooth transitions for keyboard appearance */

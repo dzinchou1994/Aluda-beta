@@ -176,10 +176,10 @@ export default function ChatComposer({ currentChatId: propCurrentChatId, session
         ref={messagesContainerRef}
         className={`flex-1 min-h-0 px-3 md:px-4 pt-2 md:pt-3 pb-1 md:pb-4 space-y-3 md:space-y-4 bg-white dark:bg-chat-bg messages-container-spacing overflow-y-auto overscroll-contain`}
         style={{
-          WebkitOverflowScrolling: hasScrollableContent ? 'touch' as any : 'auto',
-          // Let flexbox handle the height - spacing is managed dynamically
+          WebkitOverflowScrolling: 'touch',
+          // Always allow scrolling for input visibility
         }}
-        onScroll={hasScrollableContent ? handleScroll : undefined}
+        onScroll={handleScroll}
       >
         {/* Welcome Message */}
         {currentChatMessages.length === 0 ? (
