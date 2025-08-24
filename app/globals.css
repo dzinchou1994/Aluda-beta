@@ -268,40 +268,61 @@
   will-change: transform;
   /* Use hardware acceleration */
   transform: translateZ(0);
+  /* Prevent container height changes */
+  contain: layout style;
 }
 
-/* Smooth transitions for input focus states */
+/* Smooth but minimal transitions for input focus states */
 .unified-input-container:focus-within {
   /* Prevent sudden layout changes */
-  transition: all 0.15s ease-out;
+  transition: all 0.1s ease-out;
 }
 
 /* Prevent text area height changes from causing layout shifts */
 textarea {
   /* Prevent layout shifts during typing */
   contain: layout style;
-  /* Smooth resize animation */
-  transition: height 0.15s ease-out;
+  /* Disable height transitions to prevent blinking */
+  transition: none !important;
+  /* Smooth but fast resize animation */
+  transition: height 0.08s ease-out;
+  /* Prevent layout recalculation during typing */
+  will-change: height;
 }
 
-/* Optimize input interactions for mobile */
+/* Specific textarea optimizations for mobile */
 @media (max-width: 768px) {
-  /* Prevent iOS zoom on input focus */
-  input, textarea {
+  textarea {
+    /* Prevent zoom on iOS */
     font-size: 16px;
+    /* Smooth scrolling for long text */
+    -webkit-overflow-scrolling: touch;
     /* Prevent layout shifts */
     transform: translateZ(0);
+    /* Minimal transitions to prevent blinking */
+    transition: height 0.05s ease-out;
   }
 
-  /* Reduce transition duration on mobile for snappier feel */
+  /* Prevent input container from causing layout shifts */
   .unified-input-container {
-    transition-duration: 0.1s;
+    /* Stable container during typing */
+    contain: layout style paint;
+    /* Prevent height changes */
+    will-change: transform;
   }
 
-  textarea {
-    transition-duration: 0.1s;
+  /* Smooth textarea resizing behavior */
+  .smooth-textarea-resize {
+    /* Optimized for smooth height changes */
+    contain: layout style;
+    /* Prevent blinking during resize */
+    will-change: height;
+    /* Very fast transition for smooth feel */
+    transition: height 0.03s ease-out;
   }
 }
+
+
 
 /* Simple logo gradient */
 .logo-gradient {

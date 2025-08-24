@@ -101,9 +101,16 @@ export default function ChatInput({
               onKeyDown={onKeyDown}
               onFocus={onFocus}
               placeholder="დაწერეთ თქვენი შეტყობინება..."
-              className="flex-1 resize-none bg-transparent border-none outline-none text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 text-base md:text-lg py-2 min-h-[24px] max-h-40"
+              className="flex-1 resize-none bg-transparent border-none outline-none text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 text-base md:text-lg py-2 min-h-[24px] max-h-32 overflow-y-auto smooth-textarea-resize"
               rows={1}
               disabled={isLoading}
+              style={{
+                height: 'auto',
+                maxHeight: '128px', // 8rem = 128px for better mobile control
+                resize: 'none',
+                // Prevent rapid height changes during typing
+                transition: 'height 0.05s ease-out'
+              }}
             />
             
             <button
