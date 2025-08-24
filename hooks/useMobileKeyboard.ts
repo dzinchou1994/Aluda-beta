@@ -42,32 +42,11 @@ export function useMobileKeyboard() {
           const headerRect = header.getBoundingClientRect()
           const headerHeight = headerRect.height
 
-          // Get computed style to account for all visual elements
-          const headerStyle = getComputedStyle(header)
-          const headerPaddingTop = parseFloat(headerStyle.paddingTop)
-          const headerPaddingBottom = parseFloat(headerStyle.paddingBottom)
-          const headerBorderTop = parseFloat(headerStyle.borderTopWidth)
-          const headerBorderBottom = parseFloat(headerStyle.borderBottomWidth)
-
-          // Calculate total visual height including all elements
-          const visualHeaderHeight = headerHeight + headerBorderBottom // Add bottom border
-
           // Add safe area inset top for iOS devices
           const safeAreaTop = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--safe-area-inset-top') || '0')
 
           // Minimal spacing for tight layout
-          const totalTopPadding = Math.max(visualHeaderHeight + safeAreaTop + 2, 45) // Very minimal spacing
-
-          console.log('Header measurement:', {
-            headerHeight,
-            visualHeaderHeight,
-            paddingTop: headerPaddingTop,
-            paddingBottom: headerPaddingBottom,
-            borderTop: headerBorderTop,
-            borderBottom: headerBorderBottom,
-            safeAreaTop,
-            totalTopPadding
-          })
+          const totalTopPadding = Math.max(headerHeight + safeAreaTop + 2, 45) // Very minimal spacing
 
           document.documentElement.style.setProperty('--header-spacing', `${totalTopPadding}px`)
           document.documentElement.style.setProperty('--header-height', `${headerHeight}px`)
@@ -80,39 +59,14 @@ export function useMobileKeyboard() {
           const inputRect = inputWrapper.getBoundingClientRect()
           const inputHeight = inputRect.height
 
-          // Get computed style to account for all visual elements
-          const inputStyle = getComputedStyle(inputWrapper)
-          const inputPaddingTop = parseFloat(inputStyle.paddingTop)
-          const inputPaddingBottom = parseFloat(inputStyle.paddingBottom)
-          const inputBorderTop = parseFloat(inputStyle.borderTopWidth)
-          const inputBorderBottom = parseFloat(inputStyle.borderBottomWidth)
-          const inputMarginTop = parseFloat(inputStyle.marginTop)
-          const inputMarginBottom = parseFloat(inputStyle.marginBottom)
-
-          // Calculate total visual height including all elements
-          const visualInputHeight = inputHeight + inputBorderTop + inputMarginTop + inputMarginBottom
-
           // Add safe area inset bottom for iOS devices
           const safeAreaBottom = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--safe-area-inset-bottom') || '0')
           const keyboardOffset = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--kb-offset') || '0')
 
-          // Dynamic spacing that adapts to input height
+          // Dynamic spacing that adapts to input height, but with limits to prevent blinking
           const baseSpacing = 45 // Base minimum spacing
-          const dynamicSpacing = Math.max(visualInputHeight + safeAreaBottom + keyboardOffset + 2, baseSpacing)
-
-          console.log('Input measurement:', {
-            inputHeight,
-            visualInputHeight,
-            paddingTop: inputPaddingTop,
-            paddingBottom: inputPaddingBottom,
-            borderTop: inputBorderTop,
-            borderBottom: inputBorderBottom,
-            marginTop: inputMarginTop,
-            marginBottom: inputMarginBottom,
-            safeAreaBottom,
-            keyboardOffset,
-            dynamicSpacing
-          })
+          const maxInputHeight = Math.min(inputHeight, 200) // Cap at 200px to prevent excessive spacing
+          const dynamicSpacing = Math.max(maxInputHeight + safeAreaBottom + keyboardOffset + 2, baseSpacing)
 
           document.documentElement.style.setProperty('--input-spacing', `${dynamicSpacing}px`)
           document.documentElement.style.setProperty('--input-area-height', `${inputHeight}px`)
@@ -135,10 +89,17 @@ export function useMobileKeyboard() {
       update()
     }, 300)
 
+    // Debounced function to prevent excessive updates during typing
+    let updateTimeout: NodeJS.Timeout
+    const debouncedUpdateFixedElementSpacing = () => {
+      clearTimeout(updateTimeout)
+      updateTimeout = setTimeout(updateFixedElementSpacing, 50) // 50ms debounce
+    }
+
     // Add resize observer for header and input changes
     const ResizeObserverCtor: any = (window as any).ResizeObserver
     if (ResizeObserverCtor) {
-      const ro = new ResizeObserverCtor(updateFixedElementSpacing)
+      const ro = new ResizeObserverCtor(debouncedUpdateFixedElementSpacing)
 
       const header = document.getElementById('chat-header')
       const inputWrapper = document.getElementById('chat-input-wrapper')
@@ -149,6 +110,7 @@ export function useMobileKeyboard() {
       // Cleanup function
       return () => {
         try {
+          clearTimeout(updateTimeout)
           if (header) ro.unobserve(header)
           if (inputWrapper) ro.unobserve(inputWrapper)
           ro.disconnect()
