@@ -98,12 +98,12 @@ export default function ChatPage() {
     <div className="flex h-screen min-h-[100dvh] bg-gray-50 dark:bg-chat-bg">
       {/* Mobile Sidebar Overlay */}
       {isMobileSidebarOpen && (
-        <div 
+        <div
           className="fixed inset-0 bg-black bg-opacity-50 z-[55] md:hidden"
           onClick={closeMobileSidebar}
         />
       )}
-      
+
       {/* Desktop Sidebar - Hidden on mobile */}
       <div className="hidden md:block sidebar-desktop">
         <Sidebar
@@ -119,11 +119,14 @@ export default function ChatPage() {
           showOnMobile={false}
         />
       </div>
-      
+
       {/* Main Chat Area */}
-      <div className="flex-1 min-h-0 flex flex-col bg-white dark:bg-chat-bg">
-        {/* Header */}
-        <header className="sticky top-0 z-10 bg-white dark:bg-chat-bg border-b border-gray-200 dark:border-gray-800 p-4 flex items-center justify-between">
+      <div className="flex-1 flex flex-col bg-white dark:bg-chat-bg relative chat-main-container">
+        {/* Header - Fixed at top on mobile, static on desktop */}
+        <header
+          id="chat-header"
+          className="sticky top-0 z-40 bg-white dark:bg-chat-bg border-b border-gray-200 dark:border-gray-800 p-4 flex items-center justify-between md:static md:z-auto md:p-4 md:border-b-0"
+        >
           <div className="flex items-center space-x-3">
             {/* Mobile menu button */}
             <button
@@ -249,8 +252,8 @@ export default function ChatPage() {
           <UserSettingsModal open={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} userEmail={session?.user?.email} />
         )}
 
-        {/* Chat Content */}
-        <div className="flex-1 min-h-0 overflow-hidden bg-gray-50 dark:bg-chat-bg transition-colors duration-200 min-w-0 chat-content-mobile">
+        {/* Chat Content - Scrollable area with proper height calculations */}
+        <div className="chat-content-area flex-1 min-h-0 bg-gray-50 dark:bg-chat-bg transition-colors duration-200 min-w-0 overflow-hidden">
           <ChatComposer
             currentChatId={currentChatId}
             onChatCreated={handleChatCreated}
@@ -259,15 +262,15 @@ export default function ChatPage() {
         </div>
       </div>
 
-      {/* Mobile Sidebar Drawer */}
+      {/* Mobile Sidebar Drawer - Above fixed input */}
       {isMobileSidebarOpen && (
-        <div className="fixed inset-0 z-[999] md:hidden">
+        <div className="fixed inset-0 z-[60] md:hidden">
           <div
-            className="absolute inset-0 bg-black/40 z-[1000]"
+            className="absolute inset-0 bg-black/40 z-[60]"
             onClick={closeMobileSidebar}
             onPointerDown={closeMobileSidebar}
           />
-          <div className="absolute inset-y-0 left-0 w-[85vw] max-w-xs bg-white dark:bg-sidebar-dark shadow-xl flex z-[1001]">
+          <div className="absolute inset-y-0 left-0 w-[85vw] max-w-xs bg-white dark:bg-sidebar-dark shadow-xl flex z-[61]">
             <Sidebar
               chats={chats}
               currentChatId={currentChatId}
@@ -282,7 +285,7 @@ export default function ChatPage() {
             />
           </div>
           <button
-            className="absolute top-4 right-4 p-2 rounded-lg text-white bg-black/50 backdrop-blur z-[1002]"
+            className="absolute top-4 right-4 p-2 rounded-lg text-white bg-black/50 backdrop-blur z-[62]"
             onClick={closeMobileSidebar}
             onPointerDown={closeMobileSidebar}
             aria-label="Close sidebar"

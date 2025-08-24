@@ -124,6 +124,7 @@ export default function ChatComposer({ currentChatId: propCurrentChatId, session
   // Get current chat messages
   const currentChat = chats.find(c => c.id === currentChatId);
   const currentChatMessages = currentChat?.messages || [];
+  const hasScrollableContent = currentChatMessages.length > 0;
 
   // Debug logging
   console.log('ChatComposer render:', {
@@ -155,14 +156,15 @@ export default function ChatComposer({ currentChatId: propCurrentChatId, session
 
   return (
     <div className="flex flex-col h-full bg-white dark:bg-chat-bg transition-colors duration-200 min-w-0">
-      {/* Messages Area - Scrollable with proper mobile spacing */}
-      <div 
+      {/* Messages Area - Scrollable content with dynamic spacing for fixed elements */}
+      <div
         ref={messagesContainerRef}
-        className="flex-1 min-h-0 overflow-y-auto p-4 space-y-4 bg-white dark:bg-chat-bg overscroll-contain messages-container-mobile"
-        style={{ 
-          WebkitOverflowScrolling: 'touch'
+        className={`flex-1 min-h-0 p-4 space-y-4 bg-white dark:bg-chat-bg messages-container-spacing ${hasScrollableContent ? 'overflow-y-auto overscroll-contain' : 'overflow-hidden'}`}
+        style={{
+          WebkitOverflowScrolling: hasScrollableContent ? 'touch' as any : 'auto',
+          // Let flexbox handle the height - spacing is managed dynamically
         }}
-        onScroll={handleScroll}
+        onScroll={hasScrollableContent ? handleScroll : undefined}
       >
         {/* Welcome Message */}
         {currentChatMessages.length === 0 ? (

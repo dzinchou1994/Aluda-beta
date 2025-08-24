@@ -165,7 +165,7 @@ export default function Sidebar({
               className={`group flex items-center justify-between p-2 rounded-lg cursor-pointer transition-all duration-200 ${
                 currentChatId === chat.id
                   ? "bg-gray-100 dark:bg-[#242424] border border-gray-300 dark:border-gray-800"
-                  : "hover:bg-gray-50 dark:hover:bg-[#303030]"
+                  : "md:hover:bg-gray-50 md:dark:hover:bg-[#303030]"
               }`}
               onClick={() => onSelectChat(chat.id)}
             >
@@ -176,7 +176,7 @@ export default function Sidebar({
                   {chat.title}
                 </h3>
               </div>
-              <div className={`relative transition-opacity ${openMenuChatId === chat.id ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>
+              <div className={`relative transition-opacity ${openMenuChatId === chat.id ? 'opacity-100' : 'opacity-100 md:opacity-0 md:group-hover:opacity-100'}`}>
                 <button
                   onClick={(e) => {
                     e.stopPropagation()
