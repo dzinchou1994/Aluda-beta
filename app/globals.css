@@ -218,6 +218,8 @@
     /* Height calculation that accounts for header and input */
     height: calc(100dvh - var(--header-spacing, 72px) - var(--input-spacing, 88px)) !important;
     max-height: calc(100dvh - var(--header-spacing, 72px) - var(--input-spacing, 88px)) !important;
+    /* Provide bottom scroll padding so last line is not cropped under input */
+    scroll-padding-bottom: 12px;
     /* Padding is set dynamically by useMobileKeyboard hook */
     /* Prevent flickering by stabilizing layout */
     /* removed contain to reduce paint/layout jank on iOS */

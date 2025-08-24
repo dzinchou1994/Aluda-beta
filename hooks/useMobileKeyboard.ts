@@ -80,7 +80,7 @@ export function useMobileKeyboard() {
           const safeAreaBottom = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--safe-area-inset-bottom') || '0')
 
           // Reduced buffer and minimum; do NOT include keyboard offset here
-          const bottomWithoutKb = Math.max(visualInputHeight + safeAreaBottom + 24, 72)
+          const bottomWithoutKb = Math.max(visualInputHeight + safeAreaBottom + 8, 56)
 
           document.documentElement.style.setProperty('--input-spacing', `${bottomWithoutKb}px`)
           document.documentElement.style.setProperty('--input-area-height', `${inputHeight}px`)
