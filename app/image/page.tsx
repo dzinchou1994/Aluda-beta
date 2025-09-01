@@ -38,6 +38,28 @@ export default function ImageGeneratorPage() {
     createdAt: number
   }>>([])
 
+  // Load generations from localStorage on mount
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('aluda-image-generations')
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved)
+          setGenerations(parsed)
+        } catch (e) {
+          console.warn('Failed to parse saved generations:', e)
+        }
+      }
+    }
+  }, [])
+
+  // Save generations to localStorage whenever they change
+  useEffect(() => {
+    if (typeof window !== 'undefined' && generations.length > 0) {
+      localStorage.setItem('aluda-image-generations', JSON.stringify(generations))
+    }
+  }, [generations])
+
   const handleGenerate = async () => {
     setIsLoading(true)
     setError(null)
@@ -255,7 +277,12 @@ export default function ImageGeneratorPage() {
                   <div className="flex items-center justify-between mb-2">
                     <h2 className="text-sm font-medium text-gray-700 dark:text-gray-200">ისტორია</h2>
                     <button
-                      onClick={() => setGenerations([])}
+                      onClick={() => {
+                        setGenerations([])
+                        if (typeof window !== 'undefined') {
+                          localStorage.removeItem('aluda-image-generations')
+                        }
+                      }}
                       className="text-xs text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
                     >
                       გასუფთავება
