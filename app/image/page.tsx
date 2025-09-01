@@ -153,7 +153,7 @@ export default function ImageGeneratorPage() {
             onChange={(e) => setPrompt(e.target.value)}
           />
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="block text-xs mb-1 text-gray-600 dark:text-gray-300">Size</label>
               <select
@@ -177,17 +177,7 @@ export default function ImageGeneratorPage() {
                 <option value="hd">HD</option>
               </select>
             </div>
-            <div>
-              <label className="block text-xs mb-1 text-gray-600 dark:text-gray-300">Style</label>
-              <select
-                value={style}
-                onChange={(e) => setStyle(e.target.value as any)}
-                className="w-full border border-gray-200 dark:border-gray-800 rounded-lg bg-white dark:bg-[#171717] p-2.5 text-sm"
-              >
-                <option value="vivid">Vivid</option>
-                <option value="natural">Natural</option>
-              </select>
-            </div>
+            
           </div>
 
           <div>
