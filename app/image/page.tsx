@@ -15,16 +15,16 @@ export default function ImageGeneratorPage() {
   const [style, setStyle] = useState<'vivid' | 'natural'>('vivid')
   const [isDark, setIsDark] = useState(false)
   const stylePresets: Array<{ key: string; label: string; promptAddon: string }> = [
-    { key: 'photorealistic', label: 'Photorealistic', promptAddon: 'highly detailed photorealistic, shallow depth of field, realistic lighting' },
-    { key: 'cinematic', label: 'Cinematic', promptAddon: 'cinematic lighting, film still, dramatic composition, anamorphic bokeh' },
-    { key: 'watercolor', label: 'Watercolor', promptAddon: 'soft watercolor painting, textured paper, delicate brush strokes' },
-    { key: 'studio3d', label: '3D Render', promptAddon: 'ultra-detailed 3D render, octane render, global illumination' },
-    { key: 'anime', label: 'Anime', promptAddon: 'anime style, clean line art, cel shading, vibrant colors' },
-    { key: 'pixel', label: 'Pixel Art', promptAddon: '8-bit pixel art, limited palette, crisp pixel edges' },
-    { key: 'isometric', label: 'Isometric', promptAddon: 'isometric view, clean geometry, detailed miniature scene' },
-    { key: 'lineart', label: 'Line Art', promptAddon: 'black and white line art, clean outlines, minimal shading' },
-    { key: 'vintage', label: 'Vintage', promptAddon: 'vintage retro aesthetic, muted tones, film grain' },
-    { key: 'surreal', label: 'Surreal', promptAddon: 'surreal dreamlike imagery, imaginative, unexpected juxtapositions' },
+    { key: 'photorealistic', label: 'ფოტორეალისტური', promptAddon: 'highly detailed photorealistic, shallow depth of field, realistic lighting' },
+    { key: 'cinematic', label: 'ცინემატური', promptAddon: 'cinematic lighting, film still, dramatic composition, anamorphic bokeh' },
+    { key: 'watercolor', label: 'აქვარელი', promptAddon: 'soft watercolor painting, textured paper, delicate brush strokes' },
+    { key: 'studio3d', label: '3D რენდერი', promptAddon: 'ultra-detailed 3D render, octane render, global illumination' },
+    { key: 'anime', label: 'ანიმე', promptAddon: 'anime style, clean line art, cel shading, vibrant colors' },
+    { key: 'pixel', label: 'პიქსელ არტი', promptAddon: '8-bit pixel art, limited palette, crisp pixel edges' },
+    { key: 'isometric', label: 'იზომეტრიული', promptAddon: 'isometric view, clean geometry, detailed miniature scene' },
+    { key: 'lineart', label: 'ხაზოვანი არტი', promptAddon: 'black and white line art, clean outlines, minimal shading' },
+    { key: 'vintage', label: 'ვინტაჟური', promptAddon: 'vintage retro aesthetic, muted tones, film grain' },
+    { key: 'surreal', label: 'სიურეალისტური', promptAddon: 'surreal dreamlike imagery, imaginative, unexpected juxtapositions' },
   ]
   const [activePresetKey, setActivePresetKey] = useState<string | null>(null)
   const [generations, setGenerations] = useState<Array<{
@@ -75,7 +75,7 @@ export default function ImageGeneratorPage() {
     } catch (e: any) {
       const msg = e?.message || 'Unknown error'
       setError(msg)
-      toast({ title: 'Generation failed', description: msg })
+      toast({ title: 'გენერაცია ვერ შესრულდა', description: msg })
     } finally {
       setIsLoading(false)
     }
@@ -148,14 +148,14 @@ export default function ImageGeneratorPage() {
           <textarea
             className="w-full rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-[#171717] p-4 text-sm focus:outline-none focus:ring-2 focus:ring-fuchsia-500/40"
             rows={6}
-            placeholder="Describe the image you want to generate..."
+            placeholder="აღწერე სურათი, რომლის გენერირებაც გინდა..."
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
           />
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs mb-1 text-gray-600 dark:text-gray-300">Size</label>
+              <label className="block text-xs mb-1 text-gray-600 dark:text-gray-300">ზომა</label>
               <select
                 value={size}
                 onChange={(e) => setSize(e.target.value as any)}
@@ -167,7 +167,7 @@ export default function ImageGeneratorPage() {
               </select>
             </div>
             <div>
-              <label className="block text-xs mb-1 text-gray-600 dark:text-gray-300">Quality</label>
+              <label className="block text-xs mb-1 text-gray-600 dark:text-gray-300">ხარისხი</label>
               <select
                 value={quality}
                 onChange={(e) => setQuality(e.target.value as any)}
@@ -181,7 +181,7 @@ export default function ImageGeneratorPage() {
           </div>
 
           <div>
-            <label className="block text-xs mb-2 text-gray-600 dark:text-gray-300">Style presets</label>
+            <label className="block text-xs mb-2 text-gray-600 dark:text-gray-300">სტილის პრესეტები</label>
             <div className="flex flex-wrap gap-2">
               {stylePresets.map(p => (
                 <button
@@ -202,13 +202,13 @@ export default function ImageGeneratorPage() {
               disabled={!prompt || isLoading}
               className="px-4 py-2 rounded-lg bg-gradient-to-r from-blue-600 to-fuchsia-600 text-white disabled:opacity-50 shadow-sm hover:shadow transition-shadow"
             >
-              {isLoading ? 'Generating…' : 'Generate'}
+              {isLoading ? 'მიმდინარეობს გენერაცია…' : 'დაგენერირე'}
             </button>
             <button
               onClick={() => { setPrompt(''); setImageUrl(null); setRevisedPrompt(null); setError(null) }}
               className="px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-[#1b1b1b]"
             >
-              Clear
+              გასუფთავება
             </button>
           </div>
 
@@ -221,7 +221,7 @@ export default function ImageGeneratorPage() {
         <div className="space-y-4">
           {!imageUrl && !isLoading && (
             <div className="border border-dashed border-gray-300 dark:border-gray-700 rounded-xl p-8 text-center text-sm text-gray-500 dark:text-gray-400 bg-white/40 dark:bg-[#111111]/40 backdrop-blur-sm">
-              Generated image will appear here
+              დაგენერირებული სურათი აქ გამოჩნდება
             </div>
           )}
 
@@ -232,7 +232,7 @@ export default function ImageGeneratorPage() {
           {imageUrl && (
             <div className="space-y-4 border border-gray-200 dark:border-gray-800 rounded-xl p-4 bg-white/60 dark:bg-[#121212]/60 backdrop-blur-sm shadow-sm">
               {revisedPrompt && (
-                <div className="text-xs text-gray-500 dark:text-gray-400">Revised prompt: {revisedPrompt}</div>
+                <div className="text-xs text-gray-500 dark:text-gray-400">დახვეწილი პრომპტი: {revisedPrompt}</div>
               )}
               <img src={imageUrl} alt="Generated" className="rounded-lg w-full" />
               <div className="flex gap-3">
@@ -240,25 +240,25 @@ export default function ImageGeneratorPage() {
                   onClick={() => navigator.clipboard.writeText(imageUrl)}
                   className="px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-800 text-sm hover:bg-gray-50 dark:hover:bg-[#1b1b1b]"
                 >
-                  Copy URL
+                  ბმულის კოპირება
                 </button>
                 <a
                   href={imageUrl}
                   download
                   className="px-3 py-2 rounded-lg bg-gray-900 text-white text-sm dark:bg-white dark:text-black"
                 >
-                  Download
+                  ჩამოტვირთვა
                 </a>
               </div>
               {generations.length > 0 && (
                 <div className="pt-2">
                   <div className="flex items-center justify-between mb-2">
-                    <h2 className="text-sm font-medium text-gray-700 dark:text-gray-200">History</h2>
+                    <h2 className="text-sm font-medium text-gray-700 dark:text-gray-200">ისტორია</h2>
                     <button
                       onClick={() => setGenerations([])}
                       className="text-xs text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
                     >
-                      Clear
+                      გასუფთავება
                     </button>
                   </div>
                   <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
