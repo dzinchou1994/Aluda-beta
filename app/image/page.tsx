@@ -78,16 +78,69 @@ export default function ImageGeneratorPage() {
         try {
           const parsed = JSON.parse(savedCurrentImage)
           if (parsed.url) {
-            setImageUrl(parsed.url)
-            setRevisedPrompt(parsed.revisedPrompt || null)
+            // Validate the current image URL before setting it
+            const img = new Image()
+            img.onload = () => {
+              setImageUrl(parsed.url)
+              setRevisedPrompt(parsed.revisedPrompt || null)
+            }
+            img.onerror = () => {
+              // Current image is broken, remove it
+              console.log('Saved current image is broken, removing')
+              localStorage.removeItem('aluda-current-image')
+            }
+            img.src = parsed.url
           }
         } catch (e) {
           console.warn('Failed to parse saved current image:', e)
           localStorage.removeItem('aluda-current-image')
         }
       }
+
+      // Clean up broken images periodically
+      const cleanupInterval = setInterval(() => {
+        cleanupBrokenImages()
+      }, 5 * 60 * 1000) // Every 5 minutes
+
+      return () => clearInterval(cleanupInterval)
     }
   }, []) // Only run on mount
+
+  // Function to clean up broken images
+  const cleanupBrokenImages = async () => {
+    if (generations.length === 0) return
+    
+    const validGenerations = []
+    for (const gen of generations) {
+      try {
+        const isValid = await new Promise<boolean>((resolve) => {
+          const img = new Image()
+          img.onload = () => resolve(true)
+          img.onerror = () => resolve(false)
+          img.src = gen.url
+          // Timeout after 3 seconds
+          setTimeout(() => resolve(false), 3000)
+        })
+        
+        if (isValid) {
+          validGenerations.push(gen)
+        } else {
+          console.log('Removing broken image during cleanup:', gen.id)
+        }
+      } catch (e) {
+        console.log('Error checking image during cleanup:', e)
+        // Keep the generation if there's an error checking it
+        validGenerations.push(gen)
+      }
+    }
+    
+    if (validGenerations.length !== generations.length) {
+      setGenerations(validGenerations)
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('aluda-image-generations', JSON.stringify(validGenerations))
+      }
+    }
+  }
 
   // Save generations whenever they change (but not on initial load)
   useEffect(() => {
@@ -113,6 +166,27 @@ export default function ImageGeneratorPage() {
       }
     }
   }, [imageUrl, revisedPrompt])
+
+  // Check if current image URL is still valid and clear if broken
+  useEffect(() => {
+    if (imageUrl) {
+      const img = new Image()
+      img.onload = () => {
+        // Image is still valid, do nothing
+      }
+      img.onerror = () => {
+        // Image is broken/invalid, clear the UI
+        console.log('Image URL is broken, clearing UI')
+        setImageUrl(null)
+        setRevisedPrompt(null)
+        // Also remove from localStorage
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem('aluda-current-image')
+        }
+      }
+      img.src = imageUrl
+    }
+  }, [imageUrl])
 
   // Trigger translation when revisedPrompt changes
   useEffect(() => {
@@ -617,6 +691,9 @@ export default function ImageGeneratorPage() {
                       <button
                         onClick={() => {
                           setGenerations([])
+                          // Also clear current image if it exists
+                          setImageUrl(null)
+                          setRevisedPrompt(null)
                           if (typeof window !== 'undefined') {
                             localStorage.removeItem('aluda-image-generations')
                             localStorage.removeItem('aluda-current-image')
@@ -645,9 +722,23 @@ export default function ImageGeneratorPage() {
                             alt="thumb" 
                             className="aspect-square object-cover w-full"
                             onError={(e) => {
-                              // Hide the entire button when image fails to load
-                              if (e.currentTarget.parentElement) {
-                                e.currentTarget.parentElement.style.display = 'none'
+                              // Remove broken image from history and localStorage
+                              console.log('Broken image in history, removing:', g.id)
+                              setGenerations(prev => prev.filter(gen => gen.id !== g.id))
+                              
+                              // If this was the current image, clear it
+                              if (imageUrl === g.url) {
+                                setImageUrl(null)
+                                setRevisedPrompt(null)
+                                if (typeof window !== 'undefined') {
+                                  localStorage.removeItem('aluda-current-image')
+                                }
+                              }
+                              
+                              // Update localStorage
+                              if (typeof window !== 'undefined') {
+                                const updatedGenerations = generations.filter(gen => gen.id !== g.id)
+                                localStorage.setItem('aluda-image-generations', JSON.stringify(updatedGenerations))
                               }
                             }}
                           />
