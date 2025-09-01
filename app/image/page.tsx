@@ -721,10 +721,27 @@ export default function ImageGeneratorPage() {
                           description: 'თუ ჩამოტვირთვა არ დაიწყა, სცადეთ ხელით' 
                         })
                         
-                        // Also open in new tab as backup
+                        // Also open in new tab as backup after 2 seconds
                         setTimeout(() => {
-                          window.open(imageUrl, '_blank')
-                        }, 1000)
+                          try {
+                            // Force new tab/window
+                            const newWindow = window.open('', '_blank')
+                            if (newWindow) {
+                              newWindow.location.href = imageUrl
+                            } else {
+                              // Fallback if popup blocked
+                              const link = document.createElement('a')
+                              link.href = imageUrl
+                              link.target = '_blank'
+                              link.rel = 'noopener noreferrer'
+                              document.body.appendChild(link)
+                              link.click()
+                              document.body.removeChild(link)
+                            }
+                          } catch (windowError) {
+                            console.error('Failed to open new window:', windowError)
+                          }
+                        }, 2000)
                         
                       } catch (error) {
                         console.error('Download failed:', error)
@@ -735,7 +752,26 @@ export default function ImageGeneratorPage() {
                           description: 'სურათი ახალ ფანჯარაში გაიხსნება, სადაც შეგიძლიათ ხელით ჩამოტვირთოთ' 
                         })
                         
-                        window.open(imageUrl, '_blank')
+                        // Force new tab
+                        setTimeout(() => {
+                          try {
+                            const newWindow = window.open('', '_blank')
+                            if (newWindow) {
+                              newWindow.location.href = imageUrl
+                            } else {
+                              // Fallback if popup blocked
+                              const link = document.createElement('a')
+                              link.href = imageUrl
+                              link.target = '_blank'
+                              link.rel = 'noopener noreferrer'
+                              document.body.appendChild(link)
+                              link.click()
+                              document.body.removeChild(link)
+                            }
+                          } catch (windowError) {
+                            console.error('Failed to open new window:', windowError)
+                          }
+                        }, 500)
                       }
                     }}
                     className="flex-1 px-4 py-2 rounded-xl bg-gradient-to-r from-green-600 to-emerald-600 text-white text-sm font-medium shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center gap-2"
