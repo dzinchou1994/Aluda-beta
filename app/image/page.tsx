@@ -97,7 +97,7 @@ export default function ImageGeneratorPage() {
         console.warn('Failed to save current image:', e)
       }
     }
-    }, [imageUrl, revisedPrompt])
+  }, [imageUrl, revisedPrompt])
 
   // Trigger translation when revisedPrompt changes
   useEffect(() => {
@@ -108,8 +108,6 @@ export default function ImageGeneratorPage() {
       setTranslatedPrompt('')
     }
   }, [revisedPrompt])
-
- 
 
   const handleGenerate = async () => {
     setIsLoading(true)
@@ -217,9 +215,6 @@ export default function ImageGeneratorPage() {
     }
   }
 
-
-
-
   useEffect(() => {
     const savedTheme = typeof window !== 'undefined' ? localStorage.getItem('aluda-theme') : null
     if (savedTheme === 'dark' || (!savedTheme && typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
@@ -243,7 +238,7 @@ export default function ImageGeneratorPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50 dark:bg-chat-bg">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50 dark:bg-slate-900">
       <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
         {/* Enhanced Header */}
         <div className="mb-8">
@@ -257,7 +252,7 @@ export default function ImageGeneratorPage() {
               </div>
               <div>
                 <span className="text-lg font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">AludaAI</span>
-                <div className="text-xs text-gray-500 dark:text-gray-400">AI Image Generator</div>
+                <div className="text-xs text-gray-500 dark:text-gray-300">AI Image Generator</div>
               </div>
             </a>
             <div className="flex items-center gap-3">
@@ -277,8 +272,6 @@ export default function ImageGeneratorPage() {
               </button>
             </div>
           </div>
-          
-
         </div>
 
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-8 items-start">
@@ -345,12 +338,12 @@ export default function ImageGeneratorPage() {
                       }`}
                       title={preset.promptAddon}
                     >
-                                          <div className="flex items-center gap-1.5">
-                      <span className="text-xs">{preset.icon}</span>
-                      <span className={`text-xs font-medium leading-tight ${activePresetKey === preset.key ? 'text-white' : 'text-gray-700 dark:text-gray-300'}`}>
-                        {preset.label}
-                      </span>
-                    </div>
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-xs">{preset.icon}</span>
+                        <span className={`text-xs font-medium leading-tight ${activePresetKey === preset.key ? 'text-white' : 'text-gray-700 dark:text-gray-300'}`}>
+                          {preset.label}
+                        </span>
+                      </div>
                       {activePresetKey === preset.key && (
                         <div className="absolute -top-1 -right-1 w-3 h-3 bg-white rounded-full flex items-center justify-center shadow-sm">
                           <div className="w-1.5 h-1.5 bg-purple-500 rounded-full"></div>
@@ -382,7 +375,7 @@ export default function ImageGeneratorPage() {
                 </button>
                 <button
                   onClick={() => { setPrompt(''); setError(null) }}
-                  className="px-6 py-3 rounded-xl border-2 border-gray-200 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-700 transition-all duration-200 font-medium"
+                  className="px-6 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-200 font-medium"
                 >
                   გასუფთავება
                 </button>
@@ -527,5 +520,3 @@ export default function ImageGeneratorPage() {
     </div>
   )
 }
-
-
