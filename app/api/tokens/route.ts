@@ -20,7 +20,7 @@ export async function GET() {
     actor = {
       type: 'user' as const,
       id: session.user.id,
-      plan: (user?.plan === 'PREMIUM' ? 'PREMIUM' : 'USER') as const
+      plan: user?.plan === 'PREMIUM' ? ('PREMIUM' as const) : ('USER' as const)
     }
   } else {
     actor = {
