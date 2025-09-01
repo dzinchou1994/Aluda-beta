@@ -246,17 +246,7 @@ export default function ImageGeneratorPage() {
             </div>
           </div>
           
-          {/* Enhanced Title */}
-          <div className="text-center mb-8">
-            <h1 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent mb-4">
-              სურათების გენერატორი
-            </h1>
-            <div className="flex items-center justify-center gap-2 text-gray-600 dark:text-gray-400">
-              <Sparkles className="w-5 h-5 text-purple-500" />
-              <span className="text-lg">ალუდას შექმნილი ხელოვნება</span>
-              <Sparkles className="w-5 h-5 text-purple-500" />
-            </div>
-          </div>
+
         </div>
 
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-8 items-start">
@@ -323,12 +313,12 @@ export default function ImageGeneratorPage() {
                       }`}
                       title={preset.promptAddon}
                     >
-                      <div className="flex items-center justify-center gap-2">
-                        <span className="text-sm">{preset.icon}</span>
-                        <span className={`text-xs font-medium ${activePresetKey === preset.key ? 'text-white' : 'text-gray-700 dark:text-gray-300'}`}>
-                          {preset.label}
-                        </span>
-                      </div>
+                                          <div className="flex items-center gap-1.5">
+                      <span className="text-xs">{preset.icon}</span>
+                      <span className={`text-xs font-medium leading-tight ${activePresetKey === preset.key ? 'text-white' : 'text-gray-700 dark:text-gray-300'}`}>
+                        {preset.label}
+                      </span>
+                    </div>
                       {activePresetKey === preset.key && (
                         <div className="absolute -top-1 -right-1 w-3 h-3 bg-white rounded-full flex items-center justify-center shadow-sm">
                           <div className="w-1.5 h-1.5 bg-purple-500 rounded-full"></div>
