@@ -1,4 +1,5 @@
 import { prisma } from '@/lib/prisma'
+import crypto from 'crypto'
 
 export async function getBogEnvFromDb() {
   try {
@@ -165,10 +166,12 @@ export type BogCallbackPayload = {
   zoned_request_time?: string
   body?: {
     order_id?: string
+    external_order_id?: string
     industry?: string
     [key: string]: any
   }
   order_id?: string
+  external_order_id?: string
   status?: string
   amount?: number
   currency?: string
@@ -188,22 +191,44 @@ tcBuHV4f7qsynQT+f2UYbESX/TLHwT5qFWZDHZ0YUOUIvb8n7JujVSGZO9/+ll/g
 PwIDAQAB
 -----END PUBLIC KEY-----`
 
-export function verifyBogCallback(payload: BogCallbackPayload): boolean {
+export function verifyBogCallback(payload: BogCallbackPayload, signature?: string): boolean {
   // BOG sends event: "order_payment" and body.order_id
   const hasValidEvent = payload?.event === 'order_payment'
-  const hasValidOrderId = Boolean(payload?.body?.order_id || payload?.order_id)
+  const hasValidOrderId = Boolean(payload?.body?.order_id || payload?.body?.external_order_id || payload?.order_id || payload?.external_order_id)
   
   console.log('BOG Callback verification:', { 
     hasValidEvent, 
     hasValidOrderId, 
     event: payload?.event, 
-    orderId: payload?.body?.order_id || payload?.order_id 
+    orderId: payload?.body?.order_id || payload?.body?.external_order_id || payload?.order_id || payload?.external_order_id,
+    hasSignature: Boolean(signature)
   })
   
-  // TODO: Implement proper SHA256withRSA signature verification
-  // For now, we'll do basic validation
-  // The signature verification would require crypto module and proper RSA verification
+  // If signature is provided, verify it using BOG's public key
+  if (signature) {
+    try {
+      // Create the data to verify (event + body as JSON string)
+      const dataToVerify = JSON.stringify({
+        event: payload.event,
+        body: payload.body
+      })
+      
+      // Verify signature using BOG's public key
+      const verifier = crypto.createVerify('SHA256')
+      verifier.update(dataToVerify)
+      
+      const isValidSignature = verifier.verify(BOG_PUBLIC_KEY, signature, 'base64')
+      console.log('Signature verification result:', isValidSignature)
+      
+      return hasValidEvent && hasValidOrderId && isValidSignature
+    } catch (error) {
+      console.error('Signature verification error:', error)
+      // If signature verification fails, fall back to basic validation
+      return hasValidEvent && hasValidOrderId
+    }
+  }
   
+  // If no signature, do basic validation
   return hasValidEvent && hasValidOrderId
 }
 

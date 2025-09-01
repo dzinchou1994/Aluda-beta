@@ -35,14 +35,18 @@ export async function POST(request: NextRequest) {
 
     console.log('BOG Callback received:', JSON.stringify(payload, null, 2))
 
-    if (!verifyBogCallback(payload)) {
+    // Extract signature from headers
+    const signature = request.headers.get('callback-signature') || request.headers.get('signature')
+    console.log('BOG Callback signature:', signature)
+
+    if (!verifyBogCallback(payload, signature || undefined)) {
       console.error('BOG Callback verification failed')
       return NextResponse.json({ error: 'Invalid callback' }, { status: 400 })
     }
 
     // BOG sends: event: "order_payment" and body.external_order_id (our order format)
     const event = payload.event
-    const orderId = payload.body?.external_order_id || payload.body?.order_id || payload.order_id || ''
+    const orderId = payload.body?.external_order_id || payload.body?.order_id || payload.external_order_id || payload.order_id || ''
     
     console.log('BOG Callback event:', event, 'orderId:', orderId)
 
