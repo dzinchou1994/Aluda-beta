@@ -14,6 +14,9 @@ export default function ImageGeneratorPage() {
   const [quality, setQuality] = useState<'standard' | 'hd'>('standard')
   const [style, setStyle] = useState<'vivid' | 'natural'>('vivid')
   const [isDark, setIsDark] = useState(false)
+  const [translatedPrompt, setTranslatedPrompt] = useState<string>('')
+  const [isTranslating, setIsTranslating] = useState(false)
+  const [translationCache, setTranslationCache] = useState<{[key: string]: string}>({})
   const stylePresets: Array<{ key: string; label: string; promptAddon: string; icon: string; gradient: string }> = [
     { key: 'photorealistic', label: 'ფოტორეალისტური', promptAddon: 'highly detailed photorealistic, shallow depth of field, realistic lighting', icon: '📸', gradient: 'from-blue-500 to-cyan-500' },
     { key: 'cinematic', label: 'სინემატიური', promptAddon: 'cinematic lighting, film still, dramatic composition, anamorphic bokeh', icon: '🎬', gradient: 'from-purple-500 to-pink-500' },
@@ -97,14 +100,18 @@ export default function ImageGeneratorPage() {
     }
   }, [imageUrl, revisedPrompt])
 
-  // Trigger translation when revisedPrompt changes
+  // Trigger translation only when we get a new refined prompt from generation
   useEffect(() => {
-    if (revisedPrompt) {
+    if (revisedPrompt && !translationCache[revisedPrompt]) {
+      // Only translate if we don't have it cached
       translateRefinedPrompt(revisedPrompt)
+    } else if (revisedPrompt && translationCache[revisedPrompt]) {
+      // Use cached translation
+      setTranslatedPrompt(translationCache[revisedPrompt])
     } else {
       setTranslatedPrompt('')
     }
-  }, [revisedPrompt])
+  }, [revisedPrompt, translationCache])
 
   const handleGenerate = async () => {
     setIsLoading(true)
@@ -156,12 +163,15 @@ export default function ImageGeneratorPage() {
     return `${base}\nStyle: ${preset.promptAddon}`
   }
 
-  // Function to translate English refined prompt to Georgian using Flowise API
-  const [translatedPrompt, setTranslatedPrompt] = useState<string>('')
-  const [isTranslating, setIsTranslating] = useState(false)
+
 
   async function translateRefinedPrompt(englishPrompt: string): Promise<string> {
     if (!englishPrompt) return ''
+    
+    // Check if we already have this translation cached
+    if (translationCache[englishPrompt]) {
+      return translationCache[englishPrompt]
+    }
     
     setIsTranslating(true)
     try {
@@ -181,6 +191,13 @@ export default function ImageGeneratorPage() {
 
       const data = await response.json()
       const translatedText = data.text || data.answer || data.response || englishPrompt
+      
+      // Cache the translation
+      setTranslationCache(prev => ({
+        ...prev,
+        [englishPrompt]: translatedText
+      }))
+      
       setTranslatedPrompt(translatedText)
       return translatedText
     } catch (error) {
@@ -214,7 +231,7 @@ export default function ImageGeneratorPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50 dark:bg-chat-bg">
       <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
         {/* Enhanced Header */}
         <div className="mb-8">
@@ -234,14 +251,14 @@ export default function ImageGeneratorPage() {
             <div className="flex items-center gap-3">
               <a
                 href="/chat"
-                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border border-gray-200/50 dark:border-slate-700/50 hover:bg-white dark:hover:bg-slate-800 text-sm font-medium transition-all duration-200 hover:shadow-md"
+                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/80 dark:bg-input-bg backdrop-blur-sm border border-gray-200/50 dark:border-gray-700 hover:bg-white dark:hover:bg-user-bubble text-sm font-medium transition-all duration-200 hover:shadow-md"
               >
                 <ArrowLeft className="w-4 h-4" />
                 <span>მთავარზე</span>
               </a>
               <button
                 onClick={toggleTheme}
-                className="p-3 rounded-xl bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border border-gray-200/50 dark:border-slate-700/50 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-white dark:hover:bg-slate-800 transition-all duration-200 hover:shadow-md"
+                className="p-3 rounded-xl bg-white/80 dark:bg-input-bg backdrop-blur-sm border border-gray-200/50 dark:border-gray-700 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-white dark:hover:bg-user-bubble transition-all duration-200 hover:shadow-md"
                 title={isDark ? 'Light Mode' : 'Dark Mode'}
               >
                 {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
@@ -255,7 +272,7 @@ export default function ImageGeneratorPage() {
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-8 items-start">
           {/* Enhanced Left Panel: Controls */}
           <div className="space-y-6">
-            <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-2xl p-6 shadow-xl border border-gray-200/50 dark:border-slate-700/50">
+            <div className="bg-white/80 dark:bg-input-bg backdrop-blur-sm rounded-2xl p-6 shadow-xl border border-gray-200/50 dark:border-gray-700">
               {/* Enhanced Prompt Input */}
               <div className="mb-6">
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2">
@@ -263,7 +280,7 @@ export default function ImageGeneratorPage() {
                   აღწერე სურათი
                 </label>
                 <textarea
-                  className="w-full rounded-xl border-2 border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-4 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/40 focus:border-purple-500 transition-all duration-200 resize-none"
+                  className="w-full rounded-xl border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-input-bg p-4 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/40 focus:border-purple-500 transition-all duration-200 resize-none"
                   rows={5}
                   placeholder="აღწერე სურათი, რომლის გენერირებაც გინდა..."
                   value={prompt}
@@ -278,7 +295,7 @@ export default function ImageGeneratorPage() {
                   <select
                     value={size}
                     onChange={(e) => setSize(e.target.value as any)}
-                    className="w-full border-2 border-gray-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-900 p-3 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/40 focus:border-purple-500 transition-all duration-200"
+                    className="w-full border-2 border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-input-bg p-3 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/40 focus:border-purple-500 transition-all duration-200"
                   >
                     <option value="1024x1024">1024×1024 - კვადრატი</option>
                     <option value="1792x1024">1792×1024 - ჰორიზონტალური</option>
@@ -290,7 +307,7 @@ export default function ImageGeneratorPage() {
                   <select
                     value={quality}
                     onChange={(e) => setQuality(e.target.value as any)}
-                    className="w-full border-2 border-gray-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-900 p-3 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/40 focus:border-purple-500 transition-all duration-200"
+                    className="w-full border-2 border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-input-bg p-3 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/40 focus:border-purple-500 transition-all duration-200"
                   >
                     <option value="standard">სტანდარტული</option>
                     <option value="hd">მაღალი ხარისხი (4K)</option>
@@ -312,7 +329,7 @@ export default function ImageGeneratorPage() {
                       className={`group relative px-3 py-2 rounded-lg border-2 transition-all duration-300 hover:scale-102 ${
                         activePresetKey === preset.key 
                           ? `border-purple-500 bg-gradient-to-r ${preset.gradient} text-white shadow-md` 
-                          : 'border-gray-200 dark:border-slate-700 hover:border-purple-300 dark:hover:border-purple-600 bg-white dark:bg-slate-900 hover:bg-gray-50 dark:hover:bg-slate-800'
+                          : 'border-gray-200 dark:border-gray-700 hover:border-purple-300 dark:hover:border-purple-600 bg-white dark:bg-input-bg hover:bg-gray-50 dark:hover:bg-user-bubble'
                       }`}
                       title={preset.promptAddon}
                     >
@@ -370,7 +387,7 @@ export default function ImageGeneratorPage() {
           {/* Enhanced Right Panel: Result */}
           <div className="space-y-6">
             {!imageUrl && !isLoading && (
-              <div className="border-2 border-dashed border-gray-300 dark:border-slate-600 rounded-2xl p-12 text-center bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm">
+              <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-2xl p-12 text-center bg-white/80 dark:bg-input-bg backdrop-blur-sm">
                 <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-blue-100 to-purple-100 dark:from-blue-900/20 dark:to-purple-900/20 rounded-2xl flex items-center justify-center">
                   <Sparkles className="w-8 h-8 text-purple-500" />
                 </div>
@@ -380,7 +397,7 @@ export default function ImageGeneratorPage() {
             )}
 
             {isLoading && (
-              <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-2xl p-6 shadow-xl border border-gray-200/50 dark:border-slate-700/50">
+              <div className="bg-white/80 dark:bg-input-bg backdrop-blur-sm rounded-2xl p-6 shadow-xl border border-gray-200/50 dark:border-gray-700">
                 <div className="animate-pulse space-y-4">
                   <div className="h-64 bg-gray-200 dark:bg-slate-700 rounded-xl"></div>
                   <div className="h-4 bg-gray-200 dark:bg-slate-700 rounded w-3/4"></div>
@@ -390,23 +407,7 @@ export default function ImageGeneratorPage() {
             )}
 
             {imageUrl && (
-              <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-2xl p-6 shadow-xl border border-gray-200/50 dark:border-slate-700/50">
-                {revisedPrompt && (
-                  <div className="mb-4 p-3 rounded-xl bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800">
-                    <div className="text-xs font-medium text-blue-700 dark:text-blue-300 mb-1">დახვეწილი პრომპტი:</div>
-                    <div className="text-sm text-blue-600 dark:text-blue-400">
-                      {isTranslating ? (
-                        <div className="flex items-center gap-2">
-                          <div className="w-4 h-4 border-2 border-blue-300 border-t-blue-600 rounded-full animate-spin"></div>
-                          <span>თარგმნა მიმდინარეობს...</span>
-                        </div>
-                      ) : (
-                        translatedPrompt || revisedPrompt
-                      )}
-                    </div>
-                  </div>
-                )}
-                
+              <div className="bg-white/80 dark:bg-input-bg backdrop-blur-sm rounded-2xl p-6 shadow-xl border border-gray-200/50 dark:border-gray-700">
                 <div className="relative group mb-4">
                   <img 
                     src={imageUrl} 
@@ -422,7 +423,7 @@ export default function ImageGeneratorPage() {
                       navigator.clipboard.writeText(imageUrl)
                       toast({ title: 'ბმული დაკოპირებულია!', description: 'სურათის ბმული clipboard-შია' })
                     }}
-                    className="flex-1 px-4 py-2 rounded-xl border-2 border-gray-200 dark:border-slate-700 text-sm font-medium hover:bg-gray-50 dark:hover:bg-slate-700 transition-all duration-200 flex items-center justify-center gap-2"
+                    className="flex-1 px-4 py-2 rounded-xl border-2 border-gray-200 dark:border-gray-700 text-sm font-medium hover:bg-gray-50 dark:hover:bg-user-bubble transition-all duration-200 flex items-center justify-center gap-2"
                   >
                     <Copy className="w-4 h-4" />
                     ბმულის კოპირება
@@ -438,7 +439,7 @@ export default function ImageGeneratorPage() {
                 </div>
 
                 {generations.length > 0 && (
-                  <div className="border-t border-gray-200 dark:border-slate-700 pt-4">
+                  <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
                     <div className="flex items-center justify-between mb-4">
                       <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 flex items-center gap-2">
                         <History className="w-4 h-4 text-purple-500" />
@@ -466,7 +467,7 @@ export default function ImageGeneratorPage() {
                           className={`group relative border-2 rounded-xl overflow-hidden transition-all duration-300 hover:scale-105 ${
                             imageUrl === g.url 
                               ? 'ring-2 ring-purple-500 border-purple-500' 
-                              : 'border-gray-200 dark:border-slate-700 hover:border-purple-300 dark:hover:border-purple-600'
+                              : 'border-gray-200 dark:border-gray-700 hover:border-purple-300 dark:hover:border-purple-600'
                           }`}
                           title={g.prompt}
                         >
@@ -485,6 +486,24 @@ export default function ImageGeneratorPage() {
                           </div>
                         </button>
                       ))}
+                    </div>
+                  </div>
+                )}
+
+                {revisedPrompt && (
+                  <div className="border-t border-gray-200 dark:border-gray-700 pt-4 mt-4">
+                    <div className="p-3 rounded-xl bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800">
+                      <div className="text-xs font-medium text-blue-700 dark:text-blue-300 mb-1">დახვეწილი პრომპტი:</div>
+                      <div className="text-sm text-blue-600 dark:text-blue-400">
+                        {isTranslating ? (
+                          <div className="flex items-center gap-2">
+                            <div className="w-4 h-4 border-2 border-blue-300 border-t-blue-600 rounded-full animate-spin"></div>
+                            <span>თარგმნა მიმდინარეობს...</span>
+                          </div>
+                        ) : (
+                          translatedPrompt || revisedPrompt
+                        )}
+                      </div>
                     </div>
                   </div>
                 )}
