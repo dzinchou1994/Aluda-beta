@@ -48,6 +48,24 @@ export async function POST(request: NextRequest) {
             console.log('Using user found by email:', userByEmail.id)
             // Update session user ID to match database
             session.user.id = userByEmail.id
+          } else {
+            // Create user if not exists
+            console.log('Creating new user for email:', session.user.email)
+            try {
+              const newUser = await prisma.user.create({
+                data: {
+                  email: session.user.email,
+                  name: session.user.name || 'User',
+                  plan: 'USER'
+                },
+                select: { id: true, email: true, plan: true }
+              })
+              console.log('New user created:', newUser)
+              session.user.id = newUser.id
+            } catch (createError) {
+              console.error('Error creating user:', createError)
+              return NextResponse.json({ error: 'Failed to create user' }, { status: 500 })
+            }
           }
         }
       } catch (e) {
