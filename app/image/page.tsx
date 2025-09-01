@@ -14,6 +14,8 @@ export default function ImageGeneratorPage() {
   const [quality, setQuality] = useState<'standard' | 'hd'>('standard')
   const [style, setStyle] = useState<'vivid' | 'natural'>('vivid')
   const [isDark, setIsDark] = useState(false)
+  const [translatedPrompt, setTranslatedPrompt] = useState<string>('')
+  const [isTranslating, setIsTranslating] = useState(false)
   const stylePresets: Array<{ key: string; label: string; promptAddon: string; icon: string; gradient: string }> = [
     { key: 'photorealistic', label: 'ფოტორეალისტური', promptAddon: 'highly detailed photorealistic, shallow depth of field, realistic lighting', icon: '📸', gradient: 'from-blue-500 to-cyan-500' },
     { key: 'cinematic', label: 'სინემატიური', promptAddon: 'cinematic lighting, film still, dramatic composition, anamorphic bokeh', icon: '🎬', gradient: 'from-purple-500 to-pink-500' },
@@ -95,9 +97,18 @@ export default function ImageGeneratorPage() {
         console.warn('Failed to save current image:', e)
       }
     }
-  }, [imageUrl, revisedPrompt])
+    }, [imageUrl, revisedPrompt])
 
+  // Trigger translation when revisedPrompt changes
+  useEffect(() => {
+    if (revisedPrompt) {
+      translatePrompt(revisedPrompt)
+    } else {
+      setTranslatedPrompt('')
+    }
+  }, [revisedPrompt])
 
+ 
 
   const handleGenerate = async () => {
     setIsLoading(true)
@@ -147,6 +158,51 @@ export default function ImageGeneratorPage() {
     const preset = stylePresets.find(p => p.key === presetKey)
     if (!preset) return base
     return `${base}\nStyle: ${preset.promptAddon}`
+  }
+
+  // Simple translation function using Groq API
+  async function translatePrompt(englishPrompt: string): Promise<string> {
+    if (!englishPrompt) return ''
+    
+    setIsTranslating(true)
+    try {
+      const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${process.env.NEXT_PUBLIC_GROQ_API_KEY || ''}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'llama3-8b-8192',
+          messages: [
+            {
+              role: 'system',
+              content: 'You are a helpful translator. Translate the given English text to Georgian. Return only the Georgian translation, nothing else.'
+            },
+            {
+              role: 'user',
+              content: englishPrompt
+            }
+          ],
+          max_tokens: 500,
+          temperature: 0.1
+        }),
+      })
+
+      if (!response.ok) {
+        throw new Error('Translation failed')
+      }
+
+      const data = await response.json()
+      const translatedText = data.choices?.[0]?.message?.content?.trim() || englishPrompt
+      setTranslatedPrompt(translatedText)
+      return translatedText
+    } catch (error) {
+      console.error('Translation error:', error)
+      return englishPrompt // Fallback to original text
+    } finally {
+      setIsTranslating(false)
+    }
   }
 
 
@@ -437,9 +493,16 @@ export default function ImageGeneratorPage() {
                 {revisedPrompt && (
                   <div className="border-t border-gray-200 dark:border-gray-700 pt-4 mt-4">
                     <div className="p-3 rounded-xl bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800">
-                      <div className="text-xs font-medium text-blue-700 dark:text-blue-300 mb-1">დახვეწილი პრომპტი:</div>
-                      <div className="text-sm text-blue-600 dark:text-blue-400 font-mono bg-gray-50 dark:bg-gray-800 p-2 rounded border">
-                        {revisedPrompt}
+                      <div className="text-xs font-medium text-blue-700 dark:text-blue-300 mb-2">დახვეწილი პრომპტი:</div>
+                      <div className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
+                        {isTranslating ? (
+                          <div className="flex items-center gap-2">
+                            <div className="w-4 h-4 border-2 border-blue-300 border-t-blue-600 rounded-full animate-spin"></div>
+                            <span>თარგმნა მიმდინარეობს...</span>
+                          </div>
+                        ) : (
+                          translatedPrompt || revisedPrompt
+                        )}
                       </div>
                     </div>
                   </div>
