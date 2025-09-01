@@ -85,7 +85,11 @@ export async function POST(request: NextRequest) {
             })
             results.push({ key, status: 'updated', value: setting.value })
           } catch (error) {
-            results.push({ key, status: 'error', error: error.message })
+            results.push({ 
+              key, 
+              status: 'error', 
+              error: error instanceof Error ? error.message : 'Unknown error' 
+            })
           }
         }
       }
