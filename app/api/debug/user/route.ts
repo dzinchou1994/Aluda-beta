@@ -10,7 +10,7 @@ export const revalidate = 0
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
-    
+
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'No session found' }, { status: 401 })
     }
@@ -30,9 +30,22 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 })
     }
 
+    // Also check if there are other users with the same email
+    const usersWithSameEmail = await prisma.user.findMany({
+      where: { email: session.user.email },
+      select: {
+        id: true,
+        email: true,
+        plan: true,
+        createdAt: true,
+        updatedAt: true
+      }
+    })
+
     return NextResponse.json({
       message: 'User debug info',
       user,
+      usersWithSameEmail,
       session: {
         userId: session.user.id,
         email: session.user.email
@@ -47,12 +60,12 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
-    
+
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'No session found' }, { status: 401 })
     }
 
-    const { action, plan } = await request.json()
+    const { action, plan, email } = await request.json()
 
     if (action === 'updatePlan' && plan) {
       const updatedUser = await prisma.user.update({
@@ -68,6 +81,24 @@ export async function POST(request: NextRequest) {
 
       return NextResponse.json({
         message: 'Plan updated successfully',
+        user: updatedUser
+      })
+    }
+
+    if (action === 'updatePlanByEmail' && plan && email) {
+      const updatedUser = await prisma.user.update({
+        where: { email },
+        data: { plan },
+        select: {
+          id: true,
+          email: true,
+          plan: true,
+          updatedAt: true
+        }
+      })
+
+      return NextResponse.json({
+        message: 'Plan updated successfully by email',
         user: updatedUser
       })
     }
