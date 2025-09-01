@@ -696,27 +696,87 @@ export default function ImageGeneratorPage() {
                   </button>
                   <button
                     onClick={async () => {
+                      if (!imageUrl) {
+                        toast({ title: 'შეცდომა', description: 'სურათი არ არის ხელმისაწვდომი' })
+                        return
+                      }
+                      
                       try {
-                        // Fetch the image as blob
-                        const response = await fetch(imageUrl)
-                        const blob = await response.blob()
+                        // Method 1: Try direct download first
+                        const link = document.createElement('a')
+                        link.href = imageUrl
+                        link.download = `aluda-image-${Date.now()}.png`
+                        link.target = '_blank'
                         
-                        // Create download link
-                        const url = window.URL.createObjectURL(blob)
-                        const a = document.createElement('a')
-                        a.href = url
-                        a.download = `aluda-image-${Date.now()}.png`
-                        document.body.appendChild(a)
-                        a.click()
+                        // Try to trigger download
+                        document.body.appendChild(link)
+                        link.click()
+                        document.body.removeChild(link)
                         
-                        // Cleanup
-                        window.URL.revokeObjectURL(url)
-                        document.body.removeChild(a)
+                        // Check if download actually started
+                        setTimeout(() => {
+                          // If direct download didn't work, try blob method
+                          downloadAsBlob()
+                        }, 100)
                         
-                        toast({ title: 'ჩამოტვირთვა დაწყებულია!', description: 'სურათი ჩამოტვირთება თქვენს მოწყობილობაზე' })
                       } catch (error) {
-                        console.error('Download failed:', error)
-                        toast({ title: 'ჩამოტვირთვა ვერ შესრულდა', description: 'სცადეთ თავიდან' })
+                        console.error('Direct download failed, trying blob method:', error)
+                        downloadAsBlob()
+                      }
+                      
+                      // Blob download method as fallback
+                      async function downloadAsBlob() {
+                        if (!imageUrl) return
+                        
+                        try {
+                          console.log('Attempting blob download for:', imageUrl)
+                          
+                          // Add timestamp to avoid cache issues
+                          const urlWithTimestamp = `${imageUrl}${imageUrl.includes('?') ? '&' : '?'}t=${Date.now()}`
+                          
+                          const response = await fetch(urlWithTimestamp, {
+                            method: 'GET',
+                            mode: 'cors',
+                            cache: 'no-cache'
+                          })
+                          
+                          if (!response.ok) {
+                            throw new Error(`HTTP error! status: ${response.status}`)
+                          }
+                          
+                          const blob = await response.blob()
+                          console.log('Blob created:', blob.size, 'bytes')
+                          
+                          // Create download link
+                          const url = window.URL.createObjectURL(blob)
+                          const a = document.createElement('a')
+                          a.href = url
+                          a.download = `aluda-image-${Date.now()}.png`
+                          a.style.display = 'none'
+                          
+                          document.body.appendChild(a)
+                          a.click()
+                          
+                          // Cleanup
+                          setTimeout(() => {
+                            window.URL.revokeObjectURL(url)
+                            document.body.removeChild(a)
+                          }, 100)
+                          
+                          toast({ title: 'ჩამოტვირთვა დაწყებულია!', description: 'სურათი ჩამოტვირთება თქვენს მოწყობილობაზე' })
+                          
+                        } catch (blobError) {
+                          console.error('Blob download also failed:', blobError)
+                          
+                          // Final fallback: open in new tab
+                          toast({ 
+                            title: 'ავტომატური ჩამოტვირთვა ვერ შესრულდა', 
+                            description: 'სურათი ახალ ფანჯარაში გაიხსნება, სადაც შეგიძლიათ ხელით ჩამოტვირთოთ' 
+                          })
+                          
+                          // Open image in new tab for manual download
+                          window.open(imageUrl, '_blank')
+                        }
                       }
                     }}
                     className="flex-1 px-4 py-2 rounded-xl bg-gradient-to-r from-green-600 to-emerald-600 text-white text-sm font-medium shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center gap-2"
