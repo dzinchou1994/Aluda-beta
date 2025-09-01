@@ -704,158 +704,37 @@ export default function ImageGeneratorPage() {
                       console.log('Starting download process for:', imageUrl)
                       
                       try {
-                        // Method 1: Try direct download first
-                        console.log('Attempting direct download...')
+                        // Try to create a download link with the image URL
                         const link = document.createElement('a')
                         link.href = imageUrl
                         link.download = `aluda-image-${Date.now()}.png`
-                        link.target = '_blank'
+                        link.style.display = 'none'
                         
-                        // Try to trigger download
+                        // Add to DOM and click
                         document.body.appendChild(link)
                         link.click()
                         document.body.removeChild(link)
                         
-                        // Check if download actually started
+                        // Show success message
+                        toast({ 
+                          title: 'ჩამოტვირთვა დაწყებულია!', 
+                          description: 'თუ ჩამოტვირთვა არ დაიწყა, სცადეთ ხელით' 
+                        })
+                        
+                        // Also open in new tab as backup
                         setTimeout(() => {
-                          console.log('Direct download timeout, trying blob method...')
-                          downloadAsBlob()
-                        }, 500)
+                          window.open(imageUrl, '_blank')
+                        }, 1000)
                         
                       } catch (error) {
-                        console.error('Direct download failed, trying blob method:', error)
-                        downloadAsBlob()
-                      }
-                      
-                      // Blob download method as fallback
-                      async function downloadAsBlob() {
-                        if (!imageUrl) return
+                        console.error('Download failed:', error)
                         
-                        try {
-                          console.log('Attempting blob download for:', imageUrl)
-                          
-                          // Add timestamp to avoid cache issues
-                          const urlWithTimestamp = `${imageUrl}${imageUrl.includes('?') ? '&' : '?'}t=${Date.now()}`
-                          console.log('Fetching with timestamp:', urlWithTimestamp)
-                          
-                          const response = await fetch(urlWithTimestamp, {
-                            method: 'GET',
-                            mode: 'cors',
-                            cache: 'no-cache',
-                            headers: {
-                              'Accept': 'image/*',
-                              'User-Agent': navigator.userAgent
-                            }
-                          })
-                          
-                          console.log('Fetch response:', response.status, response.statusText)
-                          
-                          if (!response.ok) {
-                            throw new Error(`HTTP error! status: ${response.status}`)
-                          }
-                          
-                          const blob = await response.blob()
-                          console.log('Blob created:', blob.size, 'bytes, type:', blob.type)
-                          
-                          // Create download link
-                          const url = window.URL.createObjectURL(blob)
-                          const a = document.createElement('a')
-                          a.href = url
-                          a.download = `aluda-image-${Date.now()}.png`
-                          a.style.display = 'none'
-                          
-                          document.body.appendChild(a)
-                          a.click()
-                          
-                          // Cleanup
-                          setTimeout(() => {
-                            window.URL.revokeObjectURL(url)
-                            document.body.removeChild(a)
-                          }, 100)
-                          
-                          toast({ title: 'ჩამოტვირთვა დაწყებულია!', description: 'სურათი ჩამოტვირთება თქვენს მოწყობილობაზე' })
-                          
-                        } catch (blobError) {
-                          console.error('Blob download failed:', blobError)
-                          
-                          // Try alternative method: canvas download
-                          tryAlternativeDownload()
-                        }
-                      }
-                      
-                      // Alternative method: use canvas to download
-                      async function tryAlternativeDownload() {
-                        if (!imageUrl) return
-                        
-                        try {
-                          console.log('Trying canvas-based download...')
-                          
-                          const img = new Image()
-                          img.crossOrigin = 'anonymous'
-                          
-                          img.onload = () => {
-                            try {
-                              const canvas = document.createElement('canvas')
-                              canvas.width = img.width
-                              canvas.height = img.height
-                              
-                              const ctx = canvas.getContext('2d')
-                              if (ctx) {
-                                ctx.drawImage(img, 0, 0)
-                                
-                                canvas.toBlob((blob) => {
-                                  if (blob) {
-                                    const url = window.URL.createObjectURL(blob)
-                                    const a = document.createElement('a')
-                                    a.href = url
-                                    a.download = `aluda-image-${Date.now()}.png`
-                                    a.style.display = 'none'
-                                    
-                                    document.body.appendChild(a)
-                                    a.click()
-                                    
-                                    setTimeout(() => {
-                                      window.URL.revokeObjectURL(url)
-                                      document.body.removeChild(a)
-                                    }, 100)
-                                    
-                                    toast({ title: 'ჩამოტვირთვა დაწყებულია!', description: 'Canvas მეთოდით ჩამოტვირთება' })
-                                  } else {
-                                    throw new Error('Canvas blob creation failed')
-                                  }
-                                }, 'image/png')
-                              }
-                            } catch (canvasError) {
-                              console.error('Canvas download failed:', canvasError)
-                              openInNewTab()
-                            }
-                          }
-                          
-                          img.onerror = () => {
-                            console.error('Image loading failed for canvas method')
-                            openInNewTab()
-                          }
-                          
-                          img.src = imageUrl
-                          
-                        } catch (canvasError) {
-                          console.error('Canvas method failed:', canvasError)
-                          openInNewTab()
-                        }
-                      }
-                      
-                      // Final fallback: open in new tab
-                      function openInNewTab() {
-                        if (!imageUrl) return
-                        
-                        console.log('All download methods failed, opening in new tab')
-                        
+                        // Fallback: open in new tab for manual download
                         toast({ 
                           title: 'ავტომატური ჩამოტვირთვა ვერ შესრულდა', 
                           description: 'სურათი ახალ ფანჯარაში გაიხსნება, სადაც შეგიძლიათ ხელით ჩამოტვირთოთ' 
                         })
                         
-                        // Open image in new tab for manual download
                         window.open(imageUrl, '_blank')
                       }
                     }}
