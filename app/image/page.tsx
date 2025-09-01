@@ -2,9 +2,12 @@
 
 import { useState, useEffect } from 'react'
 import { toast } from '@/components/ui/use-toast'
-import { Brain, Sun, Moon, ArrowLeft, Sparkles, Palette, Download, Copy, History, Trash2, Wand2, Maximize, ChevronDown } from 'lucide-react'
+import { useSession, signIn } from 'next-auth/react'
+import { Brain, Sun, Moon, ArrowLeft, Sparkles, Palette, Download, Copy, History, Trash2, Wand2, Maximize, ChevronDown, User } from 'lucide-react'
+import UserSettingsModal from '@/components/UserSettingsModal'
 
 export default function ImageGeneratorPage() {
+  const { data: session, status } = useSession()
   const [prompt, setPrompt] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [isImageLoading, setIsImageLoading] = useState(false)
@@ -18,6 +21,7 @@ export default function ImageGeneratorPage() {
   const [translatedPrompt, setTranslatedPrompt] = useState<string>('')
   const [isTranslating, setIsTranslating] = useState(false)
   const [showAdvancedSettings, setShowAdvancedSettings] = useState(false)
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false)
   const stylePresets: Array<{ key: string; label: string; promptAddon: string; icon: string; gradient: string }> = [
     { key: 'photorealistic', label: 'ფოტორეალისტური', promptAddon: 'highly detailed photorealistic, shallow depth of field, realistic lighting', icon: '📸', gradient: 'from-blue-500 to-cyan-500' },
     { key: 'cinematic', label: 'სინემატიური', promptAddon: 'cinematic lighting, film still, dramatic composition, anamorphic bokeh', icon: '🎬', gradient: 'from-purple-500 to-pink-500' },
@@ -309,6 +313,13 @@ export default function ImageGeneratorPage() {
                 title={isDark ? 'Light Mode' : 'Dark Mode'}
               >
                 {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+              </button>
+              <button
+                onClick={() => session ? setIsSettingsOpen(true) : signIn()}
+                className="p-3 rounded-xl bg-white/80 dark:bg-input-bg backdrop-blur-sm border border-gray-200/50 dark:border-gray-700 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-white dark:hover:bg-user-bubble transition-all duration-200 hover:shadow-md"
+                title={session ? 'პარამეტრები' : 'შესვლა'}
+              >
+                <User className="w-5 h-5" />
               </button>
             </div>
           </div>
@@ -681,6 +692,15 @@ export default function ImageGeneratorPage() {
           </div>
         </div>
       </div>
+      
+      {/* User Settings Modal */}
+      {isSettingsOpen && (
+        <UserSettingsModal 
+          open={isSettingsOpen} 
+          onClose={() => setIsSettingsOpen(false)} 
+          userEmail={session?.user?.email} 
+        />
+      )}
     </div>
   )
 }
