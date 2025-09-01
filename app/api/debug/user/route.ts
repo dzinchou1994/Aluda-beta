@@ -15,6 +15,9 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'No session found' }, { status: 401 })
     }
 
+    console.log('Debug: Session user ID:', session.user.id)
+    console.log('Debug: Session user email:', session.user.email)
+
     const user = await prisma.user.findUnique({
       where: { id: session.user.id },
       select: {
@@ -27,7 +30,31 @@ export async function GET(request: NextRequest) {
     })
 
     if (!user) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 })
+      console.log('Debug: User not found by ID, searching by email...')
+      
+      // Try to find user by email
+      const userByEmail = await prisma.user.findMany({
+        where: { email: session.user.email },
+        select: {
+          id: true,
+          email: true,
+          plan: true,
+          createdAt: true,
+          updatedAt: true
+        }
+      })
+
+      console.log('Debug: Users found by email:', userByEmail)
+
+      return NextResponse.json({
+        error: 'User not found by ID',
+        session: {
+          userId: session.user.id,
+          email: session.user.email
+        },
+        usersByEmail: userByEmail,
+        message: 'User exists in database but with different ID. Session needs to be updated.'
+      })
     }
 
     // Also check if there are other users with the same email
