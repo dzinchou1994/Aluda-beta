@@ -1,6 +1,6 @@
 "use client"
 
-import { MessageSquare, Trash2, Plus, LogIn, LogOut, User, Sun, Moon, MoreVertical, Pencil, Brain } from "lucide-react"
+import { MessageSquare, Trash2, Plus, LogIn, LogOut, User, MoreVertical, Pencil, Brain } from "lucide-react"
 import { useTokens } from '@/context/TokensContext'
 import UserSettingsModal from './UserSettingsModal'
 import ModelSwitcher from './ModelSwitcher'
@@ -39,7 +39,6 @@ export default function Sidebar({
   onSignOut,
   showOnMobile = false
 }: SidebarProps) {
-  const [isDark, setIsDark] = useState(false)
   const { usage, limits } = useTokens()
   const [settingsOpen, setSettingsOpen] = useState(false)
   const { model, setModel } = useModel()
@@ -68,29 +67,6 @@ export default function Sidebar({
     }
   }, [openMenuChatId])
 
-  // Load theme preference from localStorage
-  useEffect(() => {
-    const savedTheme = localStorage.getItem('aluda-theme')
-    if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-      setIsDark(true)
-      document.documentElement.classList.add('dark')
-    }
-  }, [])
-
-  // Toggle theme
-  const toggleTheme = () => {
-    const newTheme = !isDark
-    setIsDark(newTheme)
-    
-    if (newTheme) {
-      document.documentElement.classList.add('dark')
-      localStorage.setItem('aluda-theme', 'dark')
-    } else {
-      document.documentElement.classList.remove('dark')
-      localStorage.setItem('aluda-theme', 'light')
-    }
-  }
-
   return (
     <div className={`${showOnMobile ? 'flex w-full' : 'hidden md:flex md:w-56 lg:w-64'} bg-white dark:bg-sidebar-dark border-r border-gray-200 dark:border-gray-800 flex-col h-full transition-colors duration-200`}>
       {/* Header */}
@@ -102,15 +78,6 @@ export default function Sidebar({
             </div>
             <h2 className="text-sm font-semibold bg-gradient-to-r from-blue-600 to-purple-600 dark:from-white dark:to-gray-300 bg-clip-text text-transparent">AludaAI</h2>
           </a>
-          
-          {/* Theme Toggle */}
-          <button
-            onClick={toggleTheme}
-            className="p-2 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-800/60 rounded-lg transition-all duration-200"
-            title={isDark ? "Light Mode" : "Dark Mode"}
-          >
-            {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-          </button>
         </div>
         
         {/* New Chat Button */}

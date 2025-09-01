@@ -6,7 +6,7 @@ import ChatComposer from "@/components/ChatComposer"
 import Sidebar from "@/components/Sidebar"
 import UserSettingsModal from "@/components/UserSettingsModal"
 import { useChatsContext } from "@/context/ChatsContext"
-import { Plus, User, LogIn, LogOut, Menu, X, MoreVertical } from "lucide-react"
+import { Plus, User, LogIn, LogOut, Menu, X, MoreVertical, Sun, Moon } from "lucide-react"
 import ModelSwitcher from "@/components/ModelSwitcher"
 
 export default function ChatPage() {
@@ -15,6 +15,7 @@ export default function ChatPage() {
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false)
   const [isSettingsOpen, setIsSettingsOpen] = useState(false)
   const [isTopMenuOpen, setIsTopMenuOpen] = useState(false)
+  const [isDark, setIsDark] = useState(false)
   const { 
     chats, 
     currentChatId, 
@@ -34,6 +35,29 @@ export default function ChatPage() {
     
     return () => clearTimeout(timer)
   }, [])
+
+  // Load theme preference from localStorage
+  useEffect(() => {
+    const savedTheme = localStorage.getItem('aluda-theme')
+    if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+      setIsDark(true)
+      document.documentElement.classList.add('dark')
+    }
+  }, [])
+
+  // Toggle theme
+  const toggleTheme = () => {
+    const newTheme = !isDark
+    setIsDark(newTheme)
+    
+    if (newTheme) {
+      document.documentElement.classList.add('dark')
+      localStorage.setItem('aluda-theme', 'dark')
+    } else {
+      document.documentElement.classList.remove('dark')
+      localStorage.setItem('aluda-theme', 'light')
+    }
+  }
 
   // Tag body to scope mobile overflow-hidden only on chat page
   useEffect(() => {
@@ -168,6 +192,16 @@ export default function ChatPage() {
           </div>
           
           <div className="flex items-center space-x-3 md:space-x-4">
+            {/* Theme Toggle Button */}
+            <button
+              onClick={toggleTheme}
+              className="p-2 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-800/60 rounded-lg transition-all duration-200"
+              title={isDark ? "Light Mode" : "Dark Mode"}
+              aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
+            >
+              {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+            </button>
+            
             {/* Top Menu Button */}
             <div className="relative">
               <button
