@@ -161,9 +161,9 @@ export default function ImageGeneratorPage() {
                 onChange={(e) => setSize(e.target.value as any)}
                 className="w-full border border-gray-200 dark:border-gray-800 rounded-lg bg-white dark:bg-[#171717] p-2.5 text-sm"
               >
-                <option value="1024x1024">1024x1024</option>
-                <option value="1792x1024">1792x1024 (landscape)</option>
-                <option value="1024x1792">1024x1792 (portrait)</option>
+                <option value="1024x1024">1024x1024 - კვადრატი (Square)</option>
+                <option value="1792x1024">1792x1024 - ჰორიზონტალური (Landscape)</option>
+                <option value="1024x1792">1024x1792 - ვერტიკალური (Portrait)</option>
               </select>
             </div>
             <div>
