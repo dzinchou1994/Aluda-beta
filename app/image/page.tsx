@@ -38,25 +38,33 @@ export default function ImageGeneratorPage() {
     createdAt: number
   }>>([])
 
-  // Load generations from localStorage on mount
+  // Load and save generations to localStorage
   useEffect(() => {
     if (typeof window !== 'undefined') {
+      // Load on first mount
       const saved = localStorage.getItem('aluda-image-generations')
-      if (saved) {
+      if (saved && generations.length === 0) {
         try {
           const parsed = JSON.parse(saved)
-          setGenerations(parsed)
+          if (Array.isArray(parsed)) {
+            setGenerations(parsed)
+          }
         } catch (e) {
           console.warn('Failed to parse saved generations:', e)
+          localStorage.removeItem('aluda-image-generations')
         }
       }
     }
-  }, [])
+  }, []) // Only run on mount
 
-  // Save generations to localStorage whenever they change
+  // Save generations whenever they change (but not on initial load)
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('aluda-image-generations', JSON.stringify(generations))
+    if (typeof window !== 'undefined' && generations.length > 0) {
+      try {
+        localStorage.setItem('aluda-image-generations', JSON.stringify(generations))
+      } catch (e) {
+        console.warn('Failed to save generations:', e)
+      }
     }
   }, [generations])
 
