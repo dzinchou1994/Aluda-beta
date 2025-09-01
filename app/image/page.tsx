@@ -55,7 +55,7 @@ export default function ImageGeneratorPage() {
 
   // Save generations to localStorage whenever they change
   useEffect(() => {
-    if (typeof window !== 'undefined' && generations.length > 0) {
+    if (typeof window !== 'undefined') {
       localStorage.setItem('aluda-image-generations', JSON.stringify(generations))
     }
   }, [generations])
