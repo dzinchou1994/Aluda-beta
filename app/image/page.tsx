@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { toast } from '@/components/ui/use-toast'
-import { Brain, Sun, Moon, ArrowLeft, Sparkles, Palette, Download, Copy, History, Trash2, Wand2 } from 'lucide-react'
+import { Brain, Sun, Moon, ArrowLeft, Sparkles, Palette, Download, Copy, History, Trash2, Wand2, Maximize } from 'lucide-react'
 
 export default function ImageGeneratorPage() {
   const [prompt, setPrompt] = useState('')
@@ -333,7 +333,10 @@ export default function ImageGeneratorPage() {
               {/* Enhanced Settings Grid */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">ზომა</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
+                    <Maximize className="w-4 h-4 text-purple-500" />
+                    ზომა
+                  </label>
                   <select
                     value={size}
                     onChange={(e) => setSize(e.target.value as any)}
@@ -345,7 +348,10 @@ export default function ImageGeneratorPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">ხარისხი</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
+                    <Sparkles className="w-4 h-4 text-purple-500" />
+                    ხარისხი
+                  </label>
                   <select
                     value={quality}
                     onChange={(e) => setQuality(e.target.value as any)}
