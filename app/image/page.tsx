@@ -14,9 +14,6 @@ export default function ImageGeneratorPage() {
   const [quality, setQuality] = useState<'standard' | 'hd'>('standard')
   const [style, setStyle] = useState<'vivid' | 'natural'>('vivid')
   const [isDark, setIsDark] = useState(false)
-  const [translatedPrompt, setTranslatedPrompt] = useState<string>('')
-  const [isTranslating, setIsTranslating] = useState(false)
-  const [translationCache, setTranslationCache] = useState<{[key: string]: string}>({})
   const stylePresets: Array<{ key: string; label: string; promptAddon: string; icon: string; gradient: string }> = [
     { key: 'photorealistic', label: 'ფოტორეალისტური', promptAddon: 'highly detailed photorealistic, shallow depth of field, realistic lighting', icon: '📸', gradient: 'from-blue-500 to-cyan-500' },
     { key: 'cinematic', label: 'სინემატიური', promptAddon: 'cinematic lighting, film still, dramatic composition, anamorphic bokeh', icon: '🎬', gradient: 'from-purple-500 to-pink-500' },
@@ -100,18 +97,7 @@ export default function ImageGeneratorPage() {
     }
   }, [imageUrl, revisedPrompt])
 
-  // Trigger translation only when we get a new refined prompt from generation
-  useEffect(() => {
-    if (revisedPrompt && !translationCache[revisedPrompt]) {
-      // Only translate if we don't have it cached
-      translateRefinedPrompt(revisedPrompt)
-    } else if (revisedPrompt && translationCache[revisedPrompt]) {
-      // Use cached translation
-      setTranslatedPrompt(translationCache[revisedPrompt])
-    } else {
-      setTranslatedPrompt('')
-    }
-  }, [revisedPrompt, translationCache])
+
 
   const handleGenerate = async () => {
     setIsLoading(true)
@@ -165,48 +151,6 @@ export default function ImageGeneratorPage() {
 
 
 
-  async function translateRefinedPrompt(englishPrompt: string): Promise<string> {
-    if (!englishPrompt) return ''
-    
-    // Check if we already have this translation cached
-    if (translationCache[englishPrompt]) {
-      return translationCache[englishPrompt]
-    }
-    
-    setIsTranslating(true)
-    try {
-      const response = await fetch('https://flowise-eden.onrender.com/api/v1/prediction/54f1eff0-0751-4afc-bfe0-83672ab74776', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          question: `Translate this English text to Georgian: ${englishPrompt}`
-        }),
-      })
-
-      if (!response.ok) {
-        throw new Error('Translation failed')
-      }
-
-      const data = await response.json()
-      const translatedText = data.text || data.answer || data.response || englishPrompt
-      
-      // Cache the translation
-      setTranslationCache(prev => ({
-        ...prev,
-        [englishPrompt]: translatedText
-      }))
-      
-      setTranslatedPrompt(translatedText)
-      return translatedText
-    } catch (error) {
-      console.error('Translation error:', error)
-      return englishPrompt // Fallback to original text
-    } finally {
-      setIsTranslating(false)
-    }
-  }
 
   useEffect(() => {
     const savedTheme = typeof window !== 'undefined' ? localStorage.getItem('aluda-theme') : null
@@ -494,15 +438,8 @@ export default function ImageGeneratorPage() {
                   <div className="border-t border-gray-200 dark:border-gray-700 pt-4 mt-4">
                     <div className="p-3 rounded-xl bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800">
                       <div className="text-xs font-medium text-blue-700 dark:text-blue-300 mb-1">დახვეწილი პრომპტი:</div>
-                      <div className="text-sm text-blue-600 dark:text-blue-400">
-                        {isTranslating ? (
-                          <div className="flex items-center gap-2">
-                            <div className="w-4 h-4 border-2 border-blue-300 border-t-blue-600 rounded-full animate-spin"></div>
-                            <span>თარგმნა მიმდინარეობს...</span>
-                          </div>
-                        ) : (
-                          translatedPrompt || revisedPrompt
-                        )}
+                      <div className="text-sm text-blue-600 dark:text-blue-400 font-mono bg-gray-50 dark:bg-gray-800 p-2 rounded border">
+                        {revisedPrompt}
                       </div>
                     </div>
                   </div>
