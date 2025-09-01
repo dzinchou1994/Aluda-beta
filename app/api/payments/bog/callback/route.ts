@@ -18,19 +18,43 @@ export async function POST(request: NextRequest) {
       return {}
     })) as BogCallbackPayload
 
+    console.log('BOG Callback received:', JSON.stringify(payload, null, 2))
+
     if (!verifyBogCallback(payload)) {
+      console.error('BOG Callback verification failed')
       return NextResponse.json({ error: 'Invalid callback' }, { status: 400 })
     }
 
-    const status = (payload.status || '').toLowerCase()
-    const orderId = payload.order_id || ''
+    // BOG sends: event: "order_payment" and body.order_id
+    const event = payload.event
+    const orderId = payload.body?.order_id || payload.order_id || ''
+    
+    console.log('BOG Callback event:', event, 'orderId:', orderId)
 
     // Our order format: aluda_{userId}_{timestamp}
     const userId = orderId.split('_')[1]
 
-    if (status === 'success' || status === 'paid' || status === 'approved') {
-      if (userId) {
-        await prisma.user.update({ where: { id: userId }, data: { plan: 'PREMIUM' } })
+    console.log('Extracted userId:', userId)
+
+    if (event === 'order_payment' && userId) {
+      try {
+        // Check if user exists
+        const user = await prisma.user.findUnique({
+          where: { id: userId }
+        })
+        
+        if (user) {
+          console.log('Updating user plan to PREMIUM:', userId)
+          await prisma.user.update({ 
+            where: { id: userId }, 
+            data: { plan: 'PREMIUM' } 
+          })
+          console.log('User plan updated successfully')
+        } else {
+          console.error('User not found:', userId)
+        }
+      } catch (dbError) {
+        console.error('Database update error:', dbError)
       }
     }
 

@@ -161,6 +161,13 @@ export async function createBogOrder(params: CreateOrderParams): Promise<CreateO
 }
 
 export type BogCallbackPayload = {
+  event?: string
+  zoned_request_time?: string
+  body?: {
+    order_id?: string
+    industry?: string
+    [key: string]: any
+  }
   order_id?: string
   status?: string
   amount?: number
@@ -170,10 +177,34 @@ export type BogCallbackPayload = {
   [key: string]: any
 }
 
+// BOG Public Key from official documentation
+const BOG_PUBLIC_KEY = `-----BEGIN PUBLIC KEY-----
+MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAu4RUyAw3+CdkS3ZNILQh
+zHI9Hemo+vKB9U2BSabppkKjzjjkf+0Sm76hSMiu/HFtYhqWOESryoCDJoqffY0Q
+1VNt25aTxbj068QNUtnxQ7KQVLA+pG0smf+EBWlS1vBEAFbIas9d8c9b9sSEkTrr
+TYQ90WIM8bGB6S/KLVoT1a7SnzabjoLc5Qf/SLDG5fu8dH8zckyeYKdRKSBJKvhx
+tcBuHV4f7qsynQT+f2UYbESX/TLHwT5qFWZDHZ0YUOUIvb8n7JujVSGZO9/+ll/g
+4ZIWhC1MlJgPObDwRkRd8NFOopgxMcMsDIZIoLbWKhHVq67hdbwpAq9K9WMmEhPn
+PwIDAQAB
+-----END PUBLIC KEY-----`
+
 export function verifyBogCallback(payload: BogCallbackPayload): boolean {
-  // Depending on merchant setup, BOG may sign callbacks; insert verification here if applicable.
-  // For now, accept and rely on server-side order query if needed.
-  return Boolean(payload?.order_id)
+  // BOG sends event: "order_payment" and body.order_id
+  const hasValidEvent = payload?.event === 'order_payment'
+  const hasValidOrderId = Boolean(payload?.body?.order_id || payload?.order_id)
+  
+  console.log('BOG Callback verification:', { 
+    hasValidEvent, 
+    hasValidOrderId, 
+    event: payload?.event, 
+    orderId: payload?.body?.order_id || payload?.order_id 
+  })
+  
+  // TODO: Implement proper SHA256withRSA signature verification
+  // For now, we'll do basic validation
+  // The signature verification would require crypto module and proper RSA verification
+  
+  return hasValidEvent && hasValidOrderId
 }
 
 
