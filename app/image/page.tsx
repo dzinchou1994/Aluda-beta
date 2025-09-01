@@ -101,6 +101,7 @@ export default function ImageGeneratorPage() {
 
   // Trigger translation when revisedPrompt changes
   useEffect(() => {
+    console.log('revisedPrompt changed:', revisedPrompt)
     if (revisedPrompt) {
       translatePrompt(revisedPrompt)
     } else {
@@ -164,6 +165,9 @@ export default function ImageGeneratorPage() {
   async function translatePrompt(englishPrompt: string): Promise<string> {
     if (!englishPrompt) return ''
     
+    console.log('Starting translation for:', englishPrompt)
+    console.log('API Key available:', !!process.env.NEXT_PUBLIC_GROQ_API_KEY)
+    
     setIsTranslating(true)
     try {
       const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
@@ -189,12 +193,20 @@ export default function ImageGeneratorPage() {
         }),
       })
 
+      console.log('Response status:', response.status)
+      
       if (!response.ok) {
-        throw new Error('Translation failed')
+        const errorText = await response.text()
+        console.error('API Error:', errorText)
+        throw new Error(`Translation failed: ${response.status}`)
       }
 
       const data = await response.json()
+      console.log('API Response:', data)
+      
       const translatedText = data.choices?.[0]?.message?.content?.trim() || englishPrompt
+      console.log('Translated text:', translatedText)
+      
       setTranslatedPrompt(translatedText)
       return translatedText
     } catch (error) {
