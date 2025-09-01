@@ -6,17 +6,21 @@ declare global {
 }
 
 const databaseUrl =
+  process.env.ALUDAAI_DATABASE_URL ||
   process.env.DATABASE_URL ||
   process.env.POSTGRES_PRISMA_URL ||
   process.env.POSTGRES_URL ||
   process.env.POSTGRES_URL_NON_POOLING ||
-  process.env.ALUDAAI_DATABASE_URL
+  "postgresql://neondb_owner:npg_Kdjq5JEbg6ei@ep-broad-fire-a2mlchsd-pooler.eu-central-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
 const prismaOptions = databaseUrl
   ? ({ datasources: { db: { url: databaseUrl } } } as const)
   : ({} as const)
 
-export const prisma = global.prisma || new PrismaClient(prismaOptions as any)
+export const prisma = new PrismaClient(prismaOptions as any)
 
-if (process.env.NODE_ENV !== 'production') global.prisma = prisma
+// Force disconnect on hot reload in development
+if (process.env.NODE_ENV !== 'production') {
+  global.prisma = prisma
+}
 
 
