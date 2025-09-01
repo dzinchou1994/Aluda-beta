@@ -342,7 +342,7 @@ export default function ImageGeneratorPage() {
                   <select
                     value={size}
                     onChange={(e) => setSize(e.target.value as any)}
-                    className="w-full border-2 border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-input-bg p-3 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/40 focus:border-purple-500 transition-all duration-200"
+                    className="w-full border-2 border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-input-bg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/40 focus:border-purple-500 transition-all duration-200"
                   >
                     <option value="1024x1024">1024×1024 - კვადრატი</option>
                     <option value="1792x1024">1792×1024 - ჰორიზონტალური</option>
@@ -357,7 +357,7 @@ export default function ImageGeneratorPage() {
                   <select
                     value={quality}
                     onChange={(e) => setQuality(e.target.value as any)}
-                    className="w-full border-2 border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-input-bg p-3 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/40 focus:border-purple-500 transition-all duration-200"
+                    className="w-full border-2 border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-input-bg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/40 focus:border-purple-500 transition-all duration-200"
                   >
                     <option value="standard">სტანდარტული</option>
                     <option value="hd">მაღალი ხარისხი (4K)</option>
