@@ -191,44 +191,43 @@ tcBuHV4f7qsynQT+f2UYbESX/TLHwT5qFWZDHZ0YUOUIvb8n7JujVSGZO9/+ll/g
 PwIDAQAB
 -----END PUBLIC KEY-----`
 
-export function verifyBogCallback(payload: BogCallbackPayload, signature?: string): boolean {
+export function verifyBogCallback(payload: BogCallbackPayload, signature?: string, rawBody?: string): boolean {
   // BOG sends event: "order_payment" and body.order_id
   const hasValidEvent = payload?.event === 'order_payment'
-  const hasValidOrderId = Boolean(payload?.body?.order_id || payload?.body?.external_order_id || payload?.order_id || payload?.external_order_id)
+  const hasValidOrderId = Boolean(payload?.body?.external_order_id || payload?.body?.order_id || payload?.external_order_id || payload?.order_id)
   
   console.log('BOG Callback verification:', { 
     hasValidEvent, 
     hasValidOrderId, 
     event: payload?.event, 
-    orderId: payload?.body?.order_id || payload?.body?.external_order_id || payload?.order_id || payload?.external_order_id,
-    hasSignature: Boolean(signature)
+    orderId: payload?.body?.external_order_id || payload?.body?.order_id || payload?.external_order_id || payload?.order_id,
+    hasSignature: Boolean(signature),
+    hasRawBody: Boolean(rawBody),
+    rawBodyLength: rawBody?.length
   })
   
   // If signature is provided, verify it using BOG's public key
-  if (signature) {
+  if (signature && rawBody) {
     try {
-      // Create the data to verify (event + body as JSON string)
-      const dataToVerify = JSON.stringify({
-        event: payload.event,
-        body: payload.body
-      })
-      
-      // Verify signature using BOG's public key
+      // BOG documentation: verify signature on raw request body before deserialization
       const verifier = crypto.createVerify('SHA256')
-      verifier.update(dataToVerify)
+      verifier.update(rawBody, 'utf8')
       
       const isValidSignature = verifier.verify(BOG_PUBLIC_KEY, signature, 'base64')
       console.log('Signature verification result:', isValidSignature)
+      console.log('Raw body for verification:', rawBody.substring(0, 200) + '...')
       
       return hasValidEvent && hasValidOrderId && isValidSignature
     } catch (error) {
       console.error('Signature verification error:', error)
       // If signature verification fails, fall back to basic validation
+      console.log('Falling back to basic validation due to signature verification failure')
       return hasValidEvent && hasValidOrderId
     }
   }
   
-  // If no signature, do basic validation
+  // If no signature or raw body, do basic validation
+  console.log('No signature or raw body, using basic validation')
   return hasValidEvent && hasValidOrderId
 }
 
