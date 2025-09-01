@@ -15,7 +15,6 @@ export default function ImageGeneratorPage() {
   const [revisedPrompt, setRevisedPrompt] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [size, setSize] = useState<'1024x1024' | '1024x1792' | '1792x1024'>('1024x1024')
-  const [quality, setQuality] = useState<'standard' | 'hd'>('standard')
   const [style, setStyle] = useState<'vivid' | 'natural'>('vivid')
   const [isDark, setIsDark] = useState(false)
   const [translatedPrompt, setTranslatedPrompt] = useState<string>('')
@@ -41,7 +40,6 @@ export default function ImageGeneratorPage() {
     prompt: string
     revisedPrompt: string | null
     size: '1024x1024' | '1024x1792' | '1792x1024'
-    quality: 'standard' | 'hd'
     style: 'vivid' | 'natural'
     createdAt: number
   }>>([])
@@ -205,7 +203,7 @@ export default function ImageGeneratorPage() {
       const res = await fetch('/api/generate-image', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt: buildPromptWithPreset(prompt, activePresetKey), size, quality, style }),
+        body: JSON.stringify({ prompt: buildPromptWithPreset(prompt, activePresetKey), size, style }),
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data?.error || 'Failed to generate image')
@@ -241,7 +239,6 @@ export default function ImageGeneratorPage() {
             prompt,
             revisedPrompt: data?.revised_prompt || null,
             size,
-            quality,
             style,
             createdAt: Date.now(),
           },
@@ -435,36 +432,49 @@ export default function ImageGeneratorPage() {
 
               {/* Desktop: Always Visible Settings */}
               <div className="hidden sm:block space-y-4 mb-6">
-                {/* Enhanced Settings Grid */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
-                      <Maximize className="w-4 h-4 text-purple-500" />
-                      ზომა
-                    </label>
-                    <select
-                      value={size}
-                      onChange={(e) => setSize(e.target.value as any)}
-                      className="w-full border-2 border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-input-bg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/40 focus:border-purple-500 transition-all duration-200"
+                {/* Modern Size Selector */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2">
+                    <Maximize className="w-4 h-4 text-purple-500" />
+                    ზომა
+                  </label>
+                  <div className="grid grid-cols-3 gap-2">
+                    <button
+                      onClick={() => setSize('1024x1024')}
+                      className={`group relative px-3 py-2 rounded-lg border-2 transition-all duration-300 hover:scale-102 ${
+                        size === '1024x1024'
+                          ? 'border-purple-500 bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-md' 
+                          : 'border-gray-200 dark:border-gray-700 hover:border-purple-300 dark:hover:border-purple-600 bg-white dark:bg-input-bg hover:bg-gray-50 dark:hover:bg-user-bubble'
+                      }`}
+                      title="კვადრატული ფორმატი"
                     >
-                      <option value="1024x1024">1024×1024 - კვადრატი</option>
-                      <option value="1792x1024">1792×1024 - ჰორიზონტალური</option>
-                      <option value="1024x1792">1024×1792 - ვერტიკალური</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
-                      <Sparkles className="w-4 h-4 text-purple-500" />
-                      ხარისხი
-                    </label>
-                    <select
-                      value={quality}
-                      onChange={(e) => setQuality(e.target.value as any)}
-                      className="w-full border-2 border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-input-bg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/40 focus:border-purple-500 transition-all duration-200"
+                      <div className="text-xs font-medium leading-tight">კვადრატი</div>
+                      <div className="text-[10px] opacity-80">1024×1024</div>
+                    </button>
+                    <button
+                      onClick={() => setSize('1792x1024')}
+                      className={`group relative px-3 py-2 rounded-lg border-2 transition-all duration-300 hover:scale-102 ${
+                        size === '1792x1024'
+                          ? 'border-purple-500 bg-gradient-to-r from-blue-500 to-purple-500 text-white shadow-md' 
+                          : 'border-gray-200 dark:border-gray-700 hover:border-purple-300 dark:hover:border-purple-600 bg-white dark:bg-input-bg hover:bg-gray-50 dark:hover:bg-user-bubble'
+                      }`}
+                      title="ჰორიზონტალური ფორმატი"
                     >
-                      <option value="standard">სტანდარტული</option>
-                      <option value="hd">მაღალი ხარისხი (4K)</option>
-                    </select>
+                      <div className="text-xs font-medium leading-tight">ჰორიზონტალური</div>
+                      <div className="text-[10px] opacity-80">1792×1024</div>
+                    </button>
+                    <button
+                      onClick={() => setSize('1024x1792')}
+                      className={`group relative px-3 py-2 rounded-lg border-2 transition-all duration-300 hover:scale-102 ${
+                        size === '1024x1792'
+                          ? 'border-purple-500 bg-gradient-to-r from-green-500 to-blue-500 text-white shadow-md' 
+                          : 'border-gray-200 dark:border-gray-700 hover:border-purple-300 dark:hover:border-purple-600 bg-white dark:bg-input-bg hover:bg-gray-50 dark:hover:bg-user-bubble'
+                      }`}
+                      title="ვერტიკალური ფორმატი"
+                    >
+                      <div className="text-xs font-medium leading-tight">ვერტიკალური</div>
+                      <div className="text-[10px] opacity-80">1024×1792</div>
+                    </button>
                   </div>
                 </div>
 
@@ -505,36 +515,49 @@ export default function ImageGeneratorPage() {
 
               {/* Mobile: Collapsible Advanced Settings */}
               <div className={`sm:hidden space-y-4 mb-6 ${showAdvancedSettings ? 'block' : 'hidden'}`}>
-                {/* Enhanced Settings Grid */}
-                <div className="grid grid-cols-1 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
-                      <Maximize className="w-4 h-4 text-purple-500" />
-                      ზომა
-                    </label>
-                    <select
-                      value={size}
-                      onChange={(e) => setSize(e.target.value as any)}
-                      className="w-full border-2 border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-input-bg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/40 focus:border-purple-500 transition-all duration-200"
+                {/* Modern Size Selector */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2">
+                    <Maximize className="w-4 h-4 text-purple-500" />
+                    ზომა
+                  </label>
+                  <div className="grid grid-cols-3 gap-2">
+                    <button
+                      onClick={() => setSize('1024x1024')}
+                      className={`group relative px-3 py-2 rounded-lg border-2 transition-all duration-300 hover:scale-102 ${
+                        size === '1024x1024'
+                          ? 'border-purple-500 bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-md' 
+                          : 'border-gray-200 dark:border-gray-700 hover:border-purple-300 dark:hover:border-purple-600 bg-white dark:bg-input-bg hover:bg-gray-50 dark:hover:bg-user-bubble'
+                      }`}
+                      title="კვადრატული ფორმატი"
                     >
-                      <option value="1024x1024">1024×1024 - კვადრატი</option>
-                      <option value="1792x1024">1792×1024 - ჰორიზონტალური</option>
-                      <option value="1024x1792">1024×1792 - ვერტიკალური</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
-                      <Sparkles className="w-4 h-4 text-purple-500" />
-                      ხარისხი
-                    </label>
-                    <select
-                      value={quality}
-                      onChange={(e) => setQuality(e.target.value as any)}
-                      className="w-full border-2 border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-input-bg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/40 focus:border-purple-500 transition-all duration-200"
+                      <div className="text-xs font-medium leading-tight">კვადრატი</div>
+                      <div className="text-[10px] opacity-80">1024×1024</div>
+                    </button>
+                    <button
+                      onClick={() => setSize('1792x1024')}
+                      className={`group relative px-3 py-2 rounded-lg border-2 transition-all duration-300 hover:scale-102 ${
+                        size === '1792x1024'
+                          ? 'border-purple-500 bg-gradient-to-r from-blue-500 to-purple-500 text-white shadow-md' 
+                          : 'border-gray-200 dark:border-gray-700 hover:border-purple-300 dark:hover:border-purple-600 bg-white dark:bg-input-bg hover:bg-gray-50 dark:hover:bg-user-bubble'
+                      }`}
+                      title="ჰორიზონტალური ფორმატი"
                     >
-                      <option value="standard">სტანდარტული</option>
-                      <option value="hd">მაღალი ხარისხი (4K)</option>
-                    </select>
+                      <div className="text-xs font-medium leading-tight">ჰორიზონტალური</div>
+                      <div className="text-[10px] opacity-80">1792×1024</div>
+                    </button>
+                    <button
+                      onClick={() => setSize('1024x1792')}
+                      className={`group relative px-3 py-2 rounded-lg border-2 transition-all duration-300 hover:scale-102 ${
+                        size === '1024x1792'
+                          ? 'border-purple-500 bg-gradient-to-r from-green-500 to-blue-500 text-white shadow-md' 
+                          : 'border-gray-200 dark:border-gray-700 hover:border-purple-300 dark:hover:border-purple-600 bg-white dark:bg-input-bg hover:bg-gray-50 dark:hover:bg-user-bubble'
+                      }`}
+                      title="ვერტიკალური ფორმატი"
+                    >
+                      <div className="text-xs font-medium leading-tight">ვერტიკალური</div>
+                      <div className="text-[10px] opacity-80">1024×1792</div>
+                    </button>
                   </div>
                 </div>
 
@@ -745,13 +768,6 @@ export default function ImageGeneratorPage() {
                           <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-2">
                             <div className="text-[10px] text-white flex justify-between items-center">
                               <span className="font-medium">{g.size.replace('1024x','1k×')}</span>
-                              <span className={`px-1 py-0.5 rounded text-[8px] ${
-                                g.quality === 'hd' 
-                                  ? 'bg-purple-500 text-white' 
-                                  : 'bg-gray-500 text-white'
-                              }`}>
-                                {g.quality === 'hd' ? 'HD' : 'Std'}
-                              </span>
                             </div>
                           </div>
                         </button>
