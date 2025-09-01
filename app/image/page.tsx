@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { toast } from '@/components/ui/use-toast'
-import { Brain, Sun, Moon, ArrowLeft, Sparkles, Palette, Download, Copy, History, Trash2, Wand2, Maximize } from 'lucide-react'
+import { Brain, Sun, Moon, ArrowLeft, Sparkles, Palette, Download, Copy, History, Trash2, Wand2, Maximize, ChevronDown } from 'lucide-react'
 
 export default function ImageGeneratorPage() {
   const [prompt, setPrompt] = useState('')
@@ -17,6 +17,7 @@ export default function ImageGeneratorPage() {
   const [isDark, setIsDark] = useState(false)
   const [translatedPrompt, setTranslatedPrompt] = useState<string>('')
   const [isTranslating, setIsTranslating] = useState(false)
+  const [showAdvancedSettings, setShowAdvancedSettings] = useState(false)
   const stylePresets: Array<{ key: string; label: string; promptAddon: string; icon: string; gradient: string }> = [
     { key: 'photorealistic', label: 'ფოტორეალისტური', promptAddon: 'highly detailed photorealistic, shallow depth of field, realistic lighting', icon: '📸', gradient: 'from-blue-500 to-cyan-500' },
     { key: 'cinematic', label: 'სინემატიური', promptAddon: 'cinematic lighting, film still, dramatic composition, anamorphic bokeh', icon: '🎬', gradient: 'from-purple-500 to-pink-500' },
@@ -332,72 +333,93 @@ export default function ImageGeneratorPage() {
                 />
               </div>
 
-              {/* Enhanced Settings Grid */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
-                    <Maximize className="w-4 h-4 text-purple-500" />
-                    ზომა
-                  </label>
-                  <select
-                    value={size}
-                    onChange={(e) => setSize(e.target.value as any)}
-                    className="w-full border-2 border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-input-bg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/40 focus:border-purple-500 transition-all duration-200"
-                  >
-                    <option value="1024x1024">1024×1024 - კვადრატი</option>
-                    <option value="1792x1024">1792×1024 - ჰორიზონტალური</option>
-                    <option value="1024x1792">1024×1792 - ვერტიკალური</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
+              {/* Advanced Settings Toggle */}
+              <div className="mb-4">
+                <button
+                  onClick={() => setShowAdvancedSettings(!showAdvancedSettings)}
+                  className="w-full flex items-center justify-between p-3 rounded-lg border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-input-bg hover:bg-gray-50 dark:hover:bg-user-bubble transition-all duration-200"
+                >
+                  <div className="flex items-center gap-2">
                     <Sparkles className="w-4 h-4 text-purple-500" />
-                    ხარისხი
-                  </label>
-                  <select
-                    value={quality}
-                    onChange={(e) => setQuality(e.target.value as any)}
-                    className="w-full border-2 border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-input-bg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/40 focus:border-purple-500 transition-all duration-200"
-                  >
-                    <option value="standard">სტანდარტული</option>
-                    <option value="hd">მაღალი ხარისხი (4K)</option>
-                  </select>
-                </div>
+                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300">დამატებითი პარამეტრები</span>
+                  </div>
+                  <ChevronDown 
+                    className={`w-4 h-4 text-gray-500 transition-transform duration-200 ${showAdvancedSettings ? 'rotate-180' : ''}`} 
+                  />
+                </button>
               </div>
 
-              {/* Enhanced Style Presets */}
-              <div className="mb-6">
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2">
-                  <Palette className="w-4 h-4 text-purple-500" />
-                  სტილი
-                </label>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                  {stylePresets.map(preset => (
-                    <button
-                      key={preset.key}
-                      onClick={() => setActivePresetKey(prev => prev === preset.key ? null : preset.key)}
-                      className={`group relative px-3 py-2 rounded-lg border-2 transition-all duration-300 hover:scale-102 ${
-                        activePresetKey === preset.key 
-                          ? `border-purple-500 bg-gradient-to-r ${preset.gradient} text-white shadow-md` 
-                          : 'border-gray-200 dark:border-gray-700 hover:border-purple-300 dark:hover:border-purple-600 bg-white dark:bg-input-bg hover:bg-gray-50 dark:hover:bg-user-bubble'
-                      }`}
-                      title={preset.promptAddon}
-                    >
-                      <div className="flex items-center gap-1.5">
-                        <span className="text-xs">{preset.icon}</span>
-                        <span className={`text-xs font-medium leading-tight ${activePresetKey === preset.key ? 'text-white' : 'text-gray-700 dark:text-gray-300'}`}>
-                          {preset.label}
-                        </span>
-                      </div>
-                      {activePresetKey === preset.key && (
-                        <div className="absolute -top-1 -right-1 w-3 h-3 bg-white rounded-full flex items-center justify-center shadow-sm">
-                          <div className="w-1.5 h-1.5 bg-purple-500 rounded-full"></div>
-                        </div>
-                      )}
-                    </button>
-                  ))}
+              {/* Collapsible Advanced Settings */}
+              {showAdvancedSettings && (
+                <div className="space-y-4 mb-6">
+                  {/* Enhanced Settings Grid */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
+                        <Maximize className="w-4 h-4 text-purple-500" />
+                        ზომა
+                      </label>
+                      <select
+                        value={size}
+                        onChange={(e) => setSize(e.target.value as any)}
+                        className="w-full border-2 border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-input-bg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/40 focus:border-purple-500 transition-all duration-200"
+                      >
+                        <option value="1024x1024">1024×1024 - კვადრატი</option>
+                        <option value="1792x1024">1792×1024 - ჰორიზონტალური</option>
+                        <option value="1024x1792">1024×1792 - ვერტიკალური</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
+                        <Sparkles className="w-4 h-4 text-purple-500" />
+                        ხარისხი
+                      </label>
+                      <select
+                        value={quality}
+                        onChange={(e) => setQuality(e.target.value as any)}
+                        className="w-full border-2 border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-input-bg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/40 focus:border-purple-500 transition-all duration-200"
+                      >
+                        <option value="standard">სტანდარტული</option>
+                        <option value="hd">მაღალი ხარისხი (4K)</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* Enhanced Style Presets */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2">
+                      <Palette className="w-4 h-4 text-purple-500" />
+                      სტილი
+                    </label>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                      {stylePresets.map(preset => (
+                        <button
+                          key={preset.key}
+                          onClick={() => setActivePresetKey(prev => prev === preset.key ? null : preset.key)}
+                          className={`group relative px-3 py-2 rounded-lg border-2 transition-all duration-300 hover:scale-102 ${
+                            activePresetKey === preset.key 
+                              ? `border-purple-500 bg-gradient-to-r ${preset.gradient} text-white shadow-md` 
+                              : 'border-gray-200 dark:border-gray-700 hover:border-purple-300 dark:hover:border-purple-600 bg-white dark:bg-input-bg hover:bg-gray-50 dark:hover:bg-user-bubble'
+                          }`}
+                          title={preset.promptAddon}
+                        >
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-xs">{preset.icon}</span>
+                            <span className={`text-xs font-medium leading-tight ${activePresetKey === preset.key ? 'text-white' : 'text-gray-700 dark:text-gray-300'}`}>
+                              {preset.label}
+                            </span>
+                          </div>
+                          {activePresetKey === preset.key && (
+                            <div className="absolute -top-1 -right-1 w-3 h-3 bg-white rounded-full flex items-center justify-center shadow-sm">
+                              <div className="w-1.5 h-1.5 bg-purple-500 rounded-full"></div>
+                            </div>
+                          )}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
                 </div>
-              </div>
+              )}
 
               {/* Enhanced Action Buttons */}
               <div className="flex gap-3">
