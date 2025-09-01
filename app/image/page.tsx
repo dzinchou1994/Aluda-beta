@@ -49,7 +49,16 @@ export default function ImageGeneratorPage() {
         try {
           const parsed = JSON.parse(saved)
           if (Array.isArray(parsed)) {
-            setGenerations(parsed)
+            // Filter out generations older than 24 hours to avoid broken images
+            const oneDayAgo = Date.now() - (24 * 60 * 60 * 1000)
+            const recentGenerations = parsed.filter(g => g.createdAt > oneDayAgo)
+            
+            if (recentGenerations.length !== parsed.length) {
+              // Update localStorage with filtered generations
+              localStorage.setItem('aluda-image-generations', JSON.stringify(recentGenerations))
+            }
+            
+            setGenerations(recentGenerations)
           }
         } catch (e) {
           console.warn('Failed to parse saved generations:', e)
@@ -483,7 +492,15 @@ export default function ImageGeneratorPage() {
                           }`}
                           title={g.prompt}
                         >
-                          <img src={g.url} alt="thumb" className="aspect-square object-cover w-full" />
+                          <img 
+                            src={g.url} 
+                            alt="thumb" 
+                            className="aspect-square object-cover w-full"
+                            onError={(e) => {
+                              // Hide broken images by setting display to none
+                              e.currentTarget.style.display = 'none'
+                            }}
+                          />
                           <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-2">
                             <div className="text-[10px] text-white flex justify-between items-center">
                               <span className="font-medium">{g.size.replace('1024x','1k×')}</span>
