@@ -136,29 +136,13 @@ export default function Sidebar({
           <span className="text-sm">ახალი საუბარი</span>
         </button>
         {/* Generate Image CTA under New Chat */}
-        <button
-          onClick={() => {
-            setShowImageSoon(true)
-            if (hideImageSoonTimeout.current) {
-              clearTimeout(hideImageSoonTimeout.current)
-            }
-            hideImageSoonTimeout.current = setTimeout(() => {
-              setShowImageSoon(false)
-              hideImageSoonTimeout.current = null
-            }, 3000)
-          }}
+        <a
+          href="/image"
           className="mt-2 w-full flex items-center justify-center space-x-2 p-3 bg-gradient-to-r from-fuchsia-500 to-pink-600 text-white rounded-lg hover:from-fuchsia-600 hover:to-pink-700 transition-all duration-200 shadow-md hover:shadow-lg"
         >
           <ImageIcon className="w-4.5 h-4.5" />
           <span className="text-sm">დააგენერირე სურათი</span>
-        </button>
-        {showImageSoon && (
-          <div className="mt-2 text-center">
-            <div className="inline-block px-3 py-1 text-xs rounded-md border border-pink-200 bg-pink-50 text-pink-700 dark:border-pink-700 dark:bg-pink-900/20 dark:text-pink-300 shadow-sm">
-              სერვისი მალე დაემატება
-            </div>
-          </div>
-        )}
+        </a>
       </div>
       {settingsOpen && (
         <UserSettingsModal open={settingsOpen} onClose={() => setSettingsOpen(false)} userEmail={session?.user?.email} />
