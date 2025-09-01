@@ -88,12 +88,19 @@ export default function ImageGeneratorPage() {
 
   return (
     <div className="max-w-6xl mx-auto p-6">
-      <h1 className="text-2xl font-semibold mb-4">AI Image Generator</h1>
+      <div className="mb-6">
+        <div className="flex items-center justify-between">
+          <h1 className="text-2xl font-semibold bg-gradient-to-r from-blue-600 to-fuchsia-600 bg-clip-text text-transparent">
+            Aluda სურათების გენერატორი
+          </h1>
+        </div>
+        <div className="mt-3 h-[2px] w-full bg-gradient-to-r from-blue-500/40 via-fuchsia-500/40 to-pink-500/40 rounded-full" />
+      </div>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
         {/* Left: Controls */}
-        <div className="space-y-4">
+        <div className="space-y-4 border border-gray-200 dark:border-gray-800 rounded-xl p-4 bg-white/60 dark:bg-[#121212]/60 backdrop-blur-sm shadow-sm">
           <textarea
-            className="w-full rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-[#171717] p-3 text-sm"
+            className="w-full rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-[#171717] p-4 text-sm focus:outline-none focus:ring-2 focus:ring-fuchsia-500/40"
             rows={6}
             placeholder="Describe the image you want to generate..."
             value={prompt}
@@ -106,7 +113,7 @@ export default function ImageGeneratorPage() {
               <select
                 value={size}
                 onChange={(e) => setSize(e.target.value as any)}
-                className="w-full border border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-[#171717] p-2 text-sm"
+                className="w-full border border-gray-200 dark:border-gray-800 rounded-lg bg-white dark:bg-[#171717] p-2.5 text-sm"
               >
                 <option value="1024x1024">1024x1024</option>
                 <option value="1792x1024">1792x1024 (landscape)</option>
@@ -118,7 +125,7 @@ export default function ImageGeneratorPage() {
               <select
                 value={quality}
                 onChange={(e) => setQuality(e.target.value as any)}
-                className="w-full border border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-[#171717] p-2 text-sm"
+                className="w-full border border-gray-200 dark:border-gray-800 rounded-lg bg-white dark:bg-[#171717] p-2.5 text-sm"
               >
                 <option value="standard">Standard</option>
                 <option value="hd">HD</option>
@@ -129,7 +136,7 @@ export default function ImageGeneratorPage() {
               <select
                 value={style}
                 onChange={(e) => setStyle(e.target.value as any)}
-                className="w-full border border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-[#171717] p-2 text-sm"
+                className="w-full border border-gray-200 dark:border-gray-800 rounded-lg bg-white dark:bg-[#171717] p-2.5 text-sm"
               >
                 <option value="vivid">Vivid</option>
                 <option value="natural">Natural</option>
@@ -144,7 +151,7 @@ export default function ImageGeneratorPage() {
                 <button
                   key={p.key}
                   onClick={() => setActivePresetKey(prev => prev === p.key ? null : p.key)}
-                  className={`px-3 py-1.5 rounded-full text-sm border ${activePresetKey === p.key ? 'border-fuchsia-500 text-fuchsia-600 dark:text-fuchsia-400' : 'border-gray-300 dark:border-gray-700'}`}
+                  className={`px-3 py-1.5 rounded-full text-sm border transition-colors ${activePresetKey === p.key ? 'border-fuchsia-500 bg-fuchsia-50 text-fuchsia-700 dark:bg-fuchsia-500/10 dark:text-fuchsia-300' : 'border-gray-200 dark:border-gray-800 hover:border-gray-300 dark:hover:border-gray-700'}`}
                   title={p.promptAddon}
                 >
                   {p.label}
@@ -157,13 +164,13 @@ export default function ImageGeneratorPage() {
             <button
               onClick={handleGenerate}
               disabled={!prompt || isLoading}
-              className="px-4 py-2 rounded-md bg-gradient-to-r from-fuchsia-500 to-pink-600 text-white disabled:opacity-50"
+              className="px-4 py-2 rounded-lg bg-gradient-to-r from-blue-600 to-fuchsia-600 text-white disabled:opacity-50 shadow-sm hover:shadow transition-shadow"
             >
               {isLoading ? 'Generating…' : 'Generate'}
             </button>
             <button
               onClick={() => { setPrompt(''); setImageUrl(null); setRevisedPrompt(null); setError(null) }}
-              className="px-4 py-2 rounded-md border border-gray-300 dark:border-gray-700"
+              className="px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-[#1b1b1b]"
             >
               Clear
             </button>
@@ -175,19 +182,19 @@ export default function ImageGeneratorPage() {
         </div>
 
         {/* Right: Result */}
-        <div>
+        <div className="space-y-4">
           {!imageUrl && !isLoading && (
-            <div className="border border-dashed border-gray-300 dark:border-gray-700 rounded-lg p-6 text-center text-sm text-gray-500 dark:text-gray-400">
+            <div className="border border-dashed border-gray-300 dark:border-gray-700 rounded-xl p-8 text-center text-sm text-gray-500 dark:text-gray-400 bg-white/40 dark:bg-[#111111]/40 backdrop-blur-sm">
               Generated image will appear here
             </div>
           )}
 
           {isLoading && (
-            <div className="animate-pulse border rounded-lg h-80 bg-gray-100 dark:bg-[#1f1f1f]" />
+            <div className="animate-pulse border border-gray-200 dark:border-gray-800 rounded-xl h-80 bg-gray-100 dark:bg-[#1f1f1f]" />
           )}
 
           {imageUrl && (
-            <div className="space-y-3">
+            <div className="space-y-4 border border-gray-200 dark:border-gray-800 rounded-xl p-4 bg-white/60 dark:bg-[#121212]/60 backdrop-blur-sm shadow-sm">
               {revisedPrompt && (
                 <div className="text-xs text-gray-500 dark:text-gray-400">Revised prompt: {revisedPrompt}</div>
               )}
@@ -195,20 +202,20 @@ export default function ImageGeneratorPage() {
               <div className="flex gap-3">
                 <button
                   onClick={() => navigator.clipboard.writeText(imageUrl)}
-                  className="px-3 py-2 rounded-md border border-gray-300 dark:border-gray-700 text-sm"
+                  className="px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-800 text-sm hover:bg-gray-50 dark:hover:bg-[#1b1b1b]"
                 >
                   Copy URL
                 </button>
                 <a
                   href={imageUrl}
                   download
-                  className="px-3 py-2 rounded-md bg-gray-900 text-white text-sm dark:bg-white dark:text-black"
+                  className="px-3 py-2 rounded-lg bg-gray-900 text-white text-sm dark:bg-white dark:text-black"
                 >
                   Download
                 </a>
               </div>
               {generations.length > 0 && (
-                <div className="pt-4">
+                <div className="pt-2">
                   <div className="flex items-center justify-between mb-2">
                     <h2 className="text-sm font-medium text-gray-700 dark:text-gray-200">History</h2>
                     <button
@@ -223,7 +230,7 @@ export default function ImageGeneratorPage() {
                       <button
                         key={g.id}
                         onClick={() => { setImageUrl(g.url); setRevisedPrompt(g.revisedPrompt) }}
-                        className={`group relative border rounded-md overflow-hidden ${imageUrl === g.url ? 'ring-2 ring-fuchsia-500' : 'border-gray-200 dark:border-gray-700'}`}
+                        className={`group relative border rounded-lg overflow-hidden transition-all ${imageUrl === g.url ? 'ring-2 ring-fuchsia-500' : 'border-gray-200 dark:border-gray-800 hover:border-gray-300 dark:hover:border-gray-700'}`}
                         title={g.prompt}
                       >
                         <img src={g.url} alt="thumb" className="aspect-square object-cover w-full" />
