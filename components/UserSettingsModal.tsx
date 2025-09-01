@@ -2,7 +2,8 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import { useTokens } from '@/context/TokensContext'
-import { Image } from 'lucide-react'
+import { Image, ChevronDown, LogOut } from 'lucide-react'
+import { signOut } from 'next-auth/react'
 
 interface Props {
   open: boolean
@@ -19,6 +20,8 @@ export default function UserSettingsModal({ open, onClose, userEmail }: Props) {
   const [newPassword, setNewPassword] = useState('')
   const [passMsg, setPassMsg] = useState('')
   const [passLoading, setPassLoading] = useState(false)
+  const [showEmailChange, setShowEmailChange] = useState(false)
+  const [showPasswordChange, setShowPasswordChange] = useState(false)
 
   useEffect(() => {
     if (open) {
@@ -27,6 +30,8 @@ export default function UserSettingsModal({ open, onClose, userEmail }: Props) {
       setCurrentPassword('')
       setNewPassword('')
       setPassMsg('')
+      setShowEmailChange(false)
+      setShowPasswordChange(false)
       refresh()
     }
   }, [open, userEmail, refresh])
@@ -157,51 +162,84 @@ export default function UserSettingsModal({ open, onClose, userEmail }: Props) {
             </div>
           </div>
 
-          {/* Email */}
+          {/* Email Change */}
           <div>
-            <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">ელფოსტის შეცვლა</h3>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-transparent text-gray-900 dark:text-white"
-              placeholder="ახალი ელფოსტა"
-            />
-            <div className="mt-2 flex justify-end">
-              <button
-                onClick={handleEmailSave}
-                disabled={emailLoading}
-                className="px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg disabled:opacity-50"
-              >შენახვა</button>
-            </div>
-            {emailMsg && <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">{emailMsg}</p>}
+            <button
+              onClick={() => setShowEmailChange(!showEmailChange)}
+              className="w-full flex items-center justify-between p-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-input-bg hover:bg-gray-50 dark:hover:bg-user-bubble transition-all duration-200"
+            >
+              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">ელფოსტის შეცვლა</span>
+              <ChevronDown className={`w-4 h-4 text-gray-500 transition-transform duration-200 ${showEmailChange ? 'rotate-180' : ''}`} />
+            </button>
+            
+            {showEmailChange && (
+              <div className="mt-3 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-transparent text-gray-900 dark:text-white"
+                  placeholder="ახალი ელფოსტა"
+                />
+                <div className="mt-2 flex justify-end">
+                  <button
+                    onClick={handleEmailSave}
+                    disabled={emailLoading}
+                    className="px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg disabled:opacity-50"
+                  >შენახვა</button>
+                </div>
+                {emailMsg && <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">{emailMsg}</p>}
+              </div>
+            )}
           </div>
 
-          {/* Password */}
+          {/* Password Change */}
           <div>
-            <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">პაროლის შეცვლა</h3>
-            <input
-              type="password"
-              value={currentPassword}
-              onChange={(e) => setCurrentPassword(e.target.value)}
-              className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-transparent text-gray-900 dark:text-white mb-2"
-              placeholder="მიმდინარე პაროლი"
-            />
-            <input
-              type="password"
-              value={newPassword}
-              onChange={(e) => setNewPassword(e.target.value)}
-              className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-transparent text-gray-900 dark:text-white"
-              placeholder="ახალი პაროლი"
-            />
-            <div className="mt-2 flex justify-end">
-              <button
-                onClick={handlePasswordSave}
-                disabled={passLoading}
-                className="px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg disabled:opacity-50"
-              >შენახვა</button>
-            </div>
-            {passMsg && <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">{passMsg}</p>}
+            <button
+              onClick={() => setShowPasswordChange(!showPasswordChange)}
+              className="w-full flex items-center justify-between p-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-input-bg hover:bg-gray-50 dark:hover:bg-user-bubble transition-all duration-200"
+            >
+              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">პაროლის შეცვლა</span>
+              <ChevronDown className={`w-4 h-4 text-gray-500 transition-transform duration-200 ${showPasswordChange ? 'rotate-180' : ''}`} />
+            </button>
+            
+            {showPasswordChange && (
+              <div className="mt-3 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                <input
+                  type="password"
+                  value={currentPassword}
+                  onChange={(e) => setCurrentPassword(e.target.value)}
+                  className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-transparent text-gray-900 dark:text-white mb-2"
+                  placeholder="მიმდინარე პაროლი"
+                />
+                <input
+                  type="password"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-transparent text-gray-900 dark:text-white"
+                  placeholder="ახალი პაროლი"
+                />
+                <div className="mt-2 flex justify-end">
+                  <button
+                    onClick={handlePasswordSave}
+                    disabled={passLoading}
+                    className="px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg disabled:opacity-50"
+                  >შენახვა</button>
+                </div>
+                {passMsg && <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">{passMsg}</p>}
+              </div>
+            )}
+          </div>
+
+          {/* Logout */}
+          <div>
+            <button
+              onClick={() => signOut({ callbackUrl: '/' })}
+              className="w-full flex items-center justify-center gap-2 p-3 rounded-lg border border-red-200 dark:border-red-700 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/30 text-red-600 dark:text-red-400 transition-all duration-200"
+            >
+              <LogOut className="w-4 h-4" />
+              <span className="text-sm font-medium">გამოსვლა</span>
+            </button>
           </div>
         </div>
 
