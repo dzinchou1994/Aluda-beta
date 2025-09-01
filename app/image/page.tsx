@@ -497,8 +497,10 @@ export default function ImageGeneratorPage() {
                             alt="thumb" 
                             className="aspect-square object-cover w-full"
                             onError={(e) => {
-                              // Hide broken images by setting display to none
-                              e.currentTarget.style.display = 'none'
+                              // Hide the entire button when image fails to load
+                              if (e.currentTarget.parentElement) {
+                                e.currentTarget.parentElement.style.display = 'none'
+                              }
                             }}
                           />
                           <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-2">
