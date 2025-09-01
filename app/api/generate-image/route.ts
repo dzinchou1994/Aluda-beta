@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { getOrCreateSession } from '@/lib/session'
-import { addImageUsage } from '@/lib/tokens'
+import { addImageUsage, canGenerateImage } from '@/lib/tokens'
 
 export async function POST(req: Request) {
   try {
@@ -16,12 +16,22 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Invalid prompt' }, { status: 400 })
     }
 
-    // Track image usage
+    // Check image generation limits
     const session = await getServerSession(authOptions)
     const cookieSess = getOrCreateSession()
     const actor = session?.user?.id
       ? { type: 'user' as const, id: session.user.id, plan: 'USER' as const }
       : { type: 'guest' as const, id: cookieSess.guestId || cookieSess.sessionId }
+    
+    // Check if user can generate more images
+    const imageCheck = await canGenerateImage(actor)
+    if (!imageCheck.allowed) {
+      const limits = imageCheck.limits
+      const usage = imageCheck.usage
+      return NextResponse.json({ 
+        error: `Image generation limit reached. You have used ${usage.images}/${limits.images} images this month.` 
+      }, { status: 429 })
+    }
     
     // Add image usage tracking
     await addImageUsage(actor, 1)

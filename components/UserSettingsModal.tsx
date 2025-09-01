@@ -149,15 +149,25 @@ export default function UserSettingsModal({ open, onClose, userEmail }: Props) {
                     {usage.images || 0}
                   </span>
                   <span className="text-sm text-gray-600 dark:text-gray-400">
-                    სურათი
+                    / {limits.images || 0}
                   </span>
                 </div>
                 <div className="text-right">
-                  <div className="text-xs text-gray-500 dark:text-gray-400">ჯამური რაოდენობა</div>
+                  <div className="text-xs text-gray-500 dark:text-gray-400">თვიური ლიმიტი</div>
                   <div className="text-xs text-gray-600 dark:text-gray-400">
-                    ბოლო 30 დღეში
+                    {actor?.plan === 'PREMIUM' ? 'Premium' : actor?.type === 'user' ? 'User' : 'Guest'}
                   </div>
                 </div>
+              </div>
+              {/* Progress bar for images */}
+              <div className="mt-3 w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 overflow-hidden">
+                <div 
+                  className="bg-gradient-to-r from-purple-500 to-pink-500 h-2" 
+                  style={{ width: `${limits.images ? Math.min(100, Math.round((usage.images / limits.images) * 100)) : 0}%` }} 
+                />
+              </div>
+              <div className="mt-1 text-xs text-gray-600 dark:text-gray-400 text-center">
+                {usage.images || 0} / {limits.images || 0} სურათი
               </div>
             </div>
           </div>
@@ -248,5 +258,6 @@ export default function UserSettingsModal({ open, onClose, userEmail }: Props) {
     </div>
   )
 }
+
 
 

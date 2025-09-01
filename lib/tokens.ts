@@ -12,12 +12,12 @@ export function getPeriodKeys(date = new Date()) {
 
 export function getLimits(actor: Actor) {
   if (actor.type === 'guest') {
-    return { daily: 1500, monthly: 10000 }
+    return { daily: 1500, monthly: 10000, images: 2 }
   }
   if (actor.plan === 'PREMIUM') {
-    return { daily: 25000, monthly: 300000 }
+    return { daily: 25000, monthly: 300000, images: 60 }
   }
-  return { daily: 7500, monthly: 60000 }
+  return { daily: 7500, monthly: 60000, images: 5 }
 }
 
 export async function getUsage(actor: Actor) {
@@ -158,6 +158,26 @@ export async function canConsume(actor: Actor, tokens: number) {
   const usage = await getUsage(actor)
   return {
     allowed: usage.daily + tokens <= limits.daily && usage.monthly + tokens <= limits.monthly,
+    usage,
+    limits,
+  }
+}
+
+export async function canGenerateImage(actor: Actor) {
+  // Local development mode - always allow
+  if (process.env.DISABLE_TOKEN_TRACKING === 'true') {
+    console.log('Image generation check disabled for local development');
+    return {
+      allowed: true,
+      usage: { daily: 0, monthly: 0, images: 0 },
+      limits: getLimits(actor),
+    };
+  }
+
+  const limits = getLimits(actor)
+  const usage = await getUsage(actor)
+  return {
+    allowed: usage.images < limits.images,
     usage,
     limits,
   }
