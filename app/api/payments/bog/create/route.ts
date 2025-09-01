@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { createBogOrder } from '@/lib/bog'
+import { prisma } from '@/lib/prisma'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -17,6 +18,38 @@ export async function POST(request: NextRequest) {
     console.log('=== BOG CREATE ORDER START ===')
     console.log('Session user ID:', session.user.id)
     console.log('Session user email:', session.user.email)
+    console.log('Full session data:', JSON.stringify(session, null, 2))
+
+    // Verify user exists in database
+    const user = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { id: true, email: true, plan: true }
+    })
+
+    if (!user) {
+      console.error('User not found in database:', session.user.id)
+      console.log('Available users in database:')
+      try {
+        const allUsers = await prisma.user.findMany({
+          select: { id: true, email: true, plan: true }
+        })
+        console.log('All users:', allUsers)
+        
+        // Try to find user by email
+        if (session.user.email) {
+          const userByEmail = await prisma.user.findUnique({
+            where: { email: session.user.email },
+            select: { id: true, email: true, plan: true }
+          })
+          console.log('User found by email:', userByEmail)
+        }
+      } catch (e) {
+        console.error('Error fetching all users:', e)
+      }
+      return NextResponse.json({ error: 'User not found in database' }, { status: 404 })
+    }
+
+    console.log('Database user found:', user)
 
     const json = await request.json().catch(() => ({}))
     const { amount = 100, currency = 'GEL' } = json || {}
