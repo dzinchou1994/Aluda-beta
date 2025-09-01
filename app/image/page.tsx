@@ -12,11 +12,20 @@ export default function ImageGeneratorPage() {
   const [size, setSize] = useState<'1024x1024' | '1024x1792' | '1792x1024'>('1024x1024')
   const [quality, setQuality] = useState<'standard' | 'hd'>('standard')
   const [style, setStyle] = useState<'vivid' | 'natural'>('vivid')
+  const [generations, setGenerations] = useState<Array<{
+    id: string
+    url: string
+    prompt: string
+    revisedPrompt: string | null
+    size: '1024x1024' | '1024x1792' | '1792x1024'
+    quality: 'standard' | 'hd'
+    style: 'vivid' | 'natural'
+    createdAt: number
+  }>>([])
 
   const handleGenerate = async () => {
     setIsLoading(true)
     setError(null)
-    setImageUrl(null)
     try {
       const res = await fetch('/api/generate-image', {
         method: 'POST',
@@ -30,6 +39,22 @@ export default function ImageGeneratorPage() {
       if (url) {
         setImageUrl(url)
         setRevisedPrompt(data?.revised_prompt || null)
+        const id = (typeof crypto !== 'undefined' && 'randomUUID' in crypto)
+          ? (crypto as any).randomUUID()
+          : `${Date.now()}-${Math.random().toString(36).slice(2)}`
+        setGenerations(prev => [
+          {
+            id,
+            url,
+            prompt,
+            revisedPrompt: data?.revised_prompt || null,
+            size,
+            quality,
+            style,
+            createdAt: Date.now(),
+          },
+          ...prev,
+        ])
       }
       else setError('No image URL returned')
     } catch (e: any) {
@@ -146,6 +171,35 @@ export default function ImageGeneratorPage() {
                   Download
                 </a>
               </div>
+              {generations.length > 0 && (
+                <div className="pt-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <h2 className="text-sm font-medium text-gray-700 dark:text-gray-200">History</h2>
+                    <button
+                      onClick={() => setGenerations([])}
+                      className="text-xs text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                    >
+                      Clear
+                    </button>
+                  </div>
+                  <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+                    {generations.map(g => (
+                      <button
+                        key={g.id}
+                        onClick={() => { setImageUrl(g.url); setRevisedPrompt(g.revisedPrompt) }}
+                        className={`group relative border rounded-md overflow-hidden ${imageUrl === g.url ? 'ring-2 ring-fuchsia-500' : 'border-gray-200 dark:border-gray-700'}`}
+                        title={g.prompt}
+                      >
+                        <img src={g.url} alt="thumb" className="aspect-square object-cover w-full" />
+                        <div className="absolute bottom-0 left-0 right-0 text-[10px] px-1 py-0.5 bg-black/50 text-white flex justify-between">
+                          <span>{g.size.replace('1024x','1k×')}</span>
+                          <span>{g.quality === 'hd' ? 'HD' : 'Std'}</span>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>
