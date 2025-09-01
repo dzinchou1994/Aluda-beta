@@ -71,7 +71,7 @@ export default function ModelSwitcher() {
       case 'aluda2':
         return <Sparkles className="h-4 w-4 text-purple-500" />;
       case 'test':
-        return <Zap className="h-4 w-4 text-green-400" />;
+        return <Zap className="h-4 w-4" />;
       default:
         return <Zap className="h-4 w-4" />;
     }
