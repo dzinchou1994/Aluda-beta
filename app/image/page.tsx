@@ -701,8 +701,11 @@ export default function ImageGeneratorPage() {
                         return
                       }
                       
+                      console.log('Starting download process for:', imageUrl)
+                      
                       try {
                         // Method 1: Try direct download first
+                        console.log('Attempting direct download...')
                         const link = document.createElement('a')
                         link.href = imageUrl
                         link.download = `aluda-image-${Date.now()}.png`
@@ -715,9 +718,9 @@ export default function ImageGeneratorPage() {
                         
                         // Check if download actually started
                         setTimeout(() => {
-                          // If direct download didn't work, try blob method
+                          console.log('Direct download timeout, trying blob method...')
                           downloadAsBlob()
-                        }, 100)
+                        }, 500)
                         
                       } catch (error) {
                         console.error('Direct download failed, trying blob method:', error)
@@ -733,19 +736,26 @@ export default function ImageGeneratorPage() {
                           
                           // Add timestamp to avoid cache issues
                           const urlWithTimestamp = `${imageUrl}${imageUrl.includes('?') ? '&' : '?'}t=${Date.now()}`
+                          console.log('Fetching with timestamp:', urlWithTimestamp)
                           
                           const response = await fetch(urlWithTimestamp, {
                             method: 'GET',
                             mode: 'cors',
-                            cache: 'no-cache'
+                            cache: 'no-cache',
+                            headers: {
+                              'Accept': 'image/*',
+                              'User-Agent': navigator.userAgent
+                            }
                           })
+                          
+                          console.log('Fetch response:', response.status, response.statusText)
                           
                           if (!response.ok) {
                             throw new Error(`HTTP error! status: ${response.status}`)
                           }
                           
                           const blob = await response.blob()
-                          console.log('Blob created:', blob.size, 'bytes')
+                          console.log('Blob created:', blob.size, 'bytes, type:', blob.type)
                           
                           // Create download link
                           const url = window.URL.createObjectURL(blob)
@@ -766,17 +776,87 @@ export default function ImageGeneratorPage() {
                           toast({ title: 'ჩამოტვირთვა დაწყებულია!', description: 'სურათი ჩამოტვირთება თქვენს მოწყობილობაზე' })
                           
                         } catch (blobError) {
-                          console.error('Blob download also failed:', blobError)
+                          console.error('Blob download failed:', blobError)
                           
-                          // Final fallback: open in new tab
-                          toast({ 
-                            title: 'ავტომატური ჩამოტვირთვა ვერ შესრულდა', 
-                            description: 'სურათი ახალ ფანჯარაში გაიხსნება, სადაც შეგიძლიათ ხელით ჩამოტვირთოთ' 
-                          })
-                          
-                          // Open image in new tab for manual download
-                          window.open(imageUrl, '_blank')
+                          // Try alternative method: canvas download
+                          tryAlternativeDownload()
                         }
+                      }
+                      
+                      // Alternative method: use canvas to download
+                      async function tryAlternativeDownload() {
+                        if (!imageUrl) return
+                        
+                        try {
+                          console.log('Trying canvas-based download...')
+                          
+                          const img = new Image()
+                          img.crossOrigin = 'anonymous'
+                          
+                          img.onload = () => {
+                            try {
+                              const canvas = document.createElement('canvas')
+                              canvas.width = img.width
+                              canvas.height = img.height
+                              
+                              const ctx = canvas.getContext('2d')
+                              if (ctx) {
+                                ctx.drawImage(img, 0, 0)
+                                
+                                canvas.toBlob((blob) => {
+                                  if (blob) {
+                                    const url = window.URL.createObjectURL(blob)
+                                    const a = document.createElement('a')
+                                    a.href = url
+                                    a.download = `aluda-image-${Date.now()}.png`
+                                    a.style.display = 'none'
+                                    
+                                    document.body.appendChild(a)
+                                    a.click()
+                                    
+                                    setTimeout(() => {
+                                      window.URL.revokeObjectURL(url)
+                                      document.body.removeChild(a)
+                                    }, 100)
+                                    
+                                    toast({ title: 'ჩამოტვირთვა დაწყებულია!', description: 'Canvas მეთოდით ჩამოტვირთება' })
+                                  } else {
+                                    throw new Error('Canvas blob creation failed')
+                                  }
+                                }, 'image/png')
+                              }
+                            } catch (canvasError) {
+                              console.error('Canvas download failed:', canvasError)
+                              openInNewTab()
+                            }
+                          }
+                          
+                          img.onerror = () => {
+                            console.error('Image loading failed for canvas method')
+                            openInNewTab()
+                          }
+                          
+                          img.src = imageUrl
+                          
+                        } catch (canvasError) {
+                          console.error('Canvas method failed:', canvasError)
+                          openInNewTab()
+                        }
+                      }
+                      
+                      // Final fallback: open in new tab
+                      function openInNewTab() {
+                        if (!imageUrl) return
+                        
+                        console.log('All download methods failed, opening in new tab')
+                        
+                        toast({ 
+                          title: 'ავტომატური ჩამოტვირთვა ვერ შესრულდა', 
+                          description: 'სურათი ახალ ფანჯარაში გაიხსნება, სადაც შეგიძლიათ ხელით ჩამოტვირთოთ' 
+                        })
+                        
+                        // Open image in new tab for manual download
+                        window.open(imageUrl, '_blank')
                       }
                     }}
                     className="flex-1 px-4 py-2 rounded-xl bg-gradient-to-r from-green-600 to-emerald-600 text-white text-sm font-medium shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center gap-2"
