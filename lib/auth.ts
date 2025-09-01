@@ -96,7 +96,7 @@ export const authOptions: NextAuthOptions = {
 
             if (user && user.id !== token.id) {
               // Update token with correct user ID
-              token.id = user.id
+              token.id = user.id as any
               (session.user as any).id = user.id
               console.log('Session user ID auto-corrected:', {
                 oldId: token.id as string,
