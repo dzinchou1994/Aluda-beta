@@ -694,14 +694,36 @@ export default function ImageGeneratorPage() {
                     <Copy className="w-4 h-4" />
                     ბმულის კოპირება
                   </button>
-                  <a
-                    href={imageUrl}
-                    download
+                  <button
+                    onClick={async () => {
+                      try {
+                        // Fetch the image as blob
+                        const response = await fetch(imageUrl)
+                        const blob = await response.blob()
+                        
+                        // Create download link
+                        const url = window.URL.createObjectURL(blob)
+                        const a = document.createElement('a')
+                        a.href = url
+                        a.download = `aluda-image-${Date.now()}.png`
+                        document.body.appendChild(a)
+                        a.click()
+                        
+                        // Cleanup
+                        window.URL.revokeObjectURL(url)
+                        document.body.removeChild(a)
+                        
+                        toast({ title: 'ჩამოტვირთვა დაწყებულია!', description: 'სურათი ჩამოტვირთება თქვენს მოწყობილობაზე' })
+                      } catch (error) {
+                        console.error('Download failed:', error)
+                        toast({ title: 'ჩამოტვირთვა ვერ შესრულდა', description: 'სცადეთ თავიდან' })
+                      }
+                    }}
                     className="flex-1 px-4 py-2 rounded-xl bg-gradient-to-r from-green-600 to-emerald-600 text-white text-sm font-medium shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center gap-2"
                   >
                     <Download className="w-4 h-4" />
                     ჩამოტვირთვა
-                  </a>
+                  </button>
                 </div>
 
                 {generations.length > 0 && (
