@@ -250,7 +250,7 @@ export default function Sidebar({
                 {session.user?.name || session.user?.email}
               </button>
               {/* Premium Badge in collapsed row */}
-              {usage && limits && limits.daily > 25000 && (
+              {(limits.daily > 25000 || (limits && limits.daily > 25000)) && (
                 <div className="px-1.5 py-0.5 bg-gradient-to-r from-purple-600 to-purple-700 text-white text-xs font-semibold rounded-full shadow-sm">
                   PREMIUM
                 </div>
@@ -286,7 +286,7 @@ export default function Sidebar({
                     </p>
                   </div>
                   {/* Premium Badge */}
-                  {usage && limits && limits.daily > 25000 && (
+                  {(limits.daily > 25000 || (limits && limits.daily > 25000)) && (
                     <div className="px-2 py-1 bg-gradient-to-r from-purple-600 to-purple-700 text-white text-xs font-semibold rounded-full shadow-sm">
                       PREMIUM
                     </div>
@@ -307,13 +307,13 @@ export default function Sidebar({
                     <span className={`text-xs px-2 py-1 rounded-full ${
                       limits.daily > 0 && usage.daily / limits.daily >= 0.95
                         ? 'bg-red-100 text-red-700 dark:bg-red-900/20 dark:text-red-300'
-                        : limits.daily > 25000 
+                        : limits.daily > 25000 || (limits && limits.daily > 25000)
                           ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/20 dark:text-purple-300'
                           : 'bg-blue-100 text-blue-700 dark:bg-blue-900/20 dark:text-blue-300'
                     }`}>
                       {limits.daily > 0 && usage.daily / limits.daily >= 0.95 
                         ? 'ლიმიტი ამოწურული' 
-                        : limits.daily > 25000 
+                        : limits.daily > 25000 || (limits && limits.daily > 25000)
                           ? 'Premium'
                           : 'User'
                       }
