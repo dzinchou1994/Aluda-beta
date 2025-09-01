@@ -1,7 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { toast } from '@/components/ui/use-toast'
+import { Brain, Sun, Moon, ArrowLeft } from 'lucide-react'
 
 export default function ImageGeneratorPage() {
   const [prompt, setPrompt] = useState('')
@@ -12,6 +13,7 @@ export default function ImageGeneratorPage() {
   const [size, setSize] = useState<'1024x1024' | '1024x1792' | '1792x1024'>('1024x1024')
   const [quality, setQuality] = useState<'standard' | 'hd'>('standard')
   const [style, setStyle] = useState<'vivid' | 'natural'>('vivid')
+  const [isDark, setIsDark] = useState(false)
   const stylePresets: Array<{ key: string; label: string; promptAddon: string }> = [
     { key: 'photorealistic', label: 'Photorealistic', promptAddon: 'highly detailed photorealistic, shallow depth of field, realistic lighting' },
     { key: 'cinematic', label: 'Cinematic', promptAddon: 'cinematic lighting, film still, dramatic composition, anamorphic bokeh' },
@@ -86,14 +88,58 @@ export default function ImageGeneratorPage() {
     return `${base}\nStyle: ${preset.promptAddon}`
   }
 
+  useEffect(() => {
+    const savedTheme = typeof window !== 'undefined' ? localStorage.getItem('aluda-theme') : null
+    if (savedTheme === 'dark' || (!savedTheme && typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+      setIsDark(true)
+      if (typeof document !== 'undefined') document.documentElement.classList.add('dark')
+    }
+  }, [])
+
+  const toggleTheme = () => {
+    const next = !isDark
+    setIsDark(next)
+    if (typeof document !== 'undefined') {
+      if (next) {
+        document.documentElement.classList.add('dark')
+        localStorage.setItem('aluda-theme', 'dark')
+      } else {
+        document.documentElement.classList.remove('dark')
+        localStorage.setItem('aluda-theme', 'light')
+      }
+    }
+  }
+
   return (
     <div className="max-w-6xl mx-auto p-6">
-      <div className="mb-6">
+      {/* Top bar with logo, back, theme toggle */}
+      <div className="mb-6 border-b border-gray-200 dark:border-gray-800 pb-3">
         <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-semibold bg-gradient-to-r from-blue-600 to-fuchsia-600 bg-clip-text text-transparent">
-            Aluda სურათების გენერატორი
-          </h1>
+          <a href="/chat" className="flex items-center" aria-label="AludaAI">
+            <div className="w-7 h-7 logo-gradient rounded-lg flex items-center justify-center mr-2">
+              <Brain className="w-4 h-4 text-white" />
+            </div>
+            <span className="text-sm font-semibold bg-gradient-to-r from-blue-600 to-purple-600 dark:from-white dark:to-gray-300 bg-clip-text text-transparent">AludaAI</span>
+          </a>
+          <div className="flex items-center gap-2">
+            <a
+              href="/chat"
+              className="flex items-center gap-1 px-3 py-1.5 rounded-lg border border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-[#1b1b1b] text-sm"
+            >
+              <ArrowLeft className="w-4 h-4" /> <span>მთავარზე</span>
+            </a>
+            <button
+              onClick={toggleTheme}
+              className="p-2 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-800/60 rounded-lg transition-all"
+              title={isDark ? 'Light Mode' : 'Dark Mode'}
+            >
+              {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+            </button>
+          </div>
         </div>
+      </div>
+      <div className="mb-6">
+        <h1 className="text-2xl font-semibold bg-gradient-to-r from-blue-600 to-fuchsia-600 bg-clip-text text-transparent">Aluda სურათების გენერატორი</h1>
         <div className="mt-3 h-[2px] w-full bg-gradient-to-r from-blue-500/40 via-fuchsia-500/40 to-pink-500/40 rounded-full" />
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
