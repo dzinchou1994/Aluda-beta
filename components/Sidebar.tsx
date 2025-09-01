@@ -46,7 +46,6 @@ export default function Sidebar({
   const [openMenuChatId, setOpenMenuChatId] = useState<string | null>(null)
   const [showImageSoon, setShowImageSoon] = useState(false)
   const hideImageSoonTimeout = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const [isUserPanelOpen, setIsUserPanelOpen] = useState(false)
 
   useEffect(() => {
     return () => {
@@ -68,19 +67,6 @@ export default function Sidebar({
       document.removeEventListener('keydown', onKey)
     }
   }, [openMenuChatId])
-
-  // Close user panel on outside click or Escape
-  useEffect(() => {
-    if (!isUserPanelOpen) return
-    const onDocClick = () => setIsUserPanelOpen(false)
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setIsUserPanelOpen(false) }
-    document.addEventListener('click', onDocClick)
-    document.addEventListener('keydown', onKey)
-    return () => {
-      document.removeEventListener('click', onDocClick)
-      document.removeEventListener('keydown', onKey)
-    }
-  }, [isUserPanelOpen])
 
   // Load theme preference from localStorage
   useEffect(() => {
@@ -234,18 +220,18 @@ export default function Sidebar({
             {/* Collapsed row: avatar + username */}
             <div className="flex items-center justify-start gap-2">
               <button
-                onClick={(e) => { e.stopPropagation(); setIsUserPanelOpen(prev => !prev) }}
+                onClick={(e) => { e.stopPropagation(); setSettingsOpen(true) }}
                 className="w-9 h-9 rounded-full bg-gray-600 dark:bg-gray-700 flex items-center justify-center hover:ring-2 hover:ring-gray-300 dark:hover:ring-gray-600 transition-all"
-                title={isUserPanelOpen ? 'დახურვა' : 'მომხმარებლის ინფორმაცია'}
-                aria-expanded={isUserPanelOpen}
+                title="პარამეტრები"
+                aria-label="პარამეტრები"
               >
                 <User className="w-4.5 h-4.5 text-white" />
               </button>
               <button
-                onClick={(e) => { e.stopPropagation(); setIsUserPanelOpen(prev => !prev) }}
+                onClick={(e) => { e.stopPropagation(); setSettingsOpen(true) }}
                 className="flex-1 text-left text-xs font-medium text-gray-900 dark:text-white truncate hover:text-blue-600 dark:hover:text-blue-400"
                 title={session.user?.email || 'მომხმარებელი'}
-                aria-label="მომხმარებლის ინფორმაცია"
+                aria-label="პარამეტრები"
               >
                 {session.user?.name || session.user?.email}
               </button>
@@ -265,98 +251,7 @@ export default function Sidebar({
               </button>
             </div>
 
-            {/* Floating panel */}
-            {isUserPanelOpen && (
-              <div
-                onClick={(e) => e.stopPropagation()}
-                onMouseDown={(e) => e.stopPropagation()}
-                className="absolute bottom-14 left-2 right-2 bg-white dark:bg-sidebar-dark border border-gray-200 dark:border-gray-800 rounded-lg shadow-lg p-3 space-y-3 animate-slide-up z-20"
-              >
-                {/* User Info Header */}
-                <div className="flex items-center space-x-3 p-2 bg-gray-50 dark:bg-sidebar-dark rounded-lg">
-                  <div className="w-7 h-7 bg-gray-600 dark:bg-gray-700 rounded-full flex items-center justify-center">
-                    <User className="w-4 h-4 text-white" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
-                      {session.user?.name || session.user?.email}
-                    </p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">
-                      {session.user?.email}
-                    </p>
-                  </div>
-                  {/* Premium Badge */}
-                  {(limits.daily > 25000 || (limits && limits.daily > 25000)) && (
-                    <div className="px-2 py-1 bg-gradient-to-r from-purple-600 to-purple-700 text-white text-xs font-semibold rounded-full shadow-sm">
-                      PREMIUM
-                    </div>
-                  )}
-                  <button
-                    onClick={onSignOut}
-                    className="p-1 text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-colors"
-                    title="გამოსვლა"
-                  >
-                    <LogOut className="w-4 h-4" />
-                  </button>
-                </div>
-
-                {/* User Plan */}
-                <div className="p-2 bg-gray-50 dark:bg-sidebar-dark rounded-lg">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-medium text-gray-700 dark:text-gray-300">გეგმა</span>
-                    <span className={`text-xs px-2 py-1 rounded-full ${
-                      limits.daily > 0 && usage.daily / limits.daily >= 0.95
-                        ? 'bg-red-100 text-red-700 dark:bg-red-900/20 dark:text-red-300'
-                        : limits.daily > 25000 || (limits && limits.daily > 25000)
-                          ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/20 dark:text-purple-300'
-                          : 'bg-blue-100 text-blue-700 dark:bg-blue-900/20 dark:text-blue-300'
-                    }`}>
-                      {limits.daily > 0 && usage.daily / limits.daily >= 0.95 
-                        ? 'ლიმიტი ამოწურული' 
-                        : limits.daily > 25000 || (limits && limits.daily > 25000)
-                          ? 'Premium'
-                          : 'User'
-                      }
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-gray-600 dark:text-gray-400">
-                      {usage.daily}/{limits.daily} ტოკენი
-                    </span>
-                    {limits.daily > 0 && (
-                      <div className="w-16 bg-gray-200 dark:bg-gray-700 rounded-full h-2 overflow-hidden">
-                        <div
-                          className={`${usage.daily / limits.daily >= 0.95 ? 'bg-red-500' : 'bg-blue-400'} h-2`}
-                          style={{ width: `${Math.min(100, (usage.daily / limits.daily) * 100)}%` }}
-                        />
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* Quick Actions */}
-                <div className="grid grid-cols-2 gap-2">
-                  <button
-                    onClick={() => setSettingsOpen(true)}
-                    className="flex items-center justify-center space-x-2 p-2 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-200 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-all duration-200 text-xs"
-                    title="პარამეტრები"
-                  >
-                    <span>⚙️</span>
-                    <span>პარამეტრები</span>
-                  </button>
-                  {limits.daily > 0 && usage.daily / limits.daily >= 0.95 && (
-                    <button
-                      onClick={() => window.open('/buy', '_blank')}
-                      className="flex items-center justify-center space-x-2 p-2 bg-gradient-to-r from-yellow-500 to-orange-500 text-white rounded-lg hover:from-yellow-600 hover:to-orange-600 transition-all duration-200 text-xs"
-                      title="გახდი პრემიუმ"
-                    >
-                      <span>⭐</span>
-                      <span>პრემიუმი</span>
-                    </button>
-                  )}
-                </div>
-              </div>
-            )}
+            {/* Large user panel removed - no more hover/click panel */}
           </>
         ) : (
           <div className="flex items-center justify-start gap-2">
