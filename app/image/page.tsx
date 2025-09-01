@@ -54,6 +54,21 @@ export default function ImageGeneratorPage() {
           localStorage.removeItem('aluda-image-generations')
         }
       }
+      
+      // Load current image state
+      const savedCurrentImage = localStorage.getItem('aluda-current-image')
+      if (savedCurrentImage) {
+        try {
+          const parsed = JSON.parse(savedCurrentImage)
+          if (parsed.url) {
+            setImageUrl(parsed.url)
+            setRevisedPrompt(parsed.revisedPrompt || null)
+          }
+        } catch (e) {
+          console.warn('Failed to parse saved current image:', e)
+          localStorage.removeItem('aluda-current-image')
+        }
+      }
     }
   }, []) // Only run on mount
 
@@ -67,6 +82,20 @@ export default function ImageGeneratorPage() {
       }
     }
   }, [generations])
+
+  // Save current image state whenever it changes
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.setItem('aluda-current-image', JSON.stringify({
+          url: imageUrl,
+          revisedPrompt: revisedPrompt
+        }))
+      } catch (e) {
+        console.warn('Failed to save current image:', e)
+      }
+    }
+  }, [imageUrl, revisedPrompt])
 
   const handleGenerate = async () => {
     setIsLoading(true)
@@ -289,6 +318,7 @@ export default function ImageGeneratorPage() {
                         setGenerations([])
                         if (typeof window !== 'undefined') {
                           localStorage.removeItem('aluda-image-generations')
+                          localStorage.removeItem('aluda-current-image')
                         }
                       }}
                       className="text-xs text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
