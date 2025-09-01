@@ -238,7 +238,14 @@ export default function ImageGeneratorPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50 dark:bg-[#171818]">
+    <div 
+      className="min-h-screen"
+      style={{
+        background: isDark 
+          ? '#171818' 
+          : 'linear-gradient(to bottom right, rgb(248 250 252), rgb(239 246 255), rgb(250 245 255))'
+      }}
+    >
       <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
         {/* Enhanced Header */}
         <div className="mb-8">
