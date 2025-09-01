@@ -712,45 +712,43 @@ export default function ImageGeneratorPage() {
                       // Wait a bit then open in new tab
                       setTimeout(() => {
                         try {
-                          // Method 1: Try to force new tab with window.open
-                          const newWindow = window.open('', '_blank', 'noopener,noreferrer')
-                          if (newWindow) {
-                            newWindow.location.href = imageUrl
-                          } else {
-                            // Method 2: If popup blocked, use link method
-                            const link = document.createElement('a')
-                            link.href = imageUrl
-                            link.target = '_blank'
-                            link.rel = 'noopener noreferrer'
-                            link.style.display = 'none'
-                            
-                            document.body.appendChild(link)
-                            link.click()
-                            document.body.removeChild(link)
-                          }
-                        } catch (error) {
-                          console.error('Failed to open new window:', error)
+                          // Method 1: Direct new tab opening
+                          const link = document.createElement('a')
+                          link.href = imageUrl
+                          link.target = '_blank'
+                          link.rel = 'noopener noreferrer'
+                          link.style.display = 'none'
                           
-                          // Method 3: Last resort - try to download directly
+                          document.body.appendChild(link)
+                          link.click()
+                          document.body.removeChild(link)
+                          
+                        } catch (error) {
+                          console.error('Failed to open new tab:', error)
+                          
+                          // Method 2: Try window.open with direct URL
                           try {
-                            const link = document.createElement('a')
-                            link.href = imageUrl
-                            link.download = `aluda-image-${Date.now()}.png`
-                            link.style.display = 'none'
+                            const newWindow = window.open(imageUrl, '_blank', 'noopener,noreferrer')
+                            if (!newWindow) {
+                              // Method 3: If popup blocked, show alert
+                              alert('Popup blocked! გთხოვთ დაეთანხმოთ popup-ების გახსნას და ხელით გახსნათ სურათი ახალ ფანჯარაში.')
+                            }
+                          } catch (windowError) {
+                            console.error('Window.open also failed:', windowError)
                             
-                            document.body.appendChild(link)
-                            link.click()
-                            document.body.removeChild(link)
-                            
-                            toast({ 
-                              title: 'ჩამოტვირთვა დაწყებულია!', 
-                              description: 'შეამოწმეთ თქვენი downloads ფოლდერი' 
-                            })
-                          } catch (downloadError) {
-                            console.error('Direct download also failed:', downloadError)
-                            
-                            // Final fallback: alert user
-                            alert('სურათის ჩამოტვირთვა ვერ შესრულდა. გთხოვთ ხელით გადაწეროთ URL და ახალ ფანჯარაში გახსნათ.')
+                            // Method 4: Final fallback - copy URL to clipboard
+                            try {
+                              navigator.clipboard.writeText(imageUrl)
+                              toast({ 
+                                title: 'URL დაკოპირებულია!', 
+                                description: 'გთხოვთ ხელით გახსნათ ახალ ფანჯარაში' 
+                              })
+                            } catch (clipboardError) {
+                              console.error('Clipboard failed:', clipboardError)
+                              
+                              // Last resort: show URL in alert
+                              alert(`სურათის URL: ${imageUrl}\n\nგთხოვთ ხელით გადაწეროთ და ახალ ფანჯარაში გახსნათ.`)
+                            }
                           }
                         }
                       }, 1000)
