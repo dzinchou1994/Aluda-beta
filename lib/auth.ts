@@ -85,6 +85,29 @@ export const authOptions: NextAuthOptions = {
         (session.user as any).id = token.id as string
         session.user.name = token.name as string | null | undefined
         session.user.email = token.email as string | null | undefined
+
+        // Auto-fix session user ID mismatch
+        if (session.user.email) {
+          try {
+            const user = await prisma.user.findUnique({
+              where: { email: session.user.email },
+              select: { id: true, email: true, plan: true }
+            })
+
+            if (user && user.id !== token.id) {
+              // Update token with correct user ID
+              token.id = user.id
+              (session.user as any).id = user.id
+              console.log('Session user ID auto-corrected:', {
+                oldId: token.id,
+                newId: user.id,
+                email: session.user.email
+              })
+            }
+          } catch (error) {
+            console.error('Session auto-fix error:', error)
+          }
+        }
       }
       return session
     }
