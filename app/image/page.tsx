@@ -7,6 +7,7 @@ import { Brain, Sun, Moon, ArrowLeft, Sparkles, Palette, Download, Copy, History
 export default function ImageGeneratorPage() {
   const [prompt, setPrompt] = useState('')
   const [isLoading, setIsLoading] = useState(false)
+  const [isImageLoading, setIsImageLoading] = useState(false)
   const [imageUrl, setImageUrl] = useState<string | null>(null)
   const [revisedPrompt, setRevisedPrompt] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -132,8 +133,25 @@ export default function ImageGeneratorPage() {
 
       const url = data?.url || data?.image?.url || data?.data?.[0]?.url
       if (url) {
-        setImageUrl(url)
-        setRevisedPrompt(data?.revised_prompt || null)
+        // Set image loading state and start loading the image
+        setIsImageLoading(true)
+        
+        // Preload the image to ensure it's fully loaded before showing
+        const img = new Image()
+        img.onload = () => {
+          setImageUrl(url)
+          setRevisedPrompt(data?.revised_prompt || null)
+          setIsImageLoading(false)
+          setIsLoading(false)
+        }
+        img.onerror = () => {
+          setError('Failed to load generated image')
+          setIsImageLoading(false)
+          setIsLoading(false)
+        }
+        img.src = url
+        
+        // Add to generations immediately
         const id = (typeof crypto !== 'undefined' && 'randomUUID' in crypto)
           ? (crypto as any).randomUUID()
           : `${Date.now()}-${Math.random().toString(36).slice(2)}`
@@ -151,13 +169,16 @@ export default function ImageGeneratorPage() {
           ...prev,
         ])
       }
-      else setError('No image URL returned')
+      else {
+        setError('No image URL returned')
+        setIsLoading(false)
+      }
     } catch (e: any) {
       const msg = e?.message || 'Unknown error'
       setError(msg)
       toast({ title: 'გენერაცია ვერ შესრულდა', description: msg })
-    } finally {
       setIsLoading(false)
+      setIsImageLoading(false)
     }
   }
 
@@ -374,10 +395,10 @@ export default function ImageGeneratorPage() {
               <div className="flex gap-3">
                 <button
                   onClick={handleGenerate}
-                  disabled={!prompt || isLoading}
+                  disabled={!prompt || isLoading || isImageLoading}
                   className="flex-1 px-6 py-3 rounded-xl bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 text-white font-medium disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 flex items-center justify-center gap-2"
                 >
-                  {isLoading ? (
+                  {(isLoading || isImageLoading) ? (
                     <>
                       <div className="relative">
                         <div className="w-5 h-5 border-2 border-white/20 rounded-full animate-spin"></div>
@@ -410,7 +431,7 @@ export default function ImageGeneratorPage() {
 
           {/* Enhanced Right Panel: Result */}
           <div className="space-y-6">
-            {!imageUrl && !isLoading && (
+            {!imageUrl && !isLoading && !isImageLoading && (
               <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-2xl p-12 text-center bg-white/80 dark:bg-input-bg backdrop-blur-sm">
                 <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-blue-100 to-purple-100 dark:from-blue-900/20 dark:to-purple-900/20 rounded-2xl flex items-center justify-center">
                   <Sparkles className="w-8 h-8 text-purple-500" />
@@ -420,7 +441,7 @@ export default function ImageGeneratorPage() {
               </div>
             )}
 
-            {isLoading && (
+            {(isLoading || isImageLoading) && (
               <div className="bg-white/80 dark:bg-input-bg backdrop-blur-sm rounded-2xl p-8 shadow-xl border border-gray-200/50 dark:border-gray-700">
                 <div className="flex flex-col items-center justify-center space-y-6">
                   {/* Cool loading animation */}
