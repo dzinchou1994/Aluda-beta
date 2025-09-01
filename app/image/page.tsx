@@ -175,8 +175,10 @@ export default function ImageGeneratorPage() {
       }
     } catch (e: any) {
       const msg = e?.message || 'Unknown error'
-      setError(msg)
-      toast({ title: 'გენერაცია ვერ შესრულდა', description: msg })
+      // Replace OpenAI error messages with Aluda Error
+      const displayMsg = msg.includes('OpenAI') ? 'Aluda Error' : msg
+      setError(displayMsg)
+      toast({ title: 'გენერაცია ვერ შესრულდა', description: displayMsg })
       setIsLoading(false)
       setIsImageLoading(false)
     }

@@ -33,10 +33,10 @@ export async function POST(req: Request) {
     if (!response.ok) {
       try {
         const errJson = await response.json()
-        return NextResponse.json({ error: 'OpenAI error', details: errJson }, { status: response.status })
+        return NextResponse.json({ error: 'Aluda Error', details: errJson }, { status: response.status })
       } catch {
         const errText = await response.text()
-        return NextResponse.json({ error: 'OpenAI error', details: errText }, { status: response.status })
+        return NextResponse.json({ error: 'Aluda Error', details: errText }, { status: response.status })
       }
     }
 
