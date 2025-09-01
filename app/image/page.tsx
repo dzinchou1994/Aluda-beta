@@ -299,27 +299,27 @@ export default function ImageGeneratorPage() {
                 <div className="text-xs text-gray-500 dark:text-gray-300">AI Image Generator</div>
               </div>
             </a>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 sm:gap-3">
               <a
                 href="/chat"
-                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/80 dark:bg-input-bg backdrop-blur-sm border border-gray-200/50 dark:border-gray-700 hover:bg-white dark:hover:bg-user-bubble text-sm font-medium transition-all duration-200 hover:shadow-md"
+                className="flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl bg-white/80 dark:bg-input-bg backdrop-blur-sm border border-gray-200/50 dark:border-gray-700 hover:bg-white dark:hover:bg-user-bubble text-xs sm:text-sm font-medium transition-all duration-200 hover:shadow-md"
               >
-                <ArrowLeft className="w-4 h-4" />
-                <span>მთავარზე</span>
+                <ArrowLeft className="w-3 h-3 sm:w-4 sm:h-4" />
+                <span className="hidden sm:inline">მთავარზე</span>
               </a>
               <button
                 onClick={toggleTheme}
-                className="p-3 rounded-xl bg-white/80 dark:bg-input-bg backdrop-blur-sm border border-gray-200/50 dark:border-gray-700 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-white dark:hover:bg-user-bubble transition-all duration-200 hover:shadow-md"
+                className="p-2 sm:p-3 rounded-lg sm:rounded-xl bg-white/80 dark:bg-input-bg backdrop-blur-sm border border-gray-200/50 dark:border-gray-700 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-white dark:hover:bg-user-bubble transition-all duration-200 hover:shadow-md"
                 title={isDark ? 'Light Mode' : 'Dark Mode'}
               >
-                {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+                {isDark ? <Sun className="w-4 h-4 sm:w-5 sm:h-5" /> : <Moon className="w-4 h-4 sm:w-5 sm:h-5" />}
               </button>
               <button
                 onClick={() => session ? setIsSettingsOpen(true) : signIn()}
-                className="p-3 rounded-xl bg-white/80 dark:bg-input-bg backdrop-blur-sm border border-gray-200/50 dark:border-gray-700 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-white dark:hover:bg-user-bubble transition-all duration-200 hover:shadow-md"
+                className="p-2 sm:p-3 rounded-lg sm:rounded-xl bg-white/80 dark:bg-input-bg backdrop-blur-sm border border-gray-200/50 dark:border-gray-700 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-white dark:hover:bg-user-bubble transition-all duration-200 hover:shadow-md"
                 title={session ? 'პარამეტრები' : 'შესვლა'}
               >
-                <User className="w-5 h-5" />
+                <User className="w-4 h-4 sm:w-5 sm:h-5" />
               </button>
             </div>
           </div>
