@@ -1,16 +1,21 @@
 "use client"
 
 import Link from 'next/link'
-import { Check } from 'lucide-react'
+import { Check, Crown } from 'lucide-react'
 import { useSession } from 'next-auth/react'
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { useTokens } from '@/context/TokensContext'
 
 export default function BuyPage() {
-  const { status } = useSession()
+  const { status, data: session } = useSession()
+  const { actor } = useTokens()
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  // Check if user has premium access
+  const hasPremium = actor?.plan === 'PREMIUM'
 
   // Guests should not see the buy page; redirect them to signin
   useEffect(() => {
@@ -47,7 +52,7 @@ export default function BuyPage() {
                   <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">ხელმისაწვდომია ყველა ავტორიზებული მომხმარებლისთვის</p>
                 </div>
 
-                <ul className="mt-6 sm:mt-8 space-y-3 sm:space-y-4 max-w-md mx-auto">
+                <ul className="mt-6 sm:mt-8 space-y-3 sm:mt-4 max-w-md mx-auto">
                   <li className="flex items-start gap-3">
                     <Check className="h-5 w-5 text-green-600 mt-0.5 shrink-0" />
                     <span className="text-gray-800 dark:text-gray-200">დღიური ლიმიტი: 7,500 ტოკენი</span>
@@ -86,33 +91,42 @@ export default function BuyPage() {
             <div className="order-2 lg:order-2">
               <div className="rounded-2xl bg-gradient-to-b from-gray-50 to-white dark:from-gray-800 dark:to-gray-900 p-6 sm:p-8 border border-gray-200 dark:border-gray-700 h-full flex flex-col">
                 <div className="text-center">
-                  <div className="flex items-baseline justify-center gap-2">
-                    <span className="text-4xl sm:text-5xl font-extrabold text-gray-900 dark:text-white">₾1</span>
-                    <span className="text-gray-600 dark:text-gray-400">/ თვე</span>
-                  </div>
-                  <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">გამოწერის გაუქმება ნებისმიერ დროს</p>
+                  {hasPremium ? (
+                    <div className="flex items-center justify-center gap-2 mb-2">
+                      <Crown className="h-8 w-8 text-yellow-500" />
+                      <span className="text-2xl sm:text-3xl font-extrabold text-yellow-600 dark:text-yellow-400">Premium Active</span>
+                    </div>
+                  ) : (
+                    <div className="flex items-baseline justify-center gap-2">
+                      <span className="text-4xl sm:text-5xl font-extrabold text-gray-900 dark:text-white">₾1</span>
+                      <span className="text-gray-600 dark:text-gray-400">/ თვე</span>
+                    </div>
+                  )}
+                  <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
+                    {hasPremium ? 'თქვენ უკვე გაქვთ პრემიუმ გეგმა!' : 'გამოწერის გაუქმება ნებისმიერ დროს'}
+                  </p>
                 </div>
 
-                <ul className="mt-6 sm:mt-8 space-y-3 sm:space-y-4 max-w-md mx-auto">
+                <ul className="mt-6 sm:mt-8 space-y-3 sm:mt-4 max-w-md mx-auto">
                   <li className="flex items-start gap-3">
                     <Check className="h-5 w-5 text-green-600 mt-0.5 shrink-0" />
-                    <span className="text-gray-800 dark:text-gray-200">დღიური ლიმიტი: 5,000 ტოკენი</span>
+                    <span className="text-gray-800 dark:text-gray-200">დღიური ლიმიტი: 25,000 ტოკენი</span>
                   </li>
                   <li className="flex items-start gap-3">
                     <Check className="h-5 w-5 text-green-600 mt-0.5 shrink-0" />
-                    <span className="text-gray-800 dark:text-gray-200">თვიური ლიმიტი: 60,000 ტოკენი</span>
+                    <span className="text-gray-800 dark:text-gray-200">თვიური ლიმიტი: 300,000 ტოკენი</span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <Check className="h-5 w-5 text-green-600 mt-0.5 shrink-0" />
+                    <span className="text-gray-800 dark:text-gray-200">60 სურათი თვეში</span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <Check className="h-5 w-5 text-green-600 mt-0.5 shrink-0" />
+                    <span className="text-gray-800 dark:text-gray-200">Aluda 2.0 მოდელთან წვდომა</span>
                   </li>
                   <li className="flex items-start gap-3">
                     <Check className="h-5 w-5 text-green-600 mt-0.5 shrink-0" />
                     <span className="text-gray-800 dark:text-gray-200">პრიორიტეტული რიგი და უფრო სწრაფი პასუხები</span>
-                  </li>
-                  <li className="flex items-start gap-3">
-                    <Check className="h-5 w-5 text-green-600 mt-0.5 shrink-0" />
-                    <span className="text-gray-800 dark:text-gray-200">სტაბილური მუშაობა პიკის საათებშიც</span>
-                  </li>
-                  <li className="flex items-start gap-3">
-                    <Check className="h-5 w-5 text-green-600 mt-0.5 shrink-0" />
-                    <span className="text-gray-800 dark:text-gray-200">ახალი ფუნქციების წინასწარი წვდომა</span>
                   </li>
                   <li className="flex items-start gap-3">
                     <Check className="h-5 w-5 text-green-600 mt-0.5 shrink-0" />
@@ -121,32 +135,39 @@ export default function BuyPage() {
                 </ul>
 
                 <div className="mt-6 sm:mt-8 max-w-md mx-auto w-full">
-                  <button
-                    onClick={async () => {
-                      try {
-                        setError(null)
-                        setLoading(true)
-                        const res = await fetch('/api/payments/bog/create', {
-                          method: 'POST',
-                          headers: { 'Content-Type': 'application/json' },
-                          body: JSON.stringify({ amount: 100, currency: 'GEL' }),
-                        })
-                        const data = await res.json()
-                        if (!res.ok) throw new Error(data?.error || 'Payment create failed')
-                        const url = data?.redirectUrl
-                        if (!url) throw new Error('Missing redirect URL')
-                        window.location.href = url
-                      } catch (e: any) {
-                        setError(e?.message || 'ვერ მოხერხდა გადახდის ინიციაცია')
-                      } finally {
-                        setLoading(false)
-                      }
-                    }}
-                    disabled={loading}
-                    className="w-full bg-gray-900 text-white dark:bg-white dark:text-gray-900 py-3 sm:py-3.5 px-4 rounded-lg font-medium hover:opacity-90 transition disabled:opacity-60"
-                  >
-                    {loading ? 'იტვირთება…' : 'გააქტიურე პრემიუმი — ₾1/თვე'}
-                  </button>
+                  {hasPremium ? (
+                    <Link href="/chat" className="w-full inline-flex justify-center items-center bg-gradient-to-r from-yellow-500 to-yellow-600 text-white py-3 sm:py-3.5 px-4 rounded-lg font-medium hover:from-yellow-600 hover:to-yellow-700 transition">
+                      <Crown className="h-4 w-4 mr-2" />
+                      გადადი ჩატში
+                    </Link>
+                  ) : (
+                    <button
+                      onClick={async () => {
+                        try {
+                          setError(null)
+                          setLoading(true)
+                          const res = await fetch('/api/payments/bog/create', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ amount: 100, currency: 'GEL' }),
+                          })
+                          const data = await res.json()
+                          if (!res.ok) throw new Error(data?.error || 'Payment create failed')
+                          const url = data?.redirectUrl
+                          if (!url) throw new Error('Missing redirect URL')
+                          window.location.href = url
+                        } catch (e: any) {
+                          setError(e?.message || 'ვერ მოხერხდა გადახდის ინიციაცია')
+                        } finally {
+                          setLoading(false)
+                        }
+                      }}
+                      disabled={loading}
+                      className="w-full bg-gray-900 text-white dark:bg-white dark:text-gray-900 py-3 sm:py-3.5 px-4 rounded-lg font-medium hover:opacity-90 transition disabled:opacity-60"
+                    >
+                      {loading ? 'იტვირთება…' : 'გააქტიურე პრემიუმი — ₾1/თვე'}
+                    </button>
+                  )}
                   {error && (
                     <p className="mt-2 text-xs text-red-600 dark:text-red-400 text-center">{error}</p>
                   )}
