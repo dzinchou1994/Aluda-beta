@@ -19,23 +19,32 @@ export async function POST(req: Request) {
         'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
       },
       body: JSON.stringify({
-        model: 'gpt-image-1',
+        // Use DALL·E 3 model for style/quality support
+        model: 'dall-e-3',
         prompt,
         size,
         quality,
         style,
+        n: 1,
+        response_format: 'url',
       }),
     })
 
     if (!response.ok) {
-      const err = await response.text()
-      return NextResponse.json({ error: 'OpenAI error', details: err }, { status: response.status })
+      try {
+        const errJson = await response.json()
+        return NextResponse.json({ error: 'OpenAI error', details: errJson }, { status: response.status })
+      } catch {
+        const errText = await response.text()
+        return NextResponse.json({ error: 'OpenAI error', details: errText }, { status: response.status })
+      }
     }
 
     const data = await response.json()
-    // Return the first image base64 or URL depending on API
-    const image = data?.data?.[0]
-    return NextResponse.json({ image })
+    const first = data?.data?.[0]
+    const url = first?.url || null
+    const revised_prompt = first?.revised_prompt || null
+    return NextResponse.json({ url, revised_prompt })
   } catch (error: any) {
     return NextResponse.json({ error: error?.message || 'Unknown error' }, { status: 500 })
   }

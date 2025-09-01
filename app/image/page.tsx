@@ -6,6 +6,7 @@ export default function ImageGeneratorPage() {
   const [prompt, setPrompt] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [imageUrl, setImageUrl] = useState<string | null>(null)
+  const [revisedPrompt, setRevisedPrompt] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
 
   const handleGenerate = async () => {
@@ -21,8 +22,11 @@ export default function ImageGeneratorPage() {
       const data = await res.json()
       if (!res.ok) throw new Error(data?.error || 'Failed to generate image')
 
-      const url = data?.image?.url || data?.data?.[0]?.url
-      if (url) setImageUrl(url)
+      const url = data?.url || data?.image?.url || data?.data?.[0]?.url
+      if (url) {
+        setImageUrl(url)
+        setRevisedPrompt(data?.revised_prompt || null)
+      }
       else setError('No image URL returned')
     } catch (e: any) {
       setError(e?.message || 'Unknown error')
@@ -54,6 +58,9 @@ export default function ImageGeneratorPage() {
         )}
         {imageUrl && (
           <div className="mt-4">
+            {revisedPrompt && (
+              <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">Revised prompt: {revisedPrompt}</p>
+            )}
             <img src={imageUrl} alt="Generated" className="rounded-lg max-w-full" />
           </div>
         )}
