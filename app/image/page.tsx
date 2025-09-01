@@ -205,7 +205,7 @@ export default function ImageGeneratorPage() {
               {isLoading ? 'მიმდინარეობს გენერაცია…' : 'დაგენერირე'}
             </button>
             <button
-              onClick={() => { setPrompt(''); setImageUrl(null); setRevisedPrompt(null); setError(null) }}
+              onClick={() => { setPrompt(''); setError(null) }}
               className="px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-[#1b1b1b]"
             >
               გასუფთავება
