@@ -97,6 +97,15 @@ export default function ImageGeneratorPage() {
     }
   }, [imageUrl, revisedPrompt])
 
+  // Trigger translation when revisedPrompt changes
+  useEffect(() => {
+    if (revisedPrompt) {
+      translateRefinedPrompt(revisedPrompt)
+    } else {
+      setTranslatedPrompt('')
+    }
+  }, [revisedPrompt])
+
   const handleGenerate = async () => {
     setIsLoading(true)
     setError(null)
@@ -147,45 +156,39 @@ export default function ImageGeneratorPage() {
     return `${base}\nStyle: ${preset.promptAddon}`
   }
 
-  // Function to translate English refined prompt to Georgian for display
-  function translateRefinedPrompt(englishPrompt: string): string {
-    const translations: { [key: string]: string } = {
-      'Create an image of': 'შექმენი სურათი',
-      'painted in': 'დახატული',
-      'highly detailed photorealistic': 'მაღალი დეტალებით ფოტორეალისტური',
-      'technique': 'ტექნიკით',
-      'The image should use': 'სურათმა უნდა გამოიყენოს',
-      'shallow depth of field': 'მცირე ველის სიღრმე',
-      'to emphasize': 'რომ ხაზი გაუსვა',
-      'the subject': 'საგანს',
-      'and incorporate': 'და ჩართოს',
-      'realistic lighting': 'რეალისტური განათება',
-      'to capture': 'რომ დაიჭიროს',
-      'the subtleties': 'ნაზ ნიუანსებს',
-      'of her features': 'მისი თავისებურებების',
-      'and surroundings': 'და გარემოს',
-      'The scene could be set': 'სცენა შეიძლება იყოს',
-      'either inside': 'ან შიგნით',
-      'using soft': 'რბილი',
-      'natural light': 'ბუნებრივი შუქით',
-      'from a window': 'ფანჯრიდან',
-      'or outside': 'ან გარეთ',
-      'with sunlight': 'მზის შუქით',
-      'illuminating': 'განათებული',
-      'her hair': 'მისი თმა',
-      'and creating': 'და შექმნის',
-      'subtle shadows': 'ნაზ ჩრდილებს',
-      'on her face': 'მის სახეზე',
-      'young Georgian girl': 'ახალგაზრდა ქართველი გოგონა',
-      'Style:': 'სტილი:'
-    }
+  // Function to translate English refined prompt to Georgian using Flowise API
+  const [translatedPrompt, setTranslatedPrompt] = useState<string>('')
+  const [isTranslating, setIsTranslating] = useState(false)
 
-    let translatedPrompt = englishPrompt
-    for (const [english, georgian] of Object.entries(translations)) {
-      translatedPrompt = translatedPrompt.replace(new RegExp(english, 'gi'), georgian)
-    }
+  async function translateRefinedPrompt(englishPrompt: string): Promise<string> {
+    if (!englishPrompt) return ''
     
-    return translatedPrompt
+    setIsTranslating(true)
+    try {
+      const response = await fetch('https://flowise-eden.onrender.com/api/v1/prediction/54f1eff0-0751-4afc-bfe0-83672ab74776', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          question: `Translate this English text to Georgian: ${englishPrompt}`
+        }),
+      })
+
+      if (!response.ok) {
+        throw new Error('Translation failed')
+      }
+
+      const data = await response.json()
+      const translatedText = data.text || data.answer || data.response || englishPrompt
+      setTranslatedPrompt(translatedText)
+      return translatedText
+    } catch (error) {
+      console.error('Translation error:', error)
+      return englishPrompt // Fallback to original text
+    } finally {
+      setIsTranslating(false)
+    }
   }
 
   useEffect(() => {
@@ -391,7 +394,16 @@ export default function ImageGeneratorPage() {
                 {revisedPrompt && (
                   <div className="mb-4 p-3 rounded-xl bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800">
                     <div className="text-xs font-medium text-blue-700 dark:text-blue-300 mb-1">დახვეწილი პრომპტი:</div>
-                    <div className="text-sm text-blue-600 dark:text-blue-400">{translateRefinedPrompt(revisedPrompt)}</div>
+                    <div className="text-sm text-blue-600 dark:text-blue-400">
+                      {isTranslating ? (
+                        <div className="flex items-center gap-2">
+                          <div className="w-4 h-4 border-2 border-blue-300 border-t-blue-600 rounded-full animate-spin"></div>
+                          <span>თარგმნა მიმდინარეობს...</span>
+                        </div>
+                      ) : (
+                        translatedPrompt || revisedPrompt
+                      )}
+                    </div>
                   </div>
                 )}
                 
