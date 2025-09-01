@@ -12,6 +12,19 @@ export default function ImageGeneratorPage() {
   const [size, setSize] = useState<'1024x1024' | '1024x1792' | '1792x1024'>('1024x1024')
   const [quality, setQuality] = useState<'standard' | 'hd'>('standard')
   const [style, setStyle] = useState<'vivid' | 'natural'>('vivid')
+  const stylePresets: Array<{ key: string; label: string; promptAddon: string }> = [
+    { key: 'photorealistic', label: 'Photorealistic', promptAddon: 'highly detailed photorealistic, shallow depth of field, realistic lighting' },
+    { key: 'cinematic', label: 'Cinematic', promptAddon: 'cinematic lighting, film still, dramatic composition, anamorphic bokeh' },
+    { key: 'watercolor', label: 'Watercolor', promptAddon: 'soft watercolor painting, textured paper, delicate brush strokes' },
+    { key: 'studio3d', label: '3D Render', promptAddon: 'ultra-detailed 3D render, octane render, global illumination' },
+    { key: 'anime', label: 'Anime', promptAddon: 'anime style, clean line art, cel shading, vibrant colors' },
+    { key: 'pixel', label: 'Pixel Art', promptAddon: '8-bit pixel art, limited palette, crisp pixel edges' },
+    { key: 'isometric', label: 'Isometric', promptAddon: 'isometric view, clean geometry, detailed miniature scene' },
+    { key: 'lineart', label: 'Line Art', promptAddon: 'black and white line art, clean outlines, minimal shading' },
+    { key: 'vintage', label: 'Vintage', promptAddon: 'vintage retro aesthetic, muted tones, film grain' },
+    { key: 'surreal', label: 'Surreal', promptAddon: 'surreal dreamlike imagery, imaginative, unexpected juxtapositions' },
+  ]
+  const [activePresetKey, setActivePresetKey] = useState<string | null>(null)
   const [generations, setGenerations] = useState<Array<{
     id: string
     url: string
@@ -30,7 +43,7 @@ export default function ImageGeneratorPage() {
       const res = await fetch('/api/generate-image', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt, size, quality, style }),
+        body: JSON.stringify({ prompt: buildPromptWithPreset(prompt, activePresetKey), size, quality, style }),
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data?.error || 'Failed to generate image')
@@ -64,6 +77,13 @@ export default function ImageGeneratorPage() {
     } finally {
       setIsLoading(false)
     }
+  }
+
+  function buildPromptWithPreset(base: string, presetKey: string | null): string {
+    if (!presetKey) return base
+    const preset = stylePresets.find(p => p.key === presetKey)
+    if (!preset) return base
+    return `${base}\nStyle: ${preset.promptAddon}`
   }
 
   return (
@@ -114,6 +134,22 @@ export default function ImageGeneratorPage() {
                 <option value="vivid">Vivid</option>
                 <option value="natural">Natural</option>
               </select>
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-xs mb-2 text-gray-600 dark:text-gray-300">Style presets</label>
+            <div className="flex flex-wrap gap-2">
+              {stylePresets.map(p => (
+                <button
+                  key={p.key}
+                  onClick={() => setActivePresetKey(prev => prev === p.key ? null : p.key)}
+                  className={`px-3 py-1.5 rounded-full text-sm border ${activePresetKey === p.key ? 'border-fuchsia-500 text-fuchsia-600 dark:text-fuchsia-400' : 'border-gray-300 dark:border-gray-700'}`}
+                  title={p.promptAddon}
+                >
+                  {p.label}
+                </button>
+              ))}
             </div>
           </div>
 
