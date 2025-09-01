@@ -147,6 +147,47 @@ export default function ImageGeneratorPage() {
     return `${base}\nStyle: ${preset.promptAddon}`
   }
 
+  // Function to translate English refined prompt to Georgian for display
+  function translateRefinedPrompt(englishPrompt: string): string {
+    const translations: { [key: string]: string } = {
+      'Create an image of': 'შექმენი სურათი',
+      'painted in': 'დახატული',
+      'highly detailed photorealistic': 'მაღალი დეტალებით ფოტორეალისტური',
+      'technique': 'ტექნიკით',
+      'The image should use': 'სურათმა უნდა გამოიყენოს',
+      'shallow depth of field': 'მცირე ველის სიღრმე',
+      'to emphasize': 'რომ ხაზი გაუსვა',
+      'the subject': 'საგანს',
+      'and incorporate': 'და ჩართოს',
+      'realistic lighting': 'რეალისტური განათება',
+      'to capture': 'რომ დაიჭიროს',
+      'the subtleties': 'ნაზ ნიუანსებს',
+      'of her features': 'მისი თავისებურებების',
+      'and surroundings': 'და გარემოს',
+      'The scene could be set': 'სცენა შეიძლება იყოს',
+      'either inside': 'ან შიგნით',
+      'using soft': 'რბილი',
+      'natural light': 'ბუნებრივი შუქით',
+      'from a window': 'ფანჯრიდან',
+      'or outside': 'ან გარეთ',
+      'with sunlight': 'მზის შუქით',
+      'illuminating': 'განათებული',
+      'her hair': 'მისი თმა',
+      'and creating': 'და შექმნის',
+      'subtle shadows': 'ნაზ ჩრდილებს',
+      'on her face': 'მის სახეზე',
+      'young Georgian girl': 'ახალგაზრდა ქართველი გოგონა',
+      'Style:': 'სტილი:'
+    }
+
+    let translatedPrompt = englishPrompt
+    for (const [english, georgian] of Object.entries(translations)) {
+      translatedPrompt = translatedPrompt.replace(new RegExp(english, 'gi'), georgian)
+    }
+    
+    return translatedPrompt
+  }
+
   useEffect(() => {
     const savedTheme = typeof window !== 'undefined' ? localStorage.getItem('aluda-theme') : null
     if (savedTheme === 'dark' || (!savedTheme && typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
@@ -207,12 +248,12 @@ export default function ImageGeneratorPage() {
           
           {/* Enhanced Title */}
           <div className="text-center mb-8">
-            <h1 className="text-4xl sm:text-5xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent mb-4">
+            <h1 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent mb-4">
               სურათების გენერატორი
             </h1>
             <div className="flex items-center justify-center gap-2 text-gray-600 dark:text-gray-400">
               <Sparkles className="w-5 h-5 text-purple-500" />
-              <span className="text-lg">AI-ით შექმნილი ხელოვნება</span>
+              <span className="text-lg">ალუდას შექმნილი ხელოვნება</span>
               <Sparkles className="w-5 h-5 text-purple-500" />
             </div>
           </div>
@@ -360,7 +401,7 @@ export default function ImageGeneratorPage() {
                 {revisedPrompt && (
                   <div className="mb-4 p-3 rounded-xl bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800">
                     <div className="text-xs font-medium text-blue-700 dark:text-blue-300 mb-1">დახვეწილი პრომპტი:</div>
-                    <div className="text-sm text-blue-600 dark:text-blue-400">{revisedPrompt}</div>
+                    <div className="text-sm text-blue-600 dark:text-blue-400">{translateRefinedPrompt(revisedPrompt)}</div>
                   </div>
                 )}
                 
