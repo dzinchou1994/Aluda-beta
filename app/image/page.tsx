@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { toast } from '@/components/ui/use-toast'
 import { useSession, signIn } from 'next-auth/react'
-import { Brain, Sun, Moon, ArrowLeft, Sparkles, Palette, Download, Copy, History, Trash2, Wand2, Maximize, ChevronDown, User } from 'lucide-react'
+import { Brain, Sun, Moon, ArrowLeft, Sparkles, Palette, Download, Copy, History, Trash2, Wand2, Maximize, ChevronDown, User, Camera, Film, Brush, Box, Heart, Gamepad2, PenTool, Clock, Zap } from 'lucide-react'
 import UserSettingsModal from '@/components/UserSettingsModal'
 
 export default function ImageGeneratorPage() {
@@ -22,17 +22,17 @@ export default function ImageGeneratorPage() {
   const [isTranslating, setIsTranslating] = useState(false)
   const [showAdvancedSettings, setShowAdvancedSettings] = useState(false)
   const [isSettingsOpen, setIsSettingsOpen] = useState(false)
-  const stylePresets: Array<{ key: string; label: string; promptAddon: string; icon: string; gradient: string }> = [
-    { key: 'photorealistic', label: 'ფოტორეალისტური', promptAddon: 'highly detailed photorealistic, shallow depth of field, realistic lighting', icon: '📸', gradient: 'from-blue-500 to-cyan-500' },
-    { key: 'cinematic', label: 'სინემატიური', promptAddon: 'cinematic lighting, film still, dramatic composition, anamorphic bokeh', icon: '🎬', gradient: 'from-purple-500 to-pink-500' },
-    { key: 'watercolor', label: 'აქვარელი', promptAddon: 'soft watercolor painting, textured paper, delicate brush strokes', icon: '🎨', gradient: 'from-teal-500 to-emerald-500' },
-    { key: 'studio3d', label: '3D რენდერი', promptAddon: 'ultra-detailed 3D render, octane render, global illumination', icon: '🎯', gradient: 'from-orange-500 to-red-500' },
-    { key: 'anime', label: 'ანიმე', promptAddon: 'anime style, clean line art, cel shading, vibrant colors', icon: '🌸', gradient: 'from-pink-500 to-rose-500' },
-    { key: 'pixel', label: 'პიქსელ არტი', promptAddon: '8-bit pixel art, limited palette, crisp pixel edges', icon: '👾', gradient: 'from-indigo-500 to-purple-500' },
-    { key: 'isometric', label: 'იზომეტრიული', promptAddon: 'isometric view, clean geometry, detailed miniature scene', icon: '🏗️', gradient: 'from-gray-500 to-slate-500' },
-    { key: 'lineart', label: 'ხაზოვანი არტი', promptAddon: 'black and white line art, clean outlines, minimal shading', icon: '✏️', gradient: 'from-slate-500 to-gray-500' },
-    { key: 'vintage', label: 'ვინტაჟური', promptAddon: 'vintage retro aesthetic, muted tones, film grain', icon: '📷', gradient: 'from-amber-500 to-yellow-500' },
-    { key: 'surreal', label: 'სიურეალისტური', promptAddon: 'surreal dreamlike imagery, imaginative, unexpected juxtapositions', icon: '🌙', gradient: 'from-violet-500 to-purple-500' },
+  const stylePresets: Array<{ key: string; label: string; promptAddon: string; icon: any; gradient: string }> = [
+    { key: 'photorealistic', label: 'ფოტორეალისტური', promptAddon: 'highly detailed photorealistic, shallow depth of field, realistic lighting', icon: Camera, gradient: 'from-blue-500 to-cyan-500' },
+    { key: 'cinematic', label: 'სინემატიური', promptAddon: 'cinematic lighting, film still, dramatic composition, anamorphic bokeh', icon: Film, gradient: 'from-purple-500 to-pink-500' },
+    { key: 'watercolor', label: 'აქვარელი', promptAddon: 'soft watercolor painting, textured paper, delicate brush strokes', icon: Brush, gradient: 'from-teal-500 to-emerald-500' },
+    { key: 'studio3d', label: '3D რენდერი', promptAddon: 'ultra-detailed 3D render, octane render, global illumination', icon: Box, gradient: 'from-orange-500 to-red-500' },
+    { key: 'anime', label: 'ანიმე', promptAddon: 'anime style, clean line art, cel shading, vibrant colors', icon: Heart, gradient: 'from-pink-500 to-rose-500' },
+    { key: 'pixel', label: 'პიქსელ არტი', promptAddon: '8-bit pixel art, limited palette, crisp pixel edges', icon: Gamepad2, gradient: 'from-indigo-500 to-purple-500' },
+    { key: 'isometric', label: 'იზომეტრიული', promptAddon: 'isometric view, clean geometry, detailed miniature scene', icon: Box, gradient: 'from-gray-500 to-slate-500' },
+    { key: 'lineart', label: 'ხაზოვანი არტი', promptAddon: 'black and white line art, clean outlines, minimal shading', icon: PenTool, gradient: 'from-slate-500 to-gray-500' },
+    { key: 'vintage', label: 'ვინტაჟური', promptAddon: 'vintage retro aesthetic, muted tones, film grain', icon: Clock, gradient: 'from-amber-500 to-yellow-500' },
+    { key: 'surreal', label: 'სიურეალისტური', promptAddon: 'surreal dreamlike imagery, imaginative, unexpected juxtapositions', icon: Zap, gradient: 'from-violet-500 to-purple-500' },
   ]
   const [activePresetKey, setActivePresetKey] = useState<string | null>(null)
   const [generations, setGenerations] = useState<Array<{
@@ -351,7 +351,6 @@ export default function ImageGeneratorPage() {
                   className="w-full flex items-center justify-between p-3 rounded-lg border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-input-bg hover:bg-gray-50 dark:hover:bg-user-bubble transition-all duration-200"
                 >
                   <div className="flex items-center gap-2">
-                    <Sparkles className="w-4 h-4 text-purple-500" />
                     <span className="text-sm font-medium text-gray-700 dark:text-gray-300">დამატებითი პარამეტრები</span>
                   </div>
                   <ChevronDown 
@@ -414,7 +413,7 @@ export default function ImageGeneratorPage() {
                         title={preset.promptAddon}
                       >
                         <div className="flex items-center gap-1.5">
-                          <span className="text-xs">{preset.icon}</span>
+                          <preset.icon className={`w-3 h-3 ${activePresetKey === preset.key ? 'text-white' : 'text-gray-600 dark:text-gray-400'}`} />
                           <span className={`text-xs font-medium leading-tight ${activePresetKey === preset.key ? 'text-white' : 'text-gray-700 dark:text-gray-300'}`}>
                             {preset.label}
                           </span>
@@ -484,7 +483,7 @@ export default function ImageGeneratorPage() {
                         title={preset.promptAddon}
                       >
                         <div className="flex items-center gap-1.5">
-                          <span className="text-xs">{preset.icon}</span>
+                          <preset.icon className={`w-3 h-3 ${activePresetKey === preset.key ? 'text-white' : 'text-gray-600 dark:text-gray-400'}`} />
                           <span className={`text-xs font-medium leading-tight ${activePresetKey === preset.key ? 'text-white' : 'text-gray-700 dark:text-gray-300'}`}>
                             {preset.label}
                           </span>
