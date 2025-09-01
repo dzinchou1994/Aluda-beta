@@ -139,7 +139,7 @@ export default function ImageGeneratorPage() {
         </div>
       </div>
       <div className="mb-6">
-        <h1 className="text-2xl font-semibold bg-gradient-to-r from-blue-600 to-fuchsia-600 bg-clip-text text-transparent">Aluda სურათების გენერატორი</h1>
+        <h1 className="text-2xl font-semibold bg-gradient-to-r from-blue-600 to-fuchsia-600 bg-clip-text text-transparent">სურათების გენერატორი</h1>
         <div className="mt-3 h-[2px] w-full bg-gradient-to-r from-blue-500/40 via-fuchsia-500/40 to-pink-500/40 rounded-full" />
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
