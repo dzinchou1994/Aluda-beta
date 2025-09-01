@@ -311,27 +311,27 @@ export default function ImageGeneratorPage() {
                   <Palette className="w-4 h-4 text-purple-500" />
                   სტილის პრესეტები
                 </label>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                   {stylePresets.map(preset => (
                     <button
                       key={preset.key}
                       onClick={() => setActivePresetKey(prev => prev === preset.key ? null : preset.key)}
-                      className={`group relative p-3 rounded-xl border-2 transition-all duration-300 hover:scale-105 ${
+                      className={`group relative px-3 py-2 rounded-lg border-2 transition-all duration-300 hover:scale-102 ${
                         activePresetKey === preset.key 
-                          ? `border-purple-500 bg-gradient-to-br ${preset.gradient} text-white shadow-lg` 
-                          : 'border-gray-200 dark:border-slate-700 hover:border-purple-300 dark:hover:border-purple-600 bg-white dark:bg-slate-900'
+                          ? `border-purple-500 bg-gradient-to-r ${preset.gradient} text-white shadow-md` 
+                          : 'border-gray-200 dark:border-slate-700 hover:border-purple-300 dark:hover:border-purple-600 bg-white dark:bg-slate-900 hover:bg-gray-50 dark:hover:bg-slate-800'
                       }`}
                       title={preset.promptAddon}
                     >
-                      <div className="text-center">
-                        <div className="text-2xl mb-1">{preset.icon}</div>
-                        <div className={`text-xs font-medium ${activePresetKey === preset.key ? 'text-white' : 'text-gray-700 dark:text-gray-300'}`}>
+                      <div className="flex items-center justify-center gap-2">
+                        <span className="text-sm">{preset.icon}</span>
+                        <span className={`text-xs font-medium ${activePresetKey === preset.key ? 'text-white' : 'text-gray-700 dark:text-gray-300'}`}>
                           {preset.label}
-                        </div>
+                        </span>
                       </div>
                       {activePresetKey === preset.key && (
-                        <div className="absolute -top-1 -right-1 w-4 h-4 bg-white rounded-full flex items-center justify-center">
-                          <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+                        <div className="absolute -top-1 -right-1 w-3 h-3 bg-white rounded-full flex items-center justify-center shadow-sm">
+                          <div className="w-1.5 h-1.5 bg-purple-500 rounded-full"></div>
                         </div>
                       )}
                     </button>
