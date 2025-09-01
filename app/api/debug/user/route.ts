@@ -130,6 +130,30 @@ export async function POST(request: NextRequest) {
       })
     }
 
+    if (action === 'fixSessionUserId' && email) {
+      // Find user by email and return the correct user ID for session update
+      const user = await prisma.user.findUnique({
+        where: { email },
+        select: {
+          id: true,
+          email: true,
+          plan: true
+        }
+      })
+
+      if (user) {
+        return NextResponse.json({
+          message: 'Session user ID fix info',
+          currentSessionId: session.user.id,
+          correctUserId: user.id,
+          user,
+          instructions: 'Update session to use correct user ID: ' + user.id
+        })
+      } else {
+        return NextResponse.json({ error: 'User not found by email' }, { status: 404 })
+      }
+    }
+
     return NextResponse.json({ error: 'Invalid action' }, { status: 400 })
   } catch (error: any) {
     console.error('Debug user POST error:', error)
