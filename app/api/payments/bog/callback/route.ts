@@ -40,9 +40,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid callback' }, { status: 400 })
     }
 
-    // BOG sends: event: "order_payment" and body.order_id
+    // BOG sends: event: "order_payment" and body.external_order_id (our order format)
     const event = payload.event
-    const orderId = payload.body?.order_id || payload.order_id || ''
+    const orderId = payload.body?.external_order_id || payload.body?.order_id || payload.order_id || ''
     
     console.log('BOG Callback event:', event, 'orderId:', orderId)
 
