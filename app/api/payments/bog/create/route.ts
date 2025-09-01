@@ -42,11 +42,22 @@ export async function POST(request: NextRequest) {
             select: { id: true, email: true, plan: true }
           })
           console.log('User found by email:', userByEmail)
+          
+          // If user found by email, use that user ID instead
+          if (userByEmail) {
+            console.log('Using user found by email:', userByEmail.id)
+            // Update session user ID to match database
+            session.user.id = userByEmail.id
+          }
         }
       } catch (e) {
         console.error('Error fetching all users:', e)
       }
-      return NextResponse.json({ error: 'User not found in database' }, { status: 404 })
+      
+      // If still no user found, return error
+      if (!session.user.id) {
+        return NextResponse.json({ error: 'User not found in database' }, { status: 404 })
+      }
     }
 
     console.log('Database user found:', user)
@@ -57,6 +68,7 @@ export async function POST(request: NextRequest) {
     // Create unique order identifier bound to user
     const orderId = `aluda_${session.user.id}_${Date.now()}`
     console.log('Generated order ID:', orderId)
+    console.log('Final user ID for payment:', session.user.id)
 
     const { redirectUrl, raw } = await createBogOrder({
       amount: typeof amount === 'number' ? amount : Number(amount),
