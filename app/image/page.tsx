@@ -703,76 +703,57 @@ export default function ImageGeneratorPage() {
                       
                       console.log('Starting download process for:', imageUrl)
                       
-                      try {
-                        // Try to create a download link with the image URL
-                        const link = document.createElement('a')
-                        link.href = imageUrl
-                        link.download = `aluda-image-${Date.now()}.png`
-                        link.style.display = 'none'
-                        
-                        // Add to DOM and click
-                        document.body.appendChild(link)
-                        link.click()
-                        document.body.removeChild(link)
-                        
-                        // Show success message
-                        toast({ 
-                          title: 'ჩამოტვირთვა დაწყებულია!', 
-                          description: 'თუ ჩამოტვირთვა არ დაიწყა, სცადეთ ხელით' 
-                        })
-                        
-                        // Also open in new tab as backup after 2 seconds
-                        setTimeout(() => {
-                          try {
-                            // Force new tab/window
-                            const newWindow = window.open('', '_blank')
-                            if (newWindow) {
-                              newWindow.location.href = imageUrl
-                            } else {
-                              // Fallback if popup blocked
-                              const link = document.createElement('a')
-                              link.href = imageUrl
-                              link.target = '_blank'
-                              link.rel = 'noopener noreferrer'
-                              document.body.appendChild(link)
-                              link.click()
-                              document.body.removeChild(link)
-                            }
-                          } catch (windowError) {
-                            console.error('Failed to open new window:', windowError)
+                      // Show message that we're opening in new tab
+                      toast({ 
+                        title: 'სურათი ახალ ფანჯარაში გაიხსნება', 
+                        description: 'იქ შეგიძლიათ ხელით ჩამოტვირთოთ' 
+                      })
+                      
+                      // Wait a bit then open in new tab
+                      setTimeout(() => {
+                        try {
+                          // Method 1: Try to force new tab with window.open
+                          const newWindow = window.open('', '_blank', 'noopener,noreferrer')
+                          if (newWindow) {
+                            newWindow.location.href = imageUrl
+                          } else {
+                            // Method 2: If popup blocked, use link method
+                            const link = document.createElement('a')
+                            link.href = imageUrl
+                            link.target = '_blank'
+                            link.rel = 'noopener noreferrer'
+                            link.style.display = 'none'
+                            
+                            document.body.appendChild(link)
+                            link.click()
+                            document.body.removeChild(link)
                           }
-                        }, 2000)
-                        
-                      } catch (error) {
-                        console.error('Download failed:', error)
-                        
-                        // Fallback: open in new tab for manual download
-                        toast({ 
-                          title: 'ავტომატური ჩამოტვირთვა ვერ შესრულდა', 
-                          description: 'სურათი ახალ ფანჯარაში გაიხსნება, სადაც შეგიძლიათ ხელით ჩამოტვირთოთ' 
-                        })
-                        
-                        // Force new tab
-                        setTimeout(() => {
+                        } catch (error) {
+                          console.error('Failed to open new window:', error)
+                          
+                          // Method 3: Last resort - try to download directly
                           try {
-                            const newWindow = window.open('', '_blank')
-                            if (newWindow) {
-                              newWindow.location.href = imageUrl
-                            } else {
-                              // Fallback if popup blocked
-                              const link = document.createElement('a')
-                              link.href = imageUrl
-                              link.target = '_blank'
-                              link.rel = 'noopener noreferrer'
-                              document.body.appendChild(link)
-                              link.click()
-                              document.body.removeChild(link)
-                            }
-                          } catch (windowError) {
-                            console.error('Failed to open new window:', windowError)
+                            const link = document.createElement('a')
+                            link.href = imageUrl
+                            link.download = `aluda-image-${Date.now()}.png`
+                            link.style.display = 'none'
+                            
+                            document.body.appendChild(link)
+                            link.click()
+                            document.body.removeChild(link)
+                            
+                            toast({ 
+                              title: 'ჩამოტვირთვა დაწყებულია!', 
+                              description: 'შეამოწმეთ თქვენი downloads ფოლდერი' 
+                            })
+                          } catch (downloadError) {
+                            console.error('Direct download also failed:', downloadError)
+                            
+                            // Final fallback: alert user
+                            alert('სურათის ჩამოტვირთვა ვერ შესრულდა. გთხოვთ ხელით გადაწეროთ URL და ახალ ფანჯარაში გახსნათ.')
                           }
-                        }, 500)
-                      }
+                        }
+                      }, 1000)
                     }}
                     className="flex-1 px-4 py-2 rounded-xl bg-gradient-to-r from-green-600 to-emerald-600 text-white text-sm font-medium shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center gap-2"
                   >
