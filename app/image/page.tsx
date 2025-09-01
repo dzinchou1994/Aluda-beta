@@ -16,7 +16,7 @@ export default function ImageGeneratorPage() {
   const [isDark, setIsDark] = useState(false)
   const stylePresets: Array<{ key: string; label: string; promptAddon: string }> = [
     { key: 'photorealistic', label: 'ფოტორეალისტური', promptAddon: 'highly detailed photorealistic, shallow depth of field, realistic lighting' },
-    { key: 'cinematic', label: 'ცინემატური', promptAddon: 'cinematic lighting, film still, dramatic composition, anamorphic bokeh' },
+    { key: 'cinematic', label: 'სინემატიური', promptAddon: 'cinematic lighting, film still, dramatic composition, anamorphic bokeh' },
     { key: 'watercolor', label: 'აქვარელი', promptAddon: 'soft watercolor painting, textured paper, delicate brush strokes' },
     { key: 'studio3d', label: '3D რენდერი', promptAddon: 'ultra-detailed 3D render, octane render, global illumination' },
     { key: 'anime', label: 'ანიმე', promptAddon: 'anime style, clean line art, cel shading, vibrant colors' },
@@ -173,8 +173,8 @@ export default function ImageGeneratorPage() {
                 onChange={(e) => setQuality(e.target.value as any)}
                 className="w-full border border-gray-200 dark:border-gray-800 rounded-lg bg-white dark:bg-[#171717] p-2.5 text-sm"
               >
-                <option value="standard">Standard</option>
-                <option value="hd">HD</option>
+                <option value="standard">სტანდარტული</option>
+                <option value="hd">მაღალი ხარისხი (4K)</option>
               </select>
             </div>
             
