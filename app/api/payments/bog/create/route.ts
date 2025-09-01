@@ -14,11 +14,16 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    console.log('=== BOG CREATE ORDER START ===')
+    console.log('Session user ID:', session.user.id)
+    console.log('Session user email:', session.user.email)
+
     const json = await request.json().catch(() => ({}))
     const { amount = 100, currency = 'GEL' } = json || {}
 
     // Create unique order identifier bound to user
     const orderId = `aluda_${session.user.id}_${Date.now()}`
+    console.log('Generated order ID:', orderId)
 
     const { redirectUrl, raw } = await createBogOrder({
       amount: typeof amount === 'number' ? amount : Number(amount),
@@ -28,6 +33,7 @@ export async function POST(request: NextRequest) {
       customerEmail: session.user.email || undefined,
     })
 
+    console.log('=== BOG CREATE ORDER END ===')
     return NextResponse.json({ redirectUrl, orderId, raw })
   } catch (error: any) {
     console.error('BOG create error:', error)
