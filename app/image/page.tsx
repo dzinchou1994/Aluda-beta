@@ -331,7 +331,7 @@ export default function ImageGeneratorPage() {
               <div className="mb-6">
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2">
                   <Palette className="w-4 h-4 text-purple-500" />
-                  სტილის პრესეტები
+                  სტილი
                 </label>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                   {stylePresets.map(preset => (
