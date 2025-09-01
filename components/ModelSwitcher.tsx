@@ -69,7 +69,7 @@ export default function ModelSwitcher() {
       case 'mini':
         return <Zap className="h-4 w-4" />;
       case 'aluda2':
-        return <Sparkles className="h-4 w-4" />;
+        return <Sparkles className="h-4 w-4 text-purple-500" />;
       case 'test':
         return <Zap className="h-4 w-4 text-green-400" />;
       default:
@@ -105,8 +105,22 @@ export default function ModelSwitcher() {
             </div>
           </div>
 
-          {/* Aluda 2.0 Option (Premium) */}
-          <div className="p-3 border-b border-gray-200 dark:border-gray-600 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200" onClick={() => hasPremium && handleModelSelect('aluda2')}>
+          {/* Aluda mini Option (Standard) */}
+          <div className="p-3 border-b border-gray-200 dark:border-gray-600 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200" onClick={() => handleModelSelect('mini')}>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                {getModelIcon('mini')}
+                <div>
+                  <div className="text-gray-900 dark:text-white font-medium text-sm">Aluda mini</div>
+                  <div className="text-gray-600 dark:text-gray-400 text-xs">კარგია ყოველდღიური ამოცანებისთვის</div>
+                </div>
+              </div>
+              {model === 'mini' && <Check className="h-4 w-4 text-green-600 dark:text-green-400" />}
+            </div>
+          </div>
+
+          {/* Aluda 2.0 Option (Premium) - Last and most prominent */}
+          <div className="p-3 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200" onClick={() => hasPremium && handleModelSelect('aluda2')}>
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-3">
                 {getModelIcon('aluda2')}
@@ -128,20 +142,6 @@ export default function ModelSwitcher() {
               ) : (
                 model === 'aluda2' && <Check className="h-4 w-4 text-green-600 dark:text-green-400" />
               )}
-            </div>
-          </div>
-
-          {/* Aluda mini Option (Standard) */}
-          <div className="p-3 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200" onClick={() => handleModelSelect('mini')}>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-3">
-                {getModelIcon('mini')}
-                <div>
-                  <div className="text-gray-900 dark:text-white font-medium text-sm">Aluda mini</div>
-                  <div className="text-gray-600 dark:text-gray-400 text-xs">კარგია ყოველდღიური ამოცანებისთვის</div>
-                </div>
-              </div>
-              {model === 'mini' && <Check className="h-4 w-4 text-green-600 dark:text-green-400" />}
             </div>
           </div>
         </div>
