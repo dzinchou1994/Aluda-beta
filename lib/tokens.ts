@@ -24,11 +24,11 @@ export async function getUsage(actor: Actor) {
   // Local development mode - bypass database
   if (process.env.DISABLE_TOKEN_TRACKING === 'true') {
     console.log('Token tracking disabled for local development');
-    return { daily: 0, monthly: 0 };
+    return { daily: 0, monthly: 0, images: 0 };
   }
 
   const { day, month } = getPeriodKeys()
-  const [daily, monthly] = await Promise.all([
+  const [daily, monthly, imageUsage] = await Promise.all([
     prisma.tokenUsage.findUnique({
       where: {
         actorType_actorId_period_periodKey: {
@@ -49,8 +49,22 @@ export async function getUsage(actor: Actor) {
         },
       },
     }),
+    prisma.imageUsage.findUnique({
+      where: {
+        actorType_actorId_period_periodKey: {
+          actorType: actor.type,
+          actorId: actor.id,
+          period: 'month',
+          periodKey: month,
+        },
+      },
+    }),
   ])
-  return { daily: daily?.tokens ?? 0, monthly: monthly?.tokens ?? 0 }
+  return { 
+    daily: daily?.tokens ?? 0, 
+    monthly: monthly?.tokens ?? 0,
+    images: imageUsage?.images ?? 0
+  }
 }
 
 export async function addUsage(actor: Actor, tokens: number) {
@@ -101,13 +115,41 @@ export async function addUsage(actor: Actor, tokens: number) {
   ])
 }
 
+export async function addImageUsage(actor: Actor, images: number = 1) {
+  // Local development mode - bypass database
+  if (process.env.DISABLE_TOKEN_TRACKING === 'true') {
+    console.log('Image usage tracking disabled for local development, images:', images);
+    return;
+  }
+
+  const { month } = getPeriodKeys()
+  await prisma.imageUsage.upsert({
+    where: {
+      actorType_actorId_period_periodKey: {
+        actorType: actor.type,
+        actorId: actor.id,
+        period: 'month',
+        periodKey: month,
+      },
+    },
+    update: { images: { increment: images } },
+    create: {
+      actorType: actor.type,
+      actorId: actor.id,
+      period: 'month',
+      periodKey: month,
+      images,
+    },
+  })
+}
+
 export async function canConsume(actor: Actor, tokens: number) {
   // Local development mode - always allow
   if (process.env.DISABLE_TOKEN_TRACKING === 'true') {
     console.log('Token consumption check disabled for local development');
     return {
       allowed: true,
-      usage: { daily: 0, monthly: 0 },
+      usage: { daily: 0, monthly: 0, images: 0 },
       limits: getLimits(actor),
     };
   }

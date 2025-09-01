@@ -1,4 +1,8 @@
 import { NextResponse } from 'next/server'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '@/lib/auth'
+import { getOrCreateSession } from '@/lib/session'
+import { addImageUsage } from '@/lib/tokens'
 
 export async function POST(req: Request) {
   try {
@@ -11,6 +15,16 @@ export async function POST(req: Request) {
     if (!prompt || typeof prompt !== 'string') {
       return NextResponse.json({ error: 'Invalid prompt' }, { status: 400 })
     }
+
+    // Track image usage
+    const session = await getServerSession(authOptions)
+    const cookieSess = getOrCreateSession()
+    const actor = session?.user?.id
+      ? { type: 'user' as const, id: session.user.id, plan: 'USER' as const }
+      : { type: 'guest' as const, id: cookieSess.guestId || cookieSess.sessionId }
+    
+    // Add image usage tracking
+    await addImageUsage(actor, 1)
 
     const response = await fetch('https://api.openai.com/v1/images/generations', {
       method: 'POST',

@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import { useTokens } from '@/context/TokensContext'
+import { Image } from 'lucide-react'
 
 interface Props {
   open: boolean
@@ -128,6 +129,32 @@ export default function UserSettingsModal({ open, onClose, userEmail }: Props) {
               />
             </div>
             <div className="mt-1 text-xs text-gray-600 dark:text-gray-400">{usage.daily} / {limits.daily}</div>
+          </div>
+
+          {/* Generated Images */}
+          <div>
+            <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
+              <Image className="w-4 h-4 text-purple-500" />
+              გენერირებული სურათები
+            </h3>
+            <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <span className="text-2xl font-bold text-purple-600 dark:text-purple-400">
+                    {usage.images || 0}
+                  </span>
+                  <span className="text-sm text-gray-600 dark:text-gray-400">
+                    სურათი
+                  </span>
+                </div>
+                <div className="text-right">
+                  <div className="text-xs text-gray-500 dark:text-gray-400">ჯამური რაოდენობა</div>
+                  <div className="text-xs text-gray-600 dark:text-gray-400">
+                    ბოლო 30 დღეში
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
 
           {/* Email */}

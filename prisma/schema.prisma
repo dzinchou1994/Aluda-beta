@@ -7,7 +7,7 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
+  url      = env("ALUDAAI_DATABASE_URL")
 }
 
 enum Plan {
@@ -96,6 +96,19 @@ model TokenUsage {
   period     String   // 'day' | 'month'
   periodKey  String   // e.g. '2025-08-15' or '2025-08'
   tokens     Int      @default(0)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([actorType, actorId, period, periodKey])
+}
+
+model ImageUsage {
+  id         String   @id @default(cuid())
+  actorType  String   // 'user' | 'guest'
+  actorId    String
+  period     String   // 'day' | 'month'
+  periodKey  String   // e.g. '2025-08-15' or '2025-08'
+  images     Int      @default(0)
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 
