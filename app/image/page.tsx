@@ -379,8 +379,11 @@ export default function ImageGeneratorPage() {
                 >
                   {isLoading ? (
                     <>
-                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                      მიმდინარეობს გენერაცია…
+                      <div className="relative">
+                        <div className="w-5 h-5 border-2 border-white/20 rounded-full animate-spin"></div>
+                        <div className="absolute inset-0 w-5 h-5 border-2 border-transparent border-t-white rounded-full animate-spin" style={{ animationDuration: '1.5s' }}></div>
+                      </div>
+                      <span className="text-sm">მიმდინარეობს...</span>
                     </>
                   ) : (
                     <>
@@ -418,11 +421,27 @@ export default function ImageGeneratorPage() {
             )}
 
             {isLoading && (
-              <div className="bg-white/80 dark:bg-input-bg backdrop-blur-sm rounded-2xl p-6 shadow-xl border border-gray-200/50 dark:border-gray-700">
-                <div className="animate-pulse space-y-4">
-                  <div className="h-64 bg-gray-200 dark:bg-slate-700 rounded-xl"></div>
-                  <div className="h-4 bg-gray-200 dark:bg-slate-700 rounded w-3/4"></div>
-                  <div className="h-4 bg-gray-200 dark:bg-slate-700 rounded w-1/2"></div>
+              <div className="bg-white/80 dark:bg-input-bg backdrop-blur-sm rounded-2xl p-8 shadow-xl border border-gray-200/50 dark:border-gray-700">
+                <div className="flex flex-col items-center justify-center space-y-6">
+                  {/* Cool loading animation */}
+                  <div className="relative">
+                    <div className="w-16 h-16 border-4 border-purple-200 dark:border-purple-800 rounded-full animate-spin"></div>
+                    <div className="absolute inset-0 w-16 h-16 border-4 border-transparent border-t-purple-500 rounded-full animate-spin" style={{ animationDuration: '2s' }}></div>
+                    <div className="absolute inset-2 w-12 h-12 border-2 border-blue-200 dark:border-blue-800 rounded-full animate-spin" style={{ animationDuration: '1.5s', animationDirection: 'reverse' }}></div>
+                  </div>
+                  
+                  {/* Loading text */}
+                  <div className="text-center space-y-2">
+                    <h3 className="text-lg font-medium text-gray-700 dark:text-gray-300">AI ქმნის თქვენს ხელოვნებას</h3>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">გთხოვთ დაელოდოთ...</p>
+                  </div>
+                  
+                  {/* Progress dots */}
+                  <div className="flex space-x-1">
+                    <div className="w-2 h-2 bg-purple-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                    <div className="w-2 h-2 bg-purple-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                    <div className="w-2 h-2 bg-purple-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                  </div>
                 </div>
               </div>
             )}
