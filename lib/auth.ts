@@ -99,7 +99,7 @@ export const authOptions: NextAuthOptions = {
               token.id = user.id
               (session.user as any).id = user.id
               console.log('Session user ID auto-corrected:', {
-                oldId: token.id,
+                oldId: token.id as string,
                 newId: user.id,
                 email: session.user.email
               })
