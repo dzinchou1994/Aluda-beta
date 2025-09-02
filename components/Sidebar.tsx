@@ -25,6 +25,7 @@ interface SidebarProps {
   onSignIn: () => void
   onSignOut: () => void
   showOnMobile?: boolean
+  isLoading?: boolean // Add loading prop
 }
 
 export default function Sidebar({
@@ -37,7 +38,8 @@ export default function Sidebar({
   session,
   onSignIn,
   onSignOut,
-  showOnMobile = false
+  showOnMobile = false,
+  isLoading = false
 }: SidebarProps) {
   const { usage, limits } = useTokens()
   const [settingsOpen, setSettingsOpen] = useState(false)
@@ -45,6 +47,9 @@ export default function Sidebar({
   const [openMenuChatId, setOpenMenuChatId] = useState<string | null>(null)
   const [showImageSoon, setShowImageSoon] = useState(false)
   const hideImageSoonTimeout = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  // Ensure loading state is properly handled
+  const shouldShowLoading = isLoading || session === undefined || (session && !session.user)
 
   useEffect(() => {
     return () => {
@@ -144,7 +149,8 @@ export default function Sidebar({
                   <div
                     onClick={(e) => e.stopPropagation()}
                     onMouseDown={(e) => e.stopPropagation()}
-                    className="absolute right-0 top-full mt-2 w-40 bg-white dark:bg-sidebar-dark border border-gray-200 dark:border-gray-800 rounded-md shadow-lg py-1 z-50 transform origin-top-right transition ease-out duration-150"
+                    className="absolute right-0 top-full mt-1 w-40 bg-white dark:bg-sidebar-dark border border-gray-200 dark:border-gray-800 rounded-md shadow-lg py-1 z-50 transform origin-top-right transition ease-out duration-150"
+                    style={{ marginTop: '0.25rem' }}
                   >
                     <button
                       className="w-full flex items-center px-3 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-sidebar-dark"
@@ -182,7 +188,13 @@ export default function Sidebar({
       
       {/* Footer: Collapsible User Panel (ChatGPT-style) */}
       <div className="p-2.5 border-t border-gray-200 dark:border-gray-800 relative">
-        {session ? (
+        {shouldShowLoading ? (
+          // Loading state - show skeleton
+          <div className="flex items-center justify-start gap-2">
+            <div className="w-9 h-9 rounded-full bg-gray-300 dark:bg-gray-600 animate-pulse"></div>
+            <div className="flex-1 h-4 bg-gray-300 dark:bg-gray-600 rounded animate-pulse max-w-[120px]"></div>
+          </div>
+        ) : session ? (
           <>
             {/* Collapsed row: avatar + username */}
             <div className="flex items-center justify-start gap-2">

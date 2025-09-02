@@ -28,13 +28,15 @@ export default function ChatPage() {
   } = useChatsContext()
 
   useEffect(() => {
-    // Always allow access to chat, just show loading briefly
-    const timer = setTimeout(() => {
-      setIsLoading(false)
-    }, 500)
-    
-    return () => clearTimeout(timer)
-  }, [])
+    // Wait for session status to be resolved before showing content
+    if (status !== "loading") {
+      const timer = setTimeout(() => {
+        setIsLoading(false)
+      }, 100) // Small delay to ensure session is fully resolved
+      
+      return () => clearTimeout(timer)
+    }
+  }, [status])
 
   // Load theme preference from localStorage
   useEffect(() => {
@@ -164,6 +166,7 @@ export default function ChatPage() {
           onSignIn={handleSignIn}
           onSignOut={handleSignOut}
           showOnMobile={false}
+          isLoading={status === "loading"}
         />
       </div>
 
@@ -339,6 +342,7 @@ export default function ChatPage() {
               onSignIn={() => { closeMobileSidebar(); handleSignIn() }}
               onSignOut={() => { closeMobileSidebar(); handleSignOut() }}
               showOnMobile
+              isLoading={status === "loading"}
             />
           </div>
           <button
