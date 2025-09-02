@@ -5,12 +5,35 @@ import { useTypingEffect } from '@/hooks/useTypingEffect';
 import { useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import remarkBreaks from 'remark-breaks';
 import rehypeRaw from 'rehype-raw';
 
 interface ChatMessageProps {
   message: Message;
   index: number;
   shouldAnimate: boolean;
+}
+
+// Insert newlines before inline numbered items (e.g., "1. ... 2. ...") to mimic Flowise lists
+function preprocessForMarkdown(raw: string | undefined | null): string {
+  if (!raw) return '';
+  const text = String(raw).replace(/\r\n/g, '\n');
+  // If a paragraph contains 2+ occurrences of N. , split them onto new lines
+  const splitInlineNumbers = (paragraph: string) => {
+    const count = (paragraph.match(/(^|\s)\d{1,3}\.\s/g) || []).length;
+    if (count >= 2) {
+      // Ensure first item starts at new line
+      let out = paragraph.replace(/([^\n])\s(\d{1,3})\.\s/g, (_m, prev: string, num: string) => `${prev}\n${num}. `);
+      out = out.replace(/(^|\n)\s+(\d{1,3})\.\s/g, (_m, brk: string, num: string) => `${brk}${num}. `);
+      return out;
+    }
+    return paragraph;
+  };
+  return text
+    .split('\n')
+    .map((line) => line)
+    .join('\n')
+    .replace(/(^|\n)([^\n]+)/g, (_m, brk: string, para: string) => `${brk}${splitInlineNumbers(para)}`);
 }
 
 export default function ChatMessage({ message, index, shouldAnimate }: ChatMessageProps) {
@@ -40,16 +63,15 @@ export default function ChatMessage({ message, index, shouldAnimate }: ChatMessa
   // Render assistant content using Markdown to mirror Flowise formatting
   const renderAssistantContent = (content: string) => {
     if (content === undefined || content === null) return null;
+    const pre = preprocessForMarkdown(content);
     return (
       <div className="prose prose-sm dark:prose-invert max-w-none leading-relaxed">
-        <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} components={{
+        <ReactMarkdown remarkPlugins={[remarkGfm, remarkBreaks]} rehypePlugins={[rehypeRaw]} components={{
           a: (props) => <a {...props} target="_blank" rel="noopener noreferrer" />,
-        }}>{content}</ReactMarkdown>
+        }}>{pre}</ReactMarkdown>
       </div>
     );
   };
-
-  // No markdown helpers – content is rendered as-is
 
   return (
     <div
@@ -71,7 +93,7 @@ export default function ChatMessage({ message, index, shouldAnimate }: ChatMessa
               )}
               {message.content && (
                 <div className="prose prose-sm dark:prose-invert max-w-none leading-relaxed">
-                  <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} components={{
+                  <ReactMarkdown remarkPlugins={[remarkGfm, remarkBreaks]} rehypePlugins={[rehypeRaw]} components={{
                     a: (props) => <a {...props} target="_blank" rel="noopener noreferrer" />,
                   }}>{message.content}</ReactMarkdown>
                 </div>
