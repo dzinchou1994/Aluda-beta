@@ -1,3 +1,6 @@
+export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic'
+
 export async function POST(req: Request) {
   try {
     const body = await req.json();
@@ -8,19 +11,30 @@ export async function POST(req: Request) {
       return new Response('FLOWISE_HOST or FLOWISE_CHATFLOW_ID is not set', { status: 500 });
     }
 
-    // Try streaming via same prediction endpoint with SSE and detailed streaming
-    const url = `${host.replace(/\/$/, '')}/api/v1/prediction/${chatflowId}`;
-    const upstream = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Accept: 'text/event-stream',
-      },
-      body: JSON.stringify({
-        question,
-        overrideConfig: { renderHTML: true, enableDetailedStreaming: true },
-      }),
-    });
+    // Try common streaming endpoints in order
+    const base = host.replace(/\/$/, '');
+    const candidates = [
+      `${base}/api/v1/prediction/${chatflowId}/stream`,
+      `${base}/api/v1/chatflows/${chatflowId}/stream`,
+      `${base}/api/v1/prediction/${chatflowId}`,
+    ];
+    let upstream: Response | null = null;
+    for (const url of candidates) {
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'text/event-stream',
+        },
+        body: JSON.stringify({
+          question,
+          overrideConfig: { renderHTML: true, enableDetailedStreaming: true },
+        }),
+      });
+      upstream = res;
+      if (res.ok) break;
+    }
+    if (!upstream) return new Response('Upstream not reachable', { status: 502 });
 
     // If upstream didn't return SSE, forward body as-is
     const ct = upstream.headers.get('content-type') || '';
@@ -33,7 +47,7 @@ export async function POST(req: Request) {
     const { readable, writable } = new TransformStream();
     (async () => {
       const writer = writable.getWriter();
-      const reader = upstream.body!.getReader();
+      const reader = upstream!.body!.getReader();
       try {
         while (true) {
           const { value, done } = await reader.read();
@@ -53,6 +67,7 @@ export async function POST(req: Request) {
         'Cache-Control': 'no-cache, no-transform',
         Connection: 'keep-alive',
         'Transfer-Encoding': 'chunked',
+        'X-Accel-Buffering': 'no',
       },
     });
   } catch (e: any) {
