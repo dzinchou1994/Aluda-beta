@@ -246,38 +246,24 @@ export async function POST(request: NextRequest) {
       await addUsage(actor, estimatedTokens + assistantTokens)
     }
 
-    // Try to suggest a concise chat title via Flowise (best-effort)
-    // TEMPORARILY DISABLED for performance improvement
+    // Try to suggest a concise chat title via Flowise (best-effort, first message only)
     let aiTitle: string | undefined = undefined
-    
-    // OPTIMIZATION: Start title suggestion in parallel (non-blocking)
-    // const titlePromise = (async () => {
-    //   try {
-    //     // Only suggest title for new chats or if explicitly requested
-    //     const shouldSuggestTitle = !chatId || chatId === currentChatId
-    //     if (shouldSuggestTitle && flowiseSessionId) {
-    //       // Make title suggestion non-blocking and faster
-    //       const titleResult = await suggestTitleWithFlowise({ 
-    //         question: message, 
-    //         sessionId: flowiseSessionId, 
-    //         chatflowIdOverride: undefined 
-    //       }).catch(() => null)
-    //       
-    //       return titleResult || undefined
-    //     }
-    //   } catch {
-    //     return undefined
-    //   }
-    //   return undefined
-    // })()
-    
-    // Wait for title suggestion with a short timeout (non-blocking)
-    // const titleResult = await Promise.race([
-    //   titlePromise,
-    //   new Promise<undefined>(resolve => setTimeout(() => resolve(undefined), 1500)) // Reduced from 2000ms to 1500ms
-    // ])
-    
-    // aiTitle = titleResult
+    try {
+      const isFirstUserMessage = (historyFromRequest?.length || 0) === 0 && Boolean(message?.trim())
+      if (isFirstUserMessage && flowiseSessionId) {
+        const titleResult = await Promise.race<Promise<string | null> | Promise<null>>([
+          suggestTitleWithFlowise({
+            question: message,
+            sessionId: flowiseSessionId,
+            chatflowIdOverride: undefined,
+          }).catch(() => null),
+          new Promise<null>(resolve => setTimeout(() => resolve(null), 1800)),
+        ])
+        if (titleResult && titleResult.trim()) {
+          aiTitle = titleResult.trim()
+        }
+      }
+    } catch {}
 
     // Clean the AI response to remove unwanted characters
     const cleanedText = cleanAIResponse(flowiseResponse.text);
