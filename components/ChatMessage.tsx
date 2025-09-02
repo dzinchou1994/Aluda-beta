@@ -17,12 +17,12 @@ function looksLikeHtml(text: string): boolean {
 // Render markdown headings as regular paragraphs (Flowise-like visual weight)
 const mdComponents = {
   a: (props: any) => <a {...props} target="_blank" rel="noopener noreferrer" />,
-  h1: ({ children }: any) => <p>{children}</p>,
-  h2: ({ children }: any) => <p>{children}</p>,
-  h3: ({ children }: any) => <p>{children}</p>,
-  h4: ({ children }: any) => <p>{children}</p>,
-  h5: ({ children }: any) => <p>{children}</p>,
-  h6: ({ children }: any) => <p>{children}</p>,
+  h1: ({ children }: any) => <p className="font-semibold mt-3 mb-2">{children}</p>,
+  h2: ({ children }: any) => <p className="font-semibold mt-3 mb-2">{children}</p>,
+  h3: ({ children }: any) => <p className="font-semibold mt-3 mb-2">{children}</p>,
+  h4: ({ children }: any) => <p className="font-semibold mt-3 mb-2">{children}</p>,
+  h5: ({ children }: any) => <p className="font-semibold mt-3 mb-2">{children}</p>,
+  h6: ({ children }: any) => <p className="font-semibold mt-3 mb-2">{children}</p>,
 };
 
 interface ChatMessageProps {
