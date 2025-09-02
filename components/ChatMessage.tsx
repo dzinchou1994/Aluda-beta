@@ -17,12 +17,13 @@ interface ChatMessageProps {
 // Insert newlines before inline numbered items (e.g., "1. ... 2. ...") to mimic Flowise lists
 function preprocessForMarkdown(raw: string | undefined | null): string {
   if (!raw) return '';
-  const text = String(raw).replace(/\r\n/g, '\n');
-  // If a paragraph contains 2+ occurrences of N. , split them onto new lines
+  let text = String(raw).replace(/\r\n/g, '\n');
+  // Ensure inline headings like ####, ###, ## start on a new line if they appear mid-sentence
+  text = text.replace(/\s+(#{2,6})(?=\S)/g, '\n$1 ');
+  // Split inline numbers into new lines when multiple in a paragraph
   const splitInlineNumbers = (paragraph: string) => {
     const count = (paragraph.match(/(^|\s)\d{1,3}\.\s/g) || []).length;
     if (count >= 2) {
-      // Ensure first item starts at new line
       let out = paragraph.replace(/([^\n])\s(\d{1,3})\.\s/g, (_m, prev: string, num: string) => `${prev}\n${num}. `);
       out = out.replace(/(^|\n)\s+(\d{1,3})\.\s/g, (_m, brk: string, num: string) => `${brk}${num}. `);
       return out;
