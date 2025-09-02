@@ -79,6 +79,16 @@ export default function ChatMessage({ message, index, shouldAnimate }: ChatMessa
         });
       }
 
+      // Heuristic for inline Unicode bullets "• ": require at least two occurrences on the same line
+      const unicodeBulletPattern = /(^|\s)(•)\s+/g;
+      if (countMatches(current, unicodeBulletPattern) >= 2) {
+        current = current.replace(unicodeBulletPattern, (_m: string, _sep: string, bullet: string, offset: number) => {
+          const atStart = offset === 0;
+          const prefix = atStart ? '' : '\n';
+          return `${prefix}${bullet} `;
+        });
+      }
+
       return current;
     });
 
@@ -126,9 +136,12 @@ export default function ChatMessage({ message, index, shouldAnimate }: ChatMessa
       if (isBulletHeader) {
         const headerText = line.replace(/^•\s?/, '');
         nodes.push(
-          <div key={`bh-${i}`} className="font-bold mb-2 text-base">
-            {renderMarkdownText(headerText)}
-          </div>
+          <>
+            <div key={`bh-${i}`} className="font-bold mb-1 text-base">
+              {renderMarkdownText(headerText)}
+            </div>
+            <div className="h-1" />
+          </>
         );
         continue;
       }
