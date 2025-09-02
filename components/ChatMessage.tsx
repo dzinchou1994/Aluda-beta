@@ -119,6 +119,20 @@ export default function ChatMessage({ message, index, shouldAnimate }: ChatMessa
         continue;
       }
       
+      // Special case: treat a leading "• " line as a header when followed by list items
+      const isBulletHeader = /^•\s?/.test(line) && (i + 1) < lines.length && (
+        /^[-*]\s/.test(lines[i + 1]) || /^•\s?/.test(lines[i + 1]) || /^\d+\.\s/.test(lines[i + 1])
+      );
+      if (isBulletHeader) {
+        const headerText = line.replace(/^•\s?/, '');
+        nodes.push(
+          <div key={`bh-${i}`} className="font-bold mb-2 text-base">
+            {renderMarkdownText(headerText)}
+          </div>
+        );
+        continue;
+      }
+
       // Detect bullet lines, including Unicode bullet "•"
       const isBullet = /^[-*]\s/.test(line) || /^•\s?/.test(line);
       if (isBullet) {
