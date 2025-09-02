@@ -14,15 +14,15 @@ function looksLikeHtml(text: string): boolean {
   return /<\s*(p|br|h[1-6]|ul|ol|li|strong|em|b|i|a)[^>]*>/i.test(text);
 }
 
-// Render markdown headings as regular paragraphs (Flowise-like visual weight)
+// Render markdown headings with modest styling (not bold), separated by spacing
 const mdComponents = {
   a: (props: any) => <a {...props} target="_blank" rel="noopener noreferrer" />,
-  h1: ({ children }: any) => <p className="font-semibold mt-3 mb-2">{children}</p>,
-  h2: ({ children }: any) => <p className="font-semibold mt-3 mb-2">{children}</p>,
-  h3: ({ children }: any) => <p className="font-semibold mt-3 mb-2">{children}</p>,
-  h4: ({ children }: any) => <p className="font-semibold mt-3 mb-2">{children}</p>,
-  h5: ({ children }: any) => <p className="font-semibold mt-3 mb-2">{children}</p>,
-  h6: ({ children }: any) => <p className="font-semibold mt-3 mb-2">{children}</p>,
+  h1: ({ children }: any) => <h3 className="mt-3 mb-2 font-medium">{children}</h3>,
+  h2: ({ children }: any) => <h3 className="mt-3 mb-2 font-medium">{children}</h3>,
+  h3: ({ children }: any) => <h3 className="mt-3 mb-2 font-medium">{children}</h3>,
+  h4: ({ children }: any) => <h3 className="mt-3 mb-2 font-medium">{children}</h3>,
+  h5: ({ children }: any) => <h3 className="mt-3 mb-2 font-medium">{children}</h3>,
+  h6: ({ children }: any) => <h3 className="mt-3 mb-2 font-medium">{children}</h3>,
 };
 
 interface ChatMessageProps {
