@@ -18,8 +18,10 @@ interface ChatMessageProps {
 function preprocessForMarkdown(raw: string | undefined | null): string {
   if (!raw) return '';
   let text = String(raw).replace(/\r\n/g, '\n');
-  // Ensure inline headings like ####, ###, ## start on a new line if they appear mid-sentence
-  text = text.replace(/\s+(#{2,6})(?=\S)/g, '\n$1 ');
+  // Ensure inline headings like #, ##, ### start on a new line if they appear mid-sentence
+  text = text.replace(/\s+(#{1,6})(?=\S)/g, '\n$1 ');
+  // If a heading is preceded by quotes, normalize: " #### Title" -> "\n#### Title"
+  text = text.replace(/(^|\n)\s*["'“”]\s*(#{1,6})\s+/g, (_m, brk: string, hashes: string) => `${brk}${hashes} `);
   // Split inline numbers into new lines when multiple in a paragraph
   const splitInlineNumbers = (paragraph: string) => {
     const count = (paragraph.match(/(^|\s)\d{1,3}\.\s/g) || []).length;
@@ -30,11 +32,10 @@ function preprocessForMarkdown(raw: string | undefined | null): string {
     }
     return paragraph;
   };
-  return text
-    .split('\n')
-    .map((line) => line)
-    .join('\n')
-    .replace(/(^|\n)([^\n]+)/g, (_m, brk: string, para: string) => `${brk}${splitInlineNumbers(para)}`);
+  // Preserve blank lines as paragraph breaks; also split inline numbers within each paragraph
+  const paragraphs = text.split(/\n{2,}/);
+  const processed = paragraphs.map((p) => p.split('\n').map((l) => l).join('\n')).map(splitInlineNumbers);
+  return processed.join('\n\n');
 }
 
 export default function ChatMessage({ message, index, shouldAnimate }: ChatMessageProps) {
