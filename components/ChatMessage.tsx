@@ -51,6 +51,12 @@ export default function ChatMessage({ message, index, shouldAnimate }: ChatMessa
     // Pattern: optional spaces + 1-6 hashes + optional spaces + number + dot + space
     text = text.replace(/(^|\n)\s*#{1,6}\s*(\d{1,3})\.(?=\s)/g, (_, brk: string, num: string) => `${brk}${num}.`);
 
+    // Ensure inline metadata labels like Title:/Description: start on a new line
+    // Insert a newline before them when they appear mid-sentence
+    text = text
+      .replace(/([^\n])\s*["'“”]?\s*(Title|Tittle)\s*:/gi, (_, prev: string, label: string) => `${prev}\n${label}:`)
+      .replace(/([^\n])\s*["'“”]?\s*(Description)\s*:/gi, (_, prev: string, label: string) => `${prev}\n${label}:`);
+
     // Split lines and apply inline list heuristics per line
     const lines = text.split('\n');
     const processedLines = lines.map((line) => {
@@ -129,6 +135,19 @@ export default function ChatMessage({ message, index, shouldAnimate }: ChatMessa
           >
             {text}
           </Tag>
+        );
+        continue;
+      }
+
+      // Render Title:/Description: labels as bold standalone lines
+      if (/^\s*(Tittle|Title|Description)\s*:/i.test(line)) {
+        const label = line.match(/(Tittle|Title|Description)\s*:/i)?.[0].replace(':', '') || '';
+        const rest = line.replace(/^\s*(Tittle|Title|Description)\s*:\s*/i, '');
+        nodes.push(
+          <div key={`meta-${i}`} className="mb-2">
+            <strong className="font-bold">{label}:</strong>
+            {rest ? <span className="ml-2">{renderMarkdownText(rest)}</span> : null}
+          </div>
         );
         continue;
       }
