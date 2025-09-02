@@ -39,14 +39,14 @@ export default function ChatMessage({ message, index, shouldAnimate }: ChatMessa
     // Make sure horizontal rules are on their own lines
     text = text.replace(/---/g, '\n---\n');
 
-    // Ensure inline markdown headings like "###1." or "## Title" start on a new line
+    // Ensure inline markdown headings like "###1." or "# Title" start on a new line
     // Many providers emit headings mid-sentence without a newline. Move them to a new line
     // so our heading renderer can pick them up.
-    text = text.replace(/\s+(#{2,6})(?=\S)/g, '\n$1 ');
+    text = text.replace(/\s+(#{1,6})(?=\S)/g, '\n$1 ');
 
     // Normalize accidental heading markers like "###1." → "1." so they don't appear as stray symbols
-    // Pattern: optional spaces + 2-6 hashes + optional spaces + number + dot + space
-    text = text.replace(/(^|\n)\s*#{2,6}\s*(\d{1,3})\.(?=\s)/g, (_, brk: string, num: string) => `${brk}${num}.`);
+    // Pattern: optional spaces + 1-6 hashes + optional spaces + number + dot + space
+    text = text.replace(/(^|\n)\s*#{1,6}\s*(\d{1,3})\.(?=\s)/g, (_, brk: string, num: string) => `${brk}${num}.`);
 
     // Split lines and apply inline list heuristics per line
     const lines = text.split('\n');
@@ -113,10 +113,10 @@ export default function ChatMessage({ message, index, shouldAnimate }: ChatMessa
         continue;
       }
 
-      // Check if line is a heading (starts with #)
-      if (line.startsWith('#')) {
-        const level = line.match(/^#+/)?.[0].length || 1;
-        const text = line.replace(/^#+\s*/, '');
+      // Check if line is a heading (may have leading spaces before #)
+      if (/^\s*#/.test(line)) {
+        const level = line.match(/^\s*#+/)?.[0].trim().length || 1;
+        const text = line.replace(/^\s*#+\s*/, '');
         const Tag = level === 1 ? 'h1' : level === 2 ? 'h2' : 'h3';
         nodes.push(
           <Tag 
@@ -270,8 +270,18 @@ export default function ChatMessage({ message, index, shouldAnimate }: ChatMessa
   const renderBoldText = (text: string) => {
     if (!text) return null;
     
+    // Sanitize unmatched bold markers to avoid stray '**' in output
+    const balanced = (() => {
+      const count = (text.match(/\*\*/g) || []).length;
+      if (count % 2 !== 0) {
+        // If odd number of '**', drop the last one
+        return text.replace(/\*\*(?![\s\S]*\*\*)/, '');
+      }
+      return text;
+    })();
+
     // Split text by bold markers (**text**)
-    const parts = text.split(/(\*\*[^*]+\*\*)/g);
+    const parts = balanced.split(/(\*\*[^*]+\*\*)/g);
     
     return parts.map((part, partIndex) => {
       if (part.startsWith('**') && part.endsWith('**')) {
