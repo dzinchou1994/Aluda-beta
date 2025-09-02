@@ -7,6 +7,12 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import remarkBreaks from 'remark-breaks';
 import rehypeRaw from 'rehype-raw';
+import DOMPurify from 'dompurify';
+
+// Simple check: contains typical HTML tags
+function looksLikeHtml(text: string): boolean {
+  return /<\s*(p|br|h[1-6]|ul|ol|li|strong|em|b|i|a)[^>]*>/i.test(text);
+}
 
 interface ChatMessageProps {
   message: Message;
@@ -65,6 +71,13 @@ export default function ChatMessage({ message, index, shouldAnimate }: ChatMessa
   // Render assistant content using Markdown to mirror Flowise formatting
   const renderAssistantContent = (content: string) => {
     if (content === undefined || content === null) return null;
+    // Prefer HTML if provided (Flowise can output HTML when renderHTML is true)
+    if (looksLikeHtml(content)) {
+      const clean = DOMPurify.sanitize(content, { USE_PROFILES: { html: true } });
+      return (
+        <div className="prose prose-sm dark:prose-invert max-w-none leading-relaxed" dangerouslySetInnerHTML={{ __html: clean }} />
+      );
+    }
     const pre = preprocessForMarkdown(content);
     return (
       <div className="prose prose-sm dark:prose-invert max-w-none leading-relaxed">
@@ -103,7 +116,7 @@ export default function ChatMessage({ message, index, shouldAnimate }: ChatMessa
             </div>
           </div>
         ) : (
-          // AI message - FIXED: show content directly for old messages, use typing effect only for new ones
+          // AI message - show markdown/HTML content
           <div className="w-full text-gray-900 dark:text-white text-base leading-relaxed max-w-[92%] sm:max-w-[70ch]">
             {shouldUseTypingEffect && isTyping ? renderAssistantContent(displayedText) : renderAssistantContent(message.content)}
           </div>
