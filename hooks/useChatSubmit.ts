@@ -226,6 +226,7 @@ export function useChatSubmit({
         let fullContent = '';
         const decoder = new TextDecoder();
         
+        let gotAnyToken = false;
         try {
           console.log('Client-side: Starting to read stream...');
           while (true) {
@@ -263,6 +264,7 @@ export function useChatSubmit({
                     handled = true;
                   } else if (token) {
                     fullContent += token;
+                    gotAnyToken = true;
                     handled = true;
                   }
                 }
@@ -270,6 +272,7 @@ export function useChatSubmit({
                 // Not JSON – treat as raw token content
                 if (data !== '[DONE]') {
                   fullContent += data;
+                  gotAnyToken = true;
                   handled = true;
                 }
               }
@@ -282,6 +285,22 @@ export function useChatSubmit({
           }
         } finally {
           reader.releaseLock();
+          // Fallback if upstream advertised SSE but sent nothing useful
+          if (!gotAnyToken && fullContent.length === 0) {
+            try {
+              const fb = await fetch('/api/flowise', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ question: messageToSend, overrideConfig: { renderHTML: true } }) });
+              const ct2 = fb.headers.get('content-type') || '';
+              let text = '';
+              if (ct2.includes('application/json')) {
+                const js = await fb.json();
+                text = js?.content || js?.text || js?.response || '';
+              } else {
+                text = await fb.text();
+              }
+              updateMessageInChat(activeChatId, aiMessageId, { content: text || ' ' });
+              forceScrollBottom();
+            } catch {}
+          }
         }
       } else {
         // Handle non-streaming response
