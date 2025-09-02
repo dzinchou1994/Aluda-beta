@@ -24,10 +24,16 @@ interface ChatMessageProps {
 function preprocessForMarkdown(raw: string | undefined | null): string {
   if (!raw) return '';
   let text = String(raw).replace(/\r\n/g, '\n');
+  // Normalize invisible spaces and fullwidth hash
+  text = text.replace(/\u00A0/g, ' '); // NBSP to space
+  text = text.replace(/[\u200B\u200C\u200D\uFEFF]/g, ''); // zero-width chars
+  text = text.replace(/\uFF03/g, '#'); // fullwidth '#'
   // Ensure inline headings like #, ##, ### start on a new line if they appear mid-sentence
   text = text.replace(/\s+(#{1,6})(?=\S)/g, '\n$1 ');
   // If a heading is preceded by quotes, normalize: " #### Title" -> "\n#### Title"
   text = text.replace(/(^|\n)\s*["'“”]\s*(#{1,6})\s+/g, (_m, brk: string, hashes: string) => `${brk}${hashes} `);
+  // Normalize heading lines: collapse to a single space after hashes and ensure within 0-3 leading spaces
+  text = text.replace(/^[ \t]{0,3}(#{1,6})[ \t]*/gm, (_m, hashes: string) => `${hashes} `);
   // Split inline numbers into new lines when multiple in a paragraph
   const splitInlineNumbers = (paragraph: string) => {
     const count = (paragraph.match(/(^|\s)\d{1,3}\.\s/g) || []).length;
@@ -80,7 +86,7 @@ export default function ChatMessage({ message, index, shouldAnimate }: ChatMessa
     }
     const pre = preprocessForMarkdown(content);
     return (
-      <div className="prose prose-sm dark:prose-invert max-w-none leading-relaxed">
+      <div className="prose prose-sm dark:prose-invert max-w-none leading-relaxed prose-h1:text-[1.1rem] prose-h2:text-[1.05rem] prose-h3:text-[1rem] prose-h4:text-[0.95rem] prose-p:my-2 prose-ul:my-2 prose-ol:my-2">
         <ReactMarkdown remarkPlugins={[remarkGfm, remarkBreaks]} rehypePlugins={[rehypeRaw]} components={{
           a: (props) => <a {...props} target="_blank" rel="noopener noreferrer" />,
         }}>{pre}</ReactMarkdown>
@@ -107,7 +113,7 @@ export default function ChatMessage({ message, index, shouldAnimate }: ChatMessa
                 <img src={message.imageUrl} alt="attachment" className="rounded-md border border-gray-200 dark:border-gray-700 max-w-full" />
               )}
               {message.content && (
-                <div className="prose prose-sm dark:prose-invert max-w-none leading-relaxed">
+                <div className="prose prose-sm dark:prose-invert max-w-none leading-relaxed prose-h1:text-[1.1rem] prose-h2:text-[1.05rem] prose-h3:text-[1rem] prose-h4:text-[0.95rem] prose-p:my-2 prose-ul:my-2 prose-ol:my-2">
                   <ReactMarkdown remarkPlugins={[remarkGfm, remarkBreaks]} rehypePlugins={[rehypeRaw]} components={{
                     a: (props) => <a {...props} target="_blank" rel="noopener noreferrer" />,
                   }}>{message.content}</ReactMarkdown>
