@@ -14,6 +14,17 @@ function looksLikeHtml(text: string): boolean {
   return /<\s*(p|br|h[1-6]|ul|ol|li|strong|em|b|i|a)[^>]*>/i.test(text);
 }
 
+// Render markdown headings as regular paragraphs (Flowise-like visual weight)
+const mdComponents = {
+  a: (props: any) => <a {...props} target="_blank" rel="noopener noreferrer" />,
+  h1: ({ children }: any) => <p>{children}</p>,
+  h2: ({ children }: any) => <p>{children}</p>,
+  h3: ({ children }: any) => <p>{children}</p>,
+  h4: ({ children }: any) => <p>{children}</p>,
+  h5: ({ children }: any) => <p>{children}</p>,
+  h6: ({ children }: any) => <p>{children}</p>,
+};
+
 interface ChatMessageProps {
   message: Message;
   index: number;
@@ -95,9 +106,7 @@ export default function ChatMessage({ message, index, shouldAnimate }: ChatMessa
     const pre = preprocessForMarkdown(content);
     return (
       <div className="prose prose-sm dark:prose-invert max-w-none leading-relaxed prose-h1:text-[1.1rem] prose-h2:text-[1.05rem] prose-h3:text-[1rem] prose-h4:text-[0.95rem] prose-p:my-2 prose-ul:my-2 prose-ol:my-2">
-        <ReactMarkdown remarkPlugins={[remarkGfm, remarkBreaks]} rehypePlugins={[rehypeRaw]} components={{
-          a: (props) => <a {...props} target="_blank" rel="noopener noreferrer" />,
-        }}>{pre}</ReactMarkdown>
+        <ReactMarkdown remarkPlugins={[remarkGfm, remarkBreaks]} rehypePlugins={[rehypeRaw]} components={mdComponents}>{pre}</ReactMarkdown>
       </div>
     );
   };
@@ -122,9 +131,7 @@ export default function ChatMessage({ message, index, shouldAnimate }: ChatMessa
               )}
               {message.content && (
                 <div className="prose prose-sm dark:prose-invert max-w-none leading-relaxed prose-h1:text-[1.1rem] prose-h2:text-[1.05rem] prose-h3:text-[1rem] prose-h4:text-[0.95rem] prose-p:my-2 prose-ul:my-2 prose-ol:my-2">
-                  <ReactMarkdown remarkPlugins={[remarkGfm, remarkBreaks]} rehypePlugins={[rehypeRaw]} components={{
-                    a: (props) => <a {...props} target="_blank" rel="noopener noreferrer" />,
-                  }}>{message.content}</ReactMarkdown>
+                  <ReactMarkdown remarkPlugins={[remarkGfm, remarkBreaks]} rehypePlugins={[rehypeRaw]} components={mdComponents}>{message.content}</ReactMarkdown>
                 </div>
               )}
             </div>
