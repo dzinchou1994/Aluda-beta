@@ -44,6 +44,9 @@ export default function ChatMessage({ message, index, shouldAnimate }: ChatMessa
     // so our heading renderer can pick them up.
     text = text.replace(/\s+(#{1,6})(?=\S)/g, '\n$1 ');
 
+    // If a heading-like line starts with a quote then # (e.g., "# Title"), move to new line and strip quotes
+    text = text.replace(/(^|\n)\s*["'“”]\s*(#{1,6})\s+/g, (_m, brk: string, hashes: string) => `${brk}${hashes} `);
+
     // Normalize accidental heading markers like "###1." → "1." so they don't appear as stray symbols
     // Pattern: optional spaces + 1-6 hashes + optional spaces + number + dot + space
     text = text.replace(/(^|\n)\s*#{1,6}\s*(\d{1,3})\.(?=\s)/g, (_, brk: string, num: string) => `${brk}${num}.`);
@@ -113,10 +116,11 @@ export default function ChatMessage({ message, index, shouldAnimate }: ChatMessa
         continue;
       }
 
-      // Check if line is a heading (may have leading spaces before #)
-      if (/^\s*#/.test(line)) {
-        const level = line.match(/^\s*#+/)?.[0].trim().length || 1;
-        const text = line.replace(/^\s*#+\s*/, '');
+      // Check if line is a heading (may have leading spaces or quotes before #)
+      if (/^\s*(?:["'“”])?\s*#/.test(line)) {
+        const headingPrefixMatch = line.match(/^\s*(?:["'“”])?\s*#+/);
+        const level = headingPrefixMatch ? headingPrefixMatch[0].replace(/[\s"'“”]/g, '').length : 1;
+        const text = line.replace(/^\s*(?:["'“”])?\s*#+\s*/, '');
         const Tag = level === 1 ? 'h1' : level === 2 ? 'h2' : 'h3';
         nodes.push(
           <Tag 
@@ -180,14 +184,13 @@ export default function ChatMessage({ message, index, shouldAnimate }: ChatMessa
         continue;
       }
       
-      // Check if line is a numbered list item
+      // Check if line is a numbered list item — render as bullet for consistency
       if (/^\d+\.\s/.test(line)) {
+        const itemText = line.replace(/^\d+\.\s/, '');
         nodes.push(
-          <div key={`num-${i}`} className="flex items-start mb-1">
-            <span className="mr-2 text-gray-500 text-sm">
-              {line.match(/^\d+/)?.[0]}.
-            </span>
-            <span>{renderMarkdownText(line.replace(/^\d+\.\s/, ''))}</span>
+          <div key={`num-${i}`} className="flex items-start mb-2">
+            <span className="mr-2 text-gray-500">•</span>
+            <span>{renderMarkdownText(itemText)}</span>
           </div>
         );
         continue;
