@@ -387,10 +387,9 @@ export async function suggestTitleWithFlowise({
       `Question: ${question}`,
     ].join('\n')
 
-    // Use specific title generation chatflow if available, otherwise use provided override or main chatflow
-    const titleChatflowId = process.env.ALUDAAI_FLOWISE_CHATFLOW_ID_SUGGEST 
-      || "11cbe217-7e62-4fa6-8672-15111c8c9347" // Default title generation chatflow
-      || chatflowIdOverride
+    // Prefer an explicit override, then env overrides, then main chatflow envs
+    const titleChatflowId = chatflowIdOverride
+      || process.env.ALUDAAI_FLOWISE_CHATFLOW_ID_SUGGEST
       || process.env.ALUDAAI_FLOWISE_CHATFLOW_ID 
       || process.env.FLOWISE_CHATFLOW_ID
 
@@ -403,9 +402,11 @@ export async function suggestTitleWithFlowise({
 
     const raw = (res.text || '').trim()
     if (!raw) return null
-    // remove surrounding quotes if any
-    let cleaned = raw.replace(/^"|"$/g, '')
-    // Clean the title as well to remove unwanted characters
+    // If Flowise responded with a sentence that includes a quoted title, prefer the quoted text
+    const quotedMatch = raw.match(/["“”]([^"“”]+)["“”]/)
+    const preferred = quotedMatch ? quotedMatch[1] : raw
+    // remove surrounding quotes if any and clean
+    let cleaned = preferred.replace(/^"|"$/g, '')
     cleaned = cleanAIResponse(cleaned)
     return cleaned
   } catch {
