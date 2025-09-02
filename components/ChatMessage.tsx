@@ -3,6 +3,10 @@
 import { Message } from '@/hooks/useChats';
 import { useTypingEffect } from '@/hooks/useTypingEffect';
 import { useEffect } from 'react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import remarkBreaks from 'remark-breaks';
+import rehypeRaw from 'rehype-raw';
 
 interface ChatMessageProps {
   message: Message;
@@ -34,10 +38,14 @@ export default function ChatMessage({ message, index, shouldAnimate }: ChatMessa
   // No preprocessing: show text exactly as received
   const preprocessContent = (raw: string) => raw || '';
 
-  // Helper function to render assistant content as plain text (no formatting)
+  // Render assistant content using Markdown to mirror Flowise formatting
   const renderAssistantContent = (content: string) => {
     if (content === undefined || content === null) return null;
-    return <pre className="whitespace-pre-wrap break-words mb-2">{content}</pre>;
+    return (
+      <div className="prose prose-sm dark:prose-invert max-w-none leading-relaxed">
+        <ReactMarkdown remarkPlugins={[remarkGfm, remarkBreaks]} rehypePlugins={[rehypeRaw]}>{content}</ReactMarkdown>
+      </div>
+    );
   };
 
   // No markdown helpers – content is rendered as-is
@@ -61,20 +69,9 @@ export default function ChatMessage({ message, index, shouldAnimate }: ChatMessa
                 <img src={message.imageUrl} alt="attachment" className="rounded-md border border-gray-200 dark:border-gray-700 max-w-full" />
               )}
               {message.content && (
-                <p className="text-base leading-relaxed whitespace-normal break-words">
-                  {/* linkify user content */}
-                  {(() => {
-                    const urlSplitRegex = /(https?:\/\/[^\s)]+|www\.[^\s)]+)/gi
-                    return message.content.split(urlSplitRegex).map((part, i) => {
-                      const isUrl = /^(https?:\/\/|www\.)/i.test(part)
-                      if (isUrl) {
-                        const href = part.startsWith('http') ? part : `https://${part}`
-                        return <a key={i} href={href} target="_blank" rel="noopener noreferrer" className="text-blue-200 underline break-all">{part}</a>
-                      }
-                      return <span key={i}>{part}</span>
-                    })
-                  })()}
-                </p>
+                <div className="prose prose-sm dark:prose-invert max-w-none leading-relaxed">
+                  <ReactMarkdown remarkPlugins={[remarkGfm, remarkBreaks]} rehypePlugins={[rehypeRaw]}>{message.content}</ReactMarkdown>
+                </div>
               )}
             </div>
           </div>
