@@ -161,7 +161,7 @@ export default function ChatInput({
                 // Let the useChatScroll hook handle the scrolling
                 // No additional scroll logic here to prevent conflicts
               }}
-              placeholder="მკითხე რაც გინდა"
+              placeholder="საუკეთესო შედეგისთვის აკრიფე ქართულად"
               className="auto-resize flex-1 resize-none bg-transparent border-none outline-none text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 text-base md:text-lg py-2 min-h-[24px] max-h-[35vh] md:max-h-[40vh] overflow-y-auto"
               rows={isMobileUA ? mobileRows : 1}
               disabled={isLoading}
