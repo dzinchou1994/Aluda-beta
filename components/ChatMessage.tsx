@@ -304,7 +304,7 @@ export default function ChatMessage({ message, index, shouldAnimate }: ChatMessa
                 <img src={message.imageUrl} alt="attachment" className="rounded-md border border-gray-200 dark:border-gray-700 max-w-full" />
               )}
               {message.content && (
-                <p className="text-sm leading-relaxed whitespace-normal break-words">
+                <p className="text-base leading-relaxed whitespace-normal break-words">
                   {/* linkify user content */}
                   {(() => {
                     const urlSplitRegex = /(https?:\/\/[^\s)]+|www\.[^\s)]+)/gi
@@ -323,7 +323,7 @@ export default function ChatMessage({ message, index, shouldAnimate }: ChatMessa
           </div>
         ) : (
           // AI message - FIXED: show content directly for old messages, use typing effect only for new ones
-          <div className="w-full text-gray-900 dark:text-white text-sm leading-relaxed whitespace-normal break-words max-w-[92%] sm:max-w-[70ch]">
+          <div className="w-full text-gray-900 dark:text-white text-base leading-relaxed whitespace-normal break-words max-w-[92%] sm:max-w-[70ch]">
             {shouldUseTypingEffect && isTyping ? renderAssistantContent(displayedText) : renderAssistantContent(message.content)}
           </div>
         )}
