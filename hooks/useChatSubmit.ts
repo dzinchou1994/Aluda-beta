@@ -273,15 +273,30 @@ export function useChatSubmit({
         }
       } else {
         // Handle non-streaming response
-        const responseData = await response.json();
-        console.log('API response:', responseData);
-        
-        if (responseData.error) {
-          throw new Error(responseData.error);
+        let aiContent: string | undefined;
+        let responseData: any = undefined;
+        try {
+          const contentTypeNonStream = contentType || '';
+          if (contentTypeNonStream.includes('text/html')) {
+            aiContent = await response.text();
+          } else if (contentTypeNonStream.includes('text/plain')) {
+            aiContent = await response.text();
+          } else {
+            responseData = await response.json();
+          }
+        } catch {
+          // Fallback: read as text to avoid JSON parse errors on HTML
+          aiContent = await response.text();
+        }
+        if (responseData) {
+          console.log('API response:', responseData);
+          if (responseData.error) {
+            throw new Error(responseData.error);
+          }
+          aiContent = aiContent || responseData.content || responseData.text || responseData.message || responseData.response;
         }
 
-        // Add AI response to chat - handle different response formats
-        let aiContent = responseData.content || responseData.text || responseData.message || responseData.response;
+        // Add AI response to chat - handle different response formats (HTML or text)
         if (aiContent) {
           const aiMessage: Omit<Message, 'timestamp'> = {
             id: `ai_${Date.now()}`,
