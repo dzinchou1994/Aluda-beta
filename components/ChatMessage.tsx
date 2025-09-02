@@ -63,9 +63,8 @@ export default function ChatMessage({ message, index, shouldAnimate }: ChatMessa
     const processedLines = lines.map((line) => {
       let current = line;
 
-      // Heuristic for inline numbered lists: require at least two occurrences of "N. "
-      // This avoids false positives like years ("2024.") or decimals ("3.14")
-      const numberedPattern = /(^|\s)(\d{1,2})\.\s+/g; // 1-2 digits followed by ". "
+      // Heuristic for inline numbered lists: if multiple occurrences of "N. " appear in one line, split them
+      const numberedPattern = /(^|\s)(\d{1,3})\.\s+/g; // 1-3 digits followed by ". "
       const countMatches = (s: string, re: RegExp) => {
         let count = 0;
         s.replace(re, () => { count++; return ''; });
@@ -204,12 +203,13 @@ export default function ChatMessage({ message, index, shouldAnimate }: ChatMessa
         continue;
       }
       
-      // Check if line is a numbered list item — render as bullet for consistency
+      // Check if line is a numbered list item — render with its number preserved
       if (/^\d+\.\s/.test(line)) {
+        const num = line.match(/^(\d+)/)?.[0] || '';
         const itemText = line.replace(/^\d+\.\s/, '');
         nodes.push(
           <div key={`num-${i}`} className="flex items-start mb-2">
-            <span className="mr-2 text-gray-500">•</span>
+            <span className="mr-2 text-gray-500 text-sm">{num}.</span>
             <span>{renderMarkdownText(itemText)}</span>
           </div>
         );
