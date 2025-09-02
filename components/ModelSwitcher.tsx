@@ -86,17 +86,18 @@ export default function ModelSwitcher() {
       {/* Main Model Selector Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center justify-between w-full px-3 py-2 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 rounded-lg text-gray-800 dark:text-white transition-colors duration-200"
+        className="group flex items-center gap-2 w-full px-3 py-2 rounded-xl border border-transparent bg-gray-100/70 dark:bg-white/5 hover:bg-gray-200/70 dark:hover:bg-white/10 text-gray-900 dark:text-white shadow-[inset_0_0_0_1px_rgba(0,0,0,0.04)] dark:shadow-[inset_0_0_0_1px_rgba(255,255,255,0.06)] transition-colors"
       >
-        <span className="font-medium">Aluda</span>
-        <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
+        <span className="text-[11px] uppercase tracking-wide text-gray-500 dark:text-gray-400">მოდელი</span>
+        <span className="font-medium">{getModelDisplayName(model)}</span>
+        <ChevronDown className={`ml-1 h-4 w-4 text-gray-500 dark:text-gray-400 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
       </button>
 
       {/* Dropdown Menu - Always opens downward */}
       {isOpen && (
-        <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-600 shadow-xl z-50 min-w-[320px] max-w-[380px]">
+        <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-gray-900/95 backdrop-blur rounded-xl border border-gray-200/60 dark:border-white/10 shadow-xl z-50 min-w-[320px] max-w-[380px] overflow-hidden">
           {/* Aluda Free Option (Free & Unlimited) */}
-          <div className="p-3 border-b border-gray-200 dark:border-gray-600 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200" onClick={() => handleModelSelect('test')}>
+          <div className="p-3 border-b border-gray-200/60 dark:border-white/10 cursor-pointer hover:bg-gray-50 dark:hover:bg-white/5 transition-colors duration-200" onClick={() => handleModelSelect('test')}>
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-3">
                 {getModelIcon('test')}
@@ -110,7 +111,7 @@ export default function ModelSwitcher() {
           </div>
 
           {/* Aluda mini Option (Standard) */}
-          <div className="p-3 border-b border-gray-200 dark:border-gray-600 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200" onClick={() => handleModelSelect('mini')}>
+          <div className="p-3 border-b border-gray-200/60 dark:border-white/10 cursor-pointer hover:bg-gray-50 dark:hover:bg-white/5 transition-colors duration-200" onClick={() => handleModelSelect('mini')}>
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-3">
                 {getModelIcon('mini')}
@@ -124,7 +125,7 @@ export default function ModelSwitcher() {
           </div>
 
           {/* Aluda 2.0 Option (Premium) - Last and most prominent */}
-          <div className="p-3 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200" onClick={() => handleModelSelect('aluda2')}>
+          <div className="p-3 cursor-pointer hover:bg-gray-50 dark:hover:bg-white/5 transition-colors duration-200" onClick={() => handleModelSelect('aluda2')}>
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-3">
                 {getModelIcon('aluda2')}
