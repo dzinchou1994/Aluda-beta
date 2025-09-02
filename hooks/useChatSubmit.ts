@@ -29,6 +29,7 @@ export function useChatSubmit({
   getCurrentChatMessages,
 }: UseChatSubmitProps) {
   const [isLoading, setIsLoading] = useState(false);
+  const useFlowiseProxy = process.env.NEXT_PUBLIC_USE_FLOWISE === 'true';
 
   const forceScrollBottom = () => {
     const scrollOnce = () => {
@@ -125,49 +126,58 @@ export function useChatSubmit({
           body: form
         });
       } else {
-        // Get current chat history to send to API
-        const currentMessages = getCurrentChatMessages();
-        // Convert to format expected by API (exclude the message we're about to send)
-        const historyForAPI = currentMessages.map(msg => ({
-          role: msg.role,
-          content: msg.content
-        }));
-        
-        console.log('Frontend: Sending history to API:', historyForAPI.length, 'messages');
+        if (useFlowiseProxy) {
+          // Direct Flowise question for exact formatting parity
+          responsePromise = fetch('/api/flowise', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ question: messageToSend }),
+          });
+        } else {
+          // Get current chat history to send to API
+          const currentMessages = getCurrentChatMessages();
+          // Convert to format expected by API (exclude the message we're about to send)
+          const historyForAPI = currentMessages.map(msg => ({
+            role: msg.role,
+            content: msg.content
+          }));
+          
+          console.log('Frontend: Sending history to API:', historyForAPI.length, 'messages');
 
-        // Decide if we should trigger Flowise title suggestion (only on very first user message with text)
-        const shouldSuggestTitle = (createdNewChat || historyForAPI.length === 0) && messageToSend.length > 0;
-        
-        responsePromise = fetch("/api/chat", {
-          method: "POST",
-          headers: { 
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({ 
-            message: messageToSend, 
-            chatId: activeChatId, 
-            model,
-            history: historyForAPI
-          }),
-        });
+          // Decide if we should trigger Flowise title suggestion (only on very first user message with text)
+          const shouldSuggestTitle = (createdNewChat || historyForAPI.length === 0) && messageToSend.length > 0;
+          
+          responsePromise = fetch("/api/chat", {
+            method: "POST",
+            headers: { 
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ 
+              message: messageToSend, 
+              chatId: activeChatId, 
+              model,
+              history: historyForAPI
+            }),
+          });
 
-        // Fire-and-forget Flowise title suggestion so the UI does not wait
-        if (shouldSuggestTitle) {
-          (async () => {
-            try {
-              const aiTitle = await suggestTitleWithFlowise({
-                question: messageToSend,
-                sessionId: activeChatId!,
-              });
-              const trimmed = (aiTitle || '').trim();
-              // Only rename if Flowise returns a non-empty title; otherwise keep default "ახალი საუბარი"
-              if (trimmed) {
-                renameChat(activeChatId!, trimmed);
+          // Fire-and-forget Flowise title suggestion so the UI does not wait
+          if (shouldSuggestTitle) {
+            (async () => {
+              try {
+                const aiTitle = await suggestTitleWithFlowise({
+                  question: messageToSend,
+                  sessionId: activeChatId!,
+                });
+                const trimmed = (aiTitle || '').trim();
+                // Only rename if Flowise returns a non-empty title; otherwise keep default "ახალი საუბარი"
+                if (trimmed) {
+                  renameChat(activeChatId!, trimmed);
+                }
+              } catch (e) {
+                console.warn('Flowise title suggestion failed:', e);
               }
-            } catch (e) {
-              console.warn('Flowise title suggestion failed:', e);
-            }
-          })();
+            })();
+          }
         }
       }
 
