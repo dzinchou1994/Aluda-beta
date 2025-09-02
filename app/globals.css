@@ -318,3 +318,17 @@ textarea {
 .logo-gradient {
   background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
 }
+
+/* Minimal reset for Flowise-provided HTML so it renders 1:1 */
+.flowise-html {
+  font-size: inherit;
+  line-height: inherit;
+  color: inherit;
+}
+.flowise-html p { margin: 0.5rem 0; }
+.flowise-html ol, .flowise-html ul { margin: 0.5rem 0 0.5rem 1.25rem; }
+.flowise-html h1, .flowise-html h2, .flowise-html h3, .flowise-html h4 {
+  margin: 0.75rem 0 0.5rem 0;
+  font-weight: 600;
+  font-size: inherit;
+}

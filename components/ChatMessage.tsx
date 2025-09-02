@@ -32,6 +32,8 @@ function preprocessForMarkdown(raw: string | undefined | null): string {
   text = text.replace(/\s+(#{1,6})(?=\S)/g, '\n$1 ');
   // If a heading is preceded by quotes, normalize: " #### Title" -> "\n#### Title"
   text = text.replace(/(^|\n)\s*["'“”]\s*(#{1,6})\s+/g, (_m, brk: string, hashes: string) => `${brk}${hashes} `);
+  // Strip an extra literal "# " after heading markers, e.g., "## # Title" -> "## Title"
+  text = text.replace(/^(#{1,6})\s*#\s+/gm, '$1 ');
   // Normalize heading lines: collapse to a single space after hashes and ensure within 0-3 leading spaces
   text = text.replace(/^[ \t]{0,3}(#{1,6})[ \t]*/gm, (_m, hashes: string) => `${hashes} `);
   // Split inline numbers into new lines when multiple in a paragraph
@@ -48,6 +50,11 @@ function preprocessForMarkdown(raw: string | undefined | null): string {
   const paragraphs = text.split(/\n{2,}/);
   const processed = paragraphs.map((p) => p.split('\n').map((l) => l).join('\n')).map(splitInlineNumbers);
   return processed.join('\n\n');
+}
+
+function normalizeHeadingHashesInHtml(html: string): string {
+  // Remove a single literal "# " immediately after an opening heading tag
+  return html.replace(/<(h[1-6])(\b[^>]*)>\s*#\s+/gi, '<$1$2>');
 }
 
 export default function ChatMessage({ message, index, shouldAnimate }: ChatMessageProps) {
@@ -80,8 +87,9 @@ export default function ChatMessage({ message, index, shouldAnimate }: ChatMessa
     // Prefer HTML if provided (Flowise can output HTML when renderHTML is true)
     if (looksLikeHtml(content)) {
       const clean = DOMPurify.sanitize(content, { USE_PROFILES: { html: true } });
+      const normalized = normalizeHeadingHashesInHtml(clean);
       return (
-        <div className="prose prose-sm dark:prose-invert max-w-none leading-relaxed" dangerouslySetInnerHTML={{ __html: clean }} />
+        <div className="flowise-html" dangerouslySetInnerHTML={{ __html: normalized }} />
       );
     }
     const pre = preprocessForMarkdown(content);
