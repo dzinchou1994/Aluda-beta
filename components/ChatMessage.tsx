@@ -39,6 +39,8 @@ function preprocessForMarkdown(raw: string | undefined | null): string {
   text = text.replace(/\u00A0/g, ' '); // NBSP to space
   text = text.replace(/[\u200B\u200C\u200D\uFEFF]/g, ''); // zero-width chars
   text = text.replace(/\uFF03/g, '#'); // fullwidth '#'
+  // Normalize inline horizontal rules: make ' --- ' stand alone so markdown renders <hr>
+  text = text.replace(/\s+---\s+/g, '\n\n---\n\n');
   // Ensure inline headings like #, ##, ### start on a new line if they appear mid-sentence
   text = text.replace(/\s+(#{1,6})(?=\S)/g, '\n$1 ');
   // If a heading is preceded by quotes, normalize: " #### Title" -> "\n#### Title"
