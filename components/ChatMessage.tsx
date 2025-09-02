@@ -5,7 +5,6 @@ import { useTypingEffect } from '@/hooks/useTypingEffect';
 import { useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import remarkBreaks from 'remark-breaks';
 import rehypeRaw from 'rehype-raw';
 
 interface ChatMessageProps {
@@ -43,7 +42,9 @@ export default function ChatMessage({ message, index, shouldAnimate }: ChatMessa
     if (content === undefined || content === null) return null;
     return (
       <div className="prose prose-sm dark:prose-invert max-w-none leading-relaxed">
-        <ReactMarkdown remarkPlugins={[remarkGfm, remarkBreaks]} rehypePlugins={[rehypeRaw]}>{content}</ReactMarkdown>
+        <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} components={{
+          a: (props) => <a {...props} target="_blank" rel="noopener noreferrer" />,
+        }}>{content}</ReactMarkdown>
       </div>
     );
   };
@@ -70,14 +71,16 @@ export default function ChatMessage({ message, index, shouldAnimate }: ChatMessa
               )}
               {message.content && (
                 <div className="prose prose-sm dark:prose-invert max-w-none leading-relaxed">
-                  <ReactMarkdown remarkPlugins={[remarkGfm, remarkBreaks]} rehypePlugins={[rehypeRaw]}>{message.content}</ReactMarkdown>
+                  <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} components={{
+                    a: (props) => <a {...props} target="_blank" rel="noopener noreferrer" />,
+                  }}>{message.content}</ReactMarkdown>
                 </div>
               )}
             </div>
           </div>
         ) : (
           // AI message - FIXED: show content directly for old messages, use typing effect only for new ones
-          <div className="w-full text-gray-900 dark:text-white text-base leading-relaxed whitespace-normal break-words max-w-[92%] sm:max-w-[70ch]">
+          <div className="w-full text-gray-900 dark:text-white text-base leading-relaxed max-w-[92%] sm:max-w-[70ch]">
             {shouldUseTypingEffect && isTyping ? renderAssistantContent(displayedText) : renderAssistantContent(message.content)}
           </div>
         )}
