@@ -1,6 +1,7 @@
 "use client"
 
 import React, { createContext, useCallback, useContext, useEffect, useState } from 'react'
+import { useSession } from 'next-auth/react'
 
 type Usage = { daily: number; monthly: number; images: number }
 type Limits = { daily: number; monthly: number; images: number }
@@ -17,6 +18,7 @@ type TokensContextValue = {
 const TokensContext = createContext<TokensContextValue | null>(null)
 
 export function TokensProvider({ children }: { children: React.ReactNode }) {
+  const { status } = useSession()
   const [usage, setUsage] = useState<Usage>({ daily: 0, monthly: 0, images: 0 })
   const [limits, setLimits] = useState<Limits>({ daily: 0, monthly: 0, images: 0 })
   const [actor, setActor] = useState<Actor | undefined>(undefined)
@@ -40,6 +42,15 @@ export function TokensProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     refresh()
   }, [refresh])
+
+  // IMPORTANT: Re-fetch tokens/actor whenever auth status changes.
+  // This ensures that immediately after sign-in, premium plan reflects in the UI
+  // (e.g., enabling Aluda 2.0 without requiring any manual action).
+  useEffect(() => {
+    if (status && status !== 'loading') {
+      refresh()
+    }
+  }, [status, refresh])
 
   return (
     <TokensContext.Provider value={{ usage, limits, actor, refresh, setUsageLimits }}>
