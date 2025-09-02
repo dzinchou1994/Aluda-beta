@@ -41,15 +41,7 @@ export async function POST(request: NextRequest) {
 
     if (!verifyBogCallback(payload, signature || undefined, rawBody)) {
       console.error('BOG Callback verification failed')
-      
-      // Fallback: If signature verification fails but we have valid event and order data, 
-      // still process the callback for user plan update
-      if (payload.event === 'order_payment' && payload.body?.external_order_id) {
-        console.log('Signature verification failed, but proceeding with fallback validation')
-        console.log('This is a known issue with BOG signature verification')
-      } else {
-        return NextResponse.json({ error: 'Invalid callback' }, { status: 400 })
-      }
+      return NextResponse.json({ error: 'Invalid callback signature' }, { status: 400 })
     }
 
     // BOG sends: event: "order_payment" and body.external_order_id (our order format)

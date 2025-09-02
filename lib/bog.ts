@@ -206,29 +206,30 @@ export function verifyBogCallback(payload: BogCallbackPayload, signature?: strin
     rawBodyLength: rawBody?.length
   })
   
-  // If signature is provided, verify it using BOG's public key
-  if (signature && rawBody) {
-    try {
-      // BOG documentation: verify signature on raw request body before deserialization
-      const verifier = crypto.createVerify('SHA256')
-      verifier.update(rawBody, 'utf8')
-      
-      const isValidSignature = verifier.verify(BOG_PUBLIC_KEY, signature, 'base64')
-      console.log('Signature verification result:', isValidSignature)
-      console.log('Raw body for verification:', rawBody.substring(0, 200) + '...')
-      
-      return hasValidEvent && hasValidOrderId && isValidSignature
-    } catch (error) {
-      console.error('Signature verification error:', error)
-      // If signature verification fails, fall back to basic validation
-      console.log('Falling back to basic validation due to signature verification failure')
-      return hasValidEvent && hasValidOrderId
-    }
+  // CRITICAL SECURITY FIX: Require signature verification for all callbacks
+  // No more fallback validation that could allow fake premium upgrades
+  if (!signature || !rawBody) {
+    console.error('BOG Callback rejected: Missing signature or raw body')
+    return false
   }
   
-  // If no signature or raw body, do basic validation
-  console.log('No signature or raw body, using basic validation')
-  return hasValidEvent && hasValidOrderId
+  try {
+    // BOG documentation: verify signature on raw request body before deserialization
+    const verifier = crypto.createVerify('SHA256')
+    verifier.update(rawBody, 'utf8')
+    
+    const isValidSignature = verifier.verify(BOG_PUBLIC_KEY, signature, 'base64')
+    console.log('Signature verification result:', isValidSignature)
+    console.log('Raw body for verification:', rawBody.substring(0, 200) + '...')
+    
+    // Only allow if both signature is valid AND event/order data is valid
+    return hasValidEvent && hasValidOrderId && isValidSignature
+  } catch (error) {
+    console.error('Signature verification error:', error)
+    // CRITICAL: Never fall back to basic validation - this was the security hole
+    console.error('BOG Callback rejected: Signature verification failed')
+    return false
+  }
 }
 
 
