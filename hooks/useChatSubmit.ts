@@ -127,11 +127,11 @@ export function useChatSubmit({
         });
       } else {
         if (useFlowiseProxy) {
-          // Direct Flowise question for exact formatting parity
-          responsePromise = fetch('/api/flowise', {
+          // Prefer streaming from Flowise when possible
+          responsePromise = fetch('/api/flowise/stream', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ question: messageToSend, overrideConfig: { renderHTML: true } }),
+            body: JSON.stringify({ question: messageToSend }),
           });
         } else {
           // Get current chat history to send to API
