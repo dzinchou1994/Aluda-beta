@@ -93,10 +93,14 @@ export default function ChatMessage({ message, index, shouldAnimate }: ChatMessa
     
     // Split content into lines and process each line
     const lines = preprocessed.split('\n');
-    return lines.map((line, lineIndex) => {
+    const nodes: React.ReactNode[] = [];
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+
       // Horizontal rule
       if (/^\s*-{3,}\s*$/.test(line)) {
-        return <hr key={lineIndex} className="my-3 border-gray-300 dark:border-gray-700" />;
+        nodes.push(<hr key={`hr-${i}`} className="my-3 border-gray-300 dark:border-gray-700" />);
+        continue;
       }
 
       // Check if line is a heading (starts with #)
@@ -104,49 +108,74 @@ export default function ChatMessage({ message, index, shouldAnimate }: ChatMessa
         const level = line.match(/^#+/)?.[0].length || 1;
         const text = line.replace(/^#+\s*/, '');
         const Tag = level === 1 ? 'h1' : level === 2 ? 'h2' : 'h3';
-        
-        return (
+        nodes.push(
           <Tag 
-            key={lineIndex} 
-            className={`font-bold mb-2 ${
-              level === 1 ? 'text-lg' : level === 2 ? 'text-base' : 'text-sm'
-            }`}
+            key={`h-${i}`} 
+            className={`font-bold mb-2 ${level === 1 ? 'text-lg' : level === 2 ? 'text-base' : 'text-sm'}`}
           >
             {text}
           </Tag>
         );
+        continue;
       }
       
-      // Check if line is a list item
-      if (line.match(/^[-*]\s/)) {
-        return (
-          <div key={lineIndex} className="flex items-start mb-1">
+      // Detect bullet lines, including Unicode bullet "•"
+      const isBullet = /^[-*]\s/.test(line) || /^•\s?/.test(line);
+      if (isBullet) {
+        const titleText = line.replace(/^[-*]\s/, '').replace(/^•\s?/, '');
+        // Collect continuation lines that belong to this bullet item as description
+        const descParts: string[] = [];
+        let j = i + 1;
+        while (j < lines.length) {
+          const next = lines[j];
+          if (!next.trim()) break;
+          if (/^[-*]\s/.test(next) || /^•\s?/.test(next) || /^\d+\.\s/.test(next) || next.startsWith('#') || /^\s*-{3,}\s*$/.test(next)) {
+            break;
+          }
+        
+          descParts.push(next);
+          j++;
+        }
+        nodes.push(
+          <div key={`li-${i}`} className="flex items-start mb-2">
             <span className="mr-2 text-gray-500">•</span>
-            <span>{renderMarkdownText(line.replace(/^[-*]\s/, ''))}</span>
+            <div>
+              <div>{renderMarkdownText(titleText)}</div>
+              {descParts.length > 0 && (
+                <div className="text-[0.95em] text-gray-700 dark:text-gray-300 mt-1">
+                  {renderMarkdownText(descParts.join(' '))}
+                </div>
+              )}
+            </div>
           </div>
         );
+        i = j - 1; // Skip consumed lines
+        continue;
       }
       
       // Check if line is a numbered list item
-      if (line.match(/^\d+\.\s/)) {
-        return (
-          <div key={lineIndex} className="flex items-start mb-1">
+      if (/^\d+\.\s/.test(line)) {
+        nodes.push(
+          <div key={`num-${i}`} className="flex items-start mb-1">
             <span className="mr-2 text-gray-500 text-sm">
               {line.match(/^\d+/)?.[0]}.
             </span>
             <span>{renderMarkdownText(line.replace(/^\d+\.\s/, ''))}</span>
           </div>
         );
+        continue;
       }
       
       // Regular paragraph
       if (line.trim()) {
-        return <p key={lineIndex} className="mb-2">{renderMarkdownText(line)}</p>;
+        nodes.push(<p key={`p-${i}`} className="mb-2">{renderMarkdownText(line)}</p>);
+        continue;
       }
       
       // Empty line (spacing)
-      return <div key={lineIndex} className="h-2" />;
-    });
+      nodes.push(<div key={`sp-${i}`} className="h-2" />);
+    }
+    return nodes;
   };
 
   // Helper function to render markdown text with bold formatting and links
