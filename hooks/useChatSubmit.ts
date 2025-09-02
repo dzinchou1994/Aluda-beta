@@ -131,7 +131,7 @@ export function useChatSubmit({
           responsePromise = fetch('/api/flowise', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ question: messageToSend }),
+            body: JSON.stringify({ question: messageToSend, overrideConfig: { renderHTML: true } }),
           });
         } else {
           // Get current chat history to send to API

@@ -4,7 +4,7 @@ export async function POST(req: Request) {
   try {
     const body = await req.json();
     const question = body?.question ?? body?.prompt ?? '';
-    const overrideConfig = body?.overrideConfig ?? undefined;
+    const overrideConfig = { renderHTML: true, ...(body?.overrideConfig || {}) };
 
     const host = process.env.FLOWISE_HOST;
     const chatflowId = process.env.FLOWISE_CHATFLOW_ID;
