@@ -152,26 +152,14 @@ function chatReducer(state: ChatState, action: ChatAction): ChatState {
         chats: state.chats.map(chat => {
           if (chat.id === action.payload.chatId) {
             const updatedMessages = [...chat.messages, action.payload.message];
-            
-            // Robust auto-title: trigger when first message is appended and it's a non-greeting user text
-            let newTitle = chat.title;
-            const isGreeting = (text: string) => {
-              const t = text.trim().toLowerCase();
-              return [
-                'გამარჯობა', 'hello', 'hi', 'hey', 'გაუმარჯოს', 'სალამი'
-              ].some(g => t === g || t.startsWith(g + ' '));
-            }
-            const isFirstAfterAppend = updatedMessages.length === 1 && action.payload.message.role === 'user'
-            const textContent = (action.payload.message.content || '').trim()
-            const canAutoTitle = isFirstAfterAppend && textContent.length > 0 && !isGreeting(textContent)
-            if (canAutoTitle && !chat.titleLocked) {
-              newTitle = generateChatTitle(textContent);
-            }
-            
+
+            // Disable local heuristic auto-title. Title will be set by Flowise once on first message.
+            const newTitle = chat.title;
+
             return {
               ...chat,
               title: newTitle,
-              // Do NOT lock on auto title; allow AI title override shortly after
+              // Do NOT lock here; Flowise rename will lock when applied
               titleLocked: Boolean(chat.titleLocked) || false,
               messages: updatedMessages
             };

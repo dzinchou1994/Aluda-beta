@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Message } from '@/hooks/useChats';
 import { compressImageIfNeeded } from '@/lib/chatUtils';
+import { suggestTitleWithFlowise } from '@/lib/flowise';
 
 interface UseChatSubmitProps {
   model: string;
@@ -76,11 +77,13 @@ export function useChatSubmit({
 
     // If no current chat, create one
     let activeChatId = currentChatId;
+    let createdNewChat = false;
     if (!activeChatId) {
       console.log('ChatComposer: No active chat, creating new one...');
       const newChatId = createNewChat();
       setCurrentChatId(newChatId);
       activeChatId = newChatId;
+      createdNewChat = true;
     }
 
     // Prepare to send and only add message to UI after the request is started
@@ -131,6 +134,9 @@ export function useChatSubmit({
         }));
         
         console.log('Frontend: Sending history to API:', historyForAPI.length, 'messages');
+
+        // Decide if we should trigger Flowise title suggestion (only on very first user message with text)
+        const shouldSuggestTitle = (createdNewChat || historyForAPI.length === 0) && messageToSend.length > 0;
         
         responsePromise = fetch("/api/chat", {
           method: "POST",
@@ -144,6 +150,25 @@ export function useChatSubmit({
             history: historyForAPI
           }),
         });
+
+        // Fire-and-forget Flowise title suggestion so the UI does not wait
+        if (shouldSuggestTitle) {
+          (async () => {
+            try {
+              const aiTitle = await suggestTitleWithFlowise({
+                question: messageToSend,
+                sessionId: activeChatId!,
+              });
+              const trimmed = (aiTitle || '').trim();
+              // Only rename if Flowise returns a non-empty title; otherwise keep default "ახალი საუბარი"
+              if (trimmed) {
+                renameChat(activeChatId!, trimmed);
+              }
+            } catch (e) {
+              console.warn('Flowise title suggestion failed:', e);
+            }
+          })();
+        }
       }
 
       // OPTIMIZATION: Immediately render the user's message and reduce delay
