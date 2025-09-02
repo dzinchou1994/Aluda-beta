@@ -238,33 +238,45 @@ export function useChatSubmit({
             const chunk = decoder.decode(value);
             console.log('Client-side: Received chunk:', chunk);
             const lines = chunk.split('\n');
-            
-            for (const line of lines) {
-              if (line.startsWith('data:')) {
-                const data = line.slice(5).trim();
-                console.log('Client-side: Processing data line:', data);
-                
-                try {
-                  const parsed = JSON.parse(data);
-                  
-                  if (parsed.event === 'end') {
+
+            for (const rawLine of lines) {
+              const line = rawLine.trim();
+              if (!line) continue;
+              if (!line.startsWith('data:')) continue;
+
+              const data = line.slice(5).trim();
+              if (!data) continue;
+
+              console.log('Client-side: Processing data line:', data);
+
+              let handled = false;
+              try {
+                const parsed = JSON.parse(data);
+                if (parsed && typeof parsed === 'object') {
+                  if (parsed.event === 'end' || parsed.data === '[DONE]') {
                     console.log('Streaming ended, final content:', fullContent);
+                    handled = true;
                     break;
-                  } else if (parsed.event === 'token' && parsed.data) {
-                    fullContent += parsed.data;
-                    console.log('Received token:', parsed.data, 'Full content so far:', fullContent);
-                    // Update the message content in real-time
-                    updateMessageInChat(activeChatId, aiMessageId, { content: fullContent });
-                    // Keep the view pinned to bottom as tokens arrive
-                    forceScrollBottom();
-                  } else if (parsed.event === 'start') {
-                    console.log('Streaming started');
-                  } else {
-                    console.log('Unknown event:', parsed.event, parsed);
                   }
-                } catch (e) {
-                  console.log('Parse error:', e);
+                  const token = parsed.data || parsed.token || parsed.text;
+                  if (parsed.event === 'start') {
+                    handled = true;
+                  } else if (token) {
+                    fullContent += token;
+                    handled = true;
+                  }
                 }
+              } catch {
+                // Not JSON – treat as raw token content
+                if (data !== '[DONE]') {
+                  fullContent += data;
+                  handled = true;
+                }
+              }
+
+              if (handled) {
+                updateMessageInChat(activeChatId, aiMessageId, { content: fullContent });
+                forceScrollBottom();
               }
             }
           }
@@ -312,7 +324,7 @@ export function useChatSubmit({
         }
 
         // Auto-rename chat if AI provided a title
-        if (responseData.aiTitle && responseData.aiTitle.trim()) {
+        if (responseData && responseData.aiTitle && typeof responseData.aiTitle === 'string' && responseData.aiTitle.trim()) {
           console.log('AI suggested title:', responseData.aiTitle);
           renameChat(activeChatId, responseData.aiTitle.trim());
         }
