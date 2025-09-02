@@ -271,7 +271,7 @@ export default function ChatMessage({ message, index, shouldAnimate }: ChatMessa
       }`}>
         {message.role === 'user' ? (
           // User message with bubble
-          <div className="px-4 py-3 inline-block w-auto max-w-[60ch] md:max-w-[70ch] shadow-sm transition-all duration-200 hover:shadow-md chat-bubble chat-bubble-user">
+          <div className="px-4 py-3 inline-block w-auto max-w-[85%] sm:max-w-[70ch] shadow-sm transition-all duration-200 hover:shadow-md chat-bubble chat-bubble-user">
             <div className="space-y-2">
               {message.imageUrl && (
                 <img src={message.imageUrl} alt="attachment" className="rounded-md border border-gray-200 dark:border-gray-700 max-w-full" />
@@ -296,7 +296,7 @@ export default function ChatMessage({ message, index, shouldAnimate }: ChatMessa
           </div>
         ) : (
           // AI message - FIXED: show content directly for old messages, use typing effect only for new ones
-          <div className="w-full text-gray-900 dark:text-white text-sm leading-relaxed whitespace-normal break-words">
+          <div className="w-full text-gray-900 dark:text-white text-sm leading-relaxed whitespace-normal break-words max-w-[92%] sm:max-w-[70ch]">
             {shouldUseTypingEffect && isTyping ? renderAssistantContent(displayedText) : renderAssistantContent(message.content)}
           </div>
         )}
