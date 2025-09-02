@@ -39,6 +39,15 @@ export default function ChatMessage({ message, index, shouldAnimate }: ChatMessa
     // Make sure horizontal rules are on their own lines
     text = text.replace(/---/g, '\n---\n');
 
+    // Ensure inline markdown headings like "###1." or "## Title" start on a new line
+    // Many providers emit headings mid-sentence without a newline. Move them to a new line
+    // so our heading renderer can pick them up.
+    text = text.replace(/\s+(#{2,6})(?=\S)/g, '\n$1 ');
+
+    // Normalize accidental heading markers like "###1." → "1." so they don't appear as stray symbols
+    // Pattern: optional spaces + 2-6 hashes + optional spaces + number + dot + space
+    text = text.replace(/(^|\n)\s*#{2,6}\s*(\d{1,3})\.(?=\s)/g, (_, brk: string, num: string) => `${brk}${num}.`);
+
     // Split lines and apply inline list heuristics per line
     const lines = text.split('\n');
     const processedLines = lines.map((line) => {
