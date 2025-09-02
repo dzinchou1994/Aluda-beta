@@ -29,6 +29,10 @@ export default function ModelSwitcher() {
   }, []);
 
   const handleModelSelect = (newModel: 'mini' | 'aluda2' | 'test') => {
+    if (newModel === 'aluda2' && !hasPremium) {
+      handleUpgrade();
+      return;
+    }
     setModel(newModel);
     setIsOpen(false);
   };
@@ -120,7 +124,7 @@ export default function ModelSwitcher() {
           </div>
 
           {/* Aluda 2.0 Option (Premium) - Last and most prominent */}
-          <div className="p-3 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200" onClick={() => hasPremium && handleModelSelect('aluda2')}>
+          <div className="p-3 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200" onClick={() => handleModelSelect('aluda2')}>
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-3">
                 {getModelIcon('aluda2')}

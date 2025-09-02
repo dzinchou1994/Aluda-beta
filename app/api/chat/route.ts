@@ -107,6 +107,10 @@ export async function POST(request: NextRequest) {
     if (actor.type === 'guest' && selectedModel === 'aluda2') {
       return NextResponse.json({ error: 'გაიარეთ ავტორიზაცია Aluda 2.0-ისთვის', redirect: '/auth/signin' }, { status: 402 })
     }
+    // Enforce premium for Aluda 2.0: non-premium logged-in users must upgrade
+    if (actor.type === 'user' && selectedModel === 'aluda2' && !isPremium) {
+      return NextResponse.json({ error: 'Aluda 2.0 ხელმისაწვდომია მხოლოდ PREMIUM მომხმარებლებისთვის', redirect: '/buy' }, { status: 402 })
+    }
 
     // For test model, skip token consumption check
     let estimatedTokens = 0
