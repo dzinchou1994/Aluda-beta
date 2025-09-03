@@ -14,9 +14,7 @@ export async function POST(req: Request) {
     // Try common streaming endpoints in order
     const base = host.replace(/\/$/, '');
     const candidates = [
-      `${base}/api/v1/internal-prediction/${chatflowId}`,
       `${base}/api/v1/prediction/${chatflowId}/stream`,
-      `${base}/api/v1/chatflows/${chatflowId}/stream`,
       `${base}/api/v1/prediction/${chatflowId}`,
     ];
     let upstream: Response | null = null;
