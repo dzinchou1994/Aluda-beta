@@ -49,16 +49,23 @@ export async function getUsage(actor: Actor) {
         },
       },
     }),
-    prisma.imageUsage.findUnique({
-      where: {
-        actorType_actorId_period_periodKey: {
-          actorType: actor.type,
-          actorId: actor.id,
-          period: 'month',
-          periodKey: month,
-        },
-      },
-    }),
+    (async () => {
+      try {
+        return await prisma.imageUsage.findUnique({
+          where: {
+            actorType_actorId_period_periodKey: {
+              actorType: actor.type,
+              actorId: actor.id,
+              period: 'month',
+              periodKey: month,
+            },
+          },
+        })
+      } catch (e: any) {
+        console.warn('ImageUsage lookup failed (proceeding with 0 images). Reason:', e?.message || e)
+        return null
+      }
+    })(),
   ])
   return { 
     daily: daily?.tokens ?? 0, 
@@ -123,24 +130,28 @@ export async function addImageUsage(actor: Actor, images: number = 1) {
   }
 
   const { month } = getPeriodKeys()
-  await prisma.imageUsage.upsert({
-    where: {
-      actorType_actorId_period_periodKey: {
+  try {
+    await prisma.imageUsage.upsert({
+      where: {
+        actorType_actorId_period_periodKey: {
+          actorType: actor.type,
+          actorId: actor.id,
+          period: 'month',
+          periodKey: month,
+        },
+      },
+      update: { images: { increment: images } },
+      create: {
         actorType: actor.type,
         actorId: actor.id,
         period: 'month',
         periodKey: month,
+        images,
       },
-    },
-    update: { images: { increment: images } },
-    create: {
-      actorType: actor.type,
-      actorId: actor.id,
-      period: 'month',
-      periodKey: month,
-      images,
-    },
-  })
+    })
+  } catch (e: any) {
+    console.warn('ImageUsage upsert failed (skipping). Reason:', e?.message || e)
+  }
 }
 
 export async function canConsume(actor: Actor, tokens: number) {
