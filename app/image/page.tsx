@@ -3,11 +3,13 @@
 import { useState, useEffect } from 'react'
 import { toast } from '@/components/ui/use-toast'
 import { useSession, signIn } from 'next-auth/react'
+import { useTokens } from '@/context/TokensContext'
 import { Brain, Sun, Moon, ArrowLeft, Sparkles, Palette, Download, Copy, History, Trash2, Wand2, Maximize, ChevronDown, User, Camera, Film, Brush, Box, Heart, Gamepad2, PenTool, Clock, Zap } from 'lucide-react'
 import UserSettingsModal from '@/components/UserSettingsModal'
 
 export default function ImageGeneratorPage() {
   const { data: session, status } = useSession()
+  const { refresh: refreshTokens } = useTokens()
   const [prompt, setPrompt] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [isImageLoading, setIsImageLoading] = useState(false)
@@ -220,6 +222,8 @@ export default function ImageGeneratorPage() {
           setRevisedPrompt(data?.revised_prompt || null)
           setIsImageLoading(false)
           setIsLoading(false)
+          // Refresh usage/limits so UI reflects updated image count
+          refreshTokens().catch(() => {})
         }
         img.onerror = () => {
           setError('Failed to load generated image')

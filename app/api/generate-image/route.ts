@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { getOrCreateSession } from '@/lib/session'
 import { addImageUsage, canGenerateImage } from '@/lib/tokens'
+import { prisma } from '@/lib/prisma'
 
 export async function POST(req: Request) {
   try {
@@ -18,10 +19,14 @@ export async function POST(req: Request) {
 
     // Check image generation limits
     const session = await getServerSession(authOptions)
-    const cookieSess = getOrCreateSession()
-    const actor = session?.user?.id
-      ? { type: 'user' as const, id: session.user.id, plan: 'USER' as const }
-      : { type: 'guest' as const, id: cookieSess.guestId || cookieSess.sessionId }
+    let actor: { type: 'guest'; id: string } | { type: 'user'; id: string; plan: 'USER' | 'PREMIUM' }
+    if (session?.user?.id) {
+      const user = await prisma.user.findUnique({ where: { id: session.user.id }, select: { plan: true } })
+      actor = { type: 'user', id: session.user.id, plan: user?.plan === 'PREMIUM' ? 'PREMIUM' : 'USER' }
+    } else {
+      const cookieSess = getOrCreateSession()
+      actor = { type: 'guest', id: cookieSess.guestId || cookieSess.sessionId }
+    }
     
     // Check if user can generate more images
     const imageCheck = await canGenerateImage(actor)
@@ -32,10 +37,6 @@ export async function POST(req: Request) {
         error: `Image generation limit reached. You have used ${usage.images}/${limits.images} images this month.` 
       }, { status: 429 })
     }
-    
-    // Add image usage tracking
-    await addImageUsage(actor, 1)
-
     const response = await fetch('https://api.openai.com/v1/images/generations', {
       method: 'POST',
       headers: {
@@ -68,6 +69,10 @@ export async function POST(req: Request) {
     const first = data?.data?.[0]
     const url = first?.url || null
     const revised_prompt = first?.revised_prompt || null
+    // Count usage only on successful generation
+    if (url) {
+      await addImageUsage(actor, 1)
+    }
     return NextResponse.json({ url, revised_prompt })
   } catch (error: any) {
     return NextResponse.json({ error: error?.message || 'Unknown error' }, { status: 500 })
