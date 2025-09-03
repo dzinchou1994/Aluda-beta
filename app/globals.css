@@ -278,7 +278,7 @@ textarea {
 /* Prevent multi-script characters from breaking per-letter on narrow widths */
 .chat-bubble-user p, .chat-bubble-user span, .chat-bubble-user div {
   word-break: normal;      /* don't split letters */
-  overflow-wrap: anywhere; /* wrap only when needed */
+  overflow-wrap: break-word; /* allow breaking long words, not letters */
   line-break: auto;
 }
 
