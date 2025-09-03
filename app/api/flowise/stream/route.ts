@@ -18,12 +18,14 @@ export async function POST(req: Request) {
       `${base}/api/v1/prediction/${chatflowId}`,
     ];
     let upstream: Response | null = null;
+    const apiKey = process.env.FLOWISE_API_KEY || process.env.ALUDAAI_FLOWISE_API_KEY;
     for (const url of candidates) {
       const res = await fetch(url, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           Accept: 'text/event-stream',
+          ...(apiKey ? { Authorization: `Bearer ${apiKey}`, 'x-api-key': apiKey } : {}),
         },
         body: JSON.stringify({
           question,

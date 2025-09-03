@@ -8,6 +8,7 @@ export async function POST(req: Request) {
 
     const host = process.env.FLOWISE_HOST;
     const chatflowId = process.env.FLOWISE_CHATFLOW_ID;
+    const apiKey = process.env.FLOWISE_API_KEY || process.env.ALUDAAI_FLOWISE_API_KEY;
 
     if (!host || !chatflowId) {
       return NextResponse.json({ error: 'FLOWISE_HOST or FLOWISE_CHATFLOW_ID is not set' }, { status: 500 });
@@ -17,7 +18,10 @@ export async function POST(req: Request) {
 
     const upstreamRes = await fetch(url, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        ...(apiKey ? { Authorization: `Bearer ${apiKey}`, 'x-api-key': apiKey } : {}),
+      },
       body: JSON.stringify({ question, overrideConfig }),
       // No credentials or auth by default; configure Flowise security as needed
     });
