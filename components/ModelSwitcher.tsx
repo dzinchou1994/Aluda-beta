@@ -156,22 +156,7 @@ export default function ModelSwitcher() {
             </div>
           </div>
 
-          {/* Divider */}
-          <div className="border-t border-gray-200/60 dark:border-white/10" />
-
-          {/* Aluda Test Option (separate from Free) */}
-          <div className="p-3 cursor-pointer hover:bg-gray-50 dark:hover:bg-white/5 transition-colors duration-200" onClick={() => handleModelSelect('aluda_test')}>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-3">
-                {getModelIcon('aluda_test')}
-                <div>
-                  <div className="text-gray-900 dark:text-white font-medium text-sm">Aluda Test</div>
-                  <div className="text-gray-600 dark:text-gray-400 text-xs">Internal testing flow</div>
-                </div>
-              </div>
-              {model === 'aluda_test' && <Check className="h-4 w-4 text-green-600 dark:text-green-400" />}
-            </div>
-          </div>
+          {/* Aluda Test temporarily hidden */}
         </div>
       )}
     </div>

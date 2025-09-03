@@ -107,9 +107,20 @@ export function useChatSubmit({
         t = t.replace(/[\u4e00-\u9fff]/g, '');
         t = t.replace(/[\u0400-\u04FF]/g, '');
       }
-      // Collapse excessive whitespace
-      t = t.replace(/\s+/g, ' ');
+      // Collapse only spaces/tabs, PRESERVE newlines for paragraphs and lists
+      t = t.replace(/[ \t]+/g, ' ');
       return t;
+    };
+
+    // Strip any trailing Flowise agent logs (e.g., {"event":"usedTools", ...}) that sometimes leak at the end
+    const stripTrailingToolLogs = (raw: string): string => {
+      if (!raw) return '';
+      let txt = raw;
+      try {
+        txt = txt.replace(/\{\s*"event"\s*:\s*"usedTools"[\s\S]*$/i, '').trim();
+        txt = txt.replace(/\{\s*"event"\s*:\s*"[^"]+"[\s\S]*$/i, '').trim();
+      } catch {}
+      return txt;
     };
 
     console.log('ChatComposer: Submitting message, currentChatId:', currentChatId);
@@ -366,6 +377,15 @@ export function useChatSubmit({
               forceScrollBottom();
             } catch {}
           }
+          // Final cleanup: strip any trailing tool logs accidentally surfaced
+          try {
+            const cleaned = stripTrailingToolLogs(fullContent);
+            if (cleaned !== fullContent) {
+              fullContent = cleaned;
+              updateMessageInChat(activeChatId, aiMessageId, { content: fullContent });
+              forceScrollBottom();
+            }
+          } catch {}
         }
       } else {
         // Handle non-streaming response
