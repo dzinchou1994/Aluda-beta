@@ -160,7 +160,7 @@ export async function POST(request: NextRequest) {
               || process.env.FLOWISE_CHATFLOW_ID_ALUDAA2
               || (process.env as any).ALUDAAI_FLOWISE_CHATFLOW_ID_ALUDA2)
             : selectedModel === 'test'
-            ? (process.env.ALUDAAI_FLOWISE_CHATFLOW_ID_TEST || process.env.FLOWISE_CHATFLOW_ID_TEST || '286c3991-be03-47f3-aa47-56a6b65c5d00')
+            ? (process.env.ALUDAAI_FLOWISE_CHATFLOW_ID_FREE || process.env.FLOWISE_CHATFLOW_ID_FREE || '286c3991-be03-47f3-aa47-56a6b65c5d00')
             : selectedModel === 'aluda_test'
             ? (process.env.ALUDAAI_FLOWISE_CHATFLOW_ID_TEST || process.env.FLOWISE_CHATFLOW_ID_TEST || '286c3991-be03-47f3-aa47-56a6b65c5d00')
             : (process.env.ALUDAAI_FLOWISE_CHATFLOW_ID || process.env.FLOWISE_CHATFLOW_ID)
