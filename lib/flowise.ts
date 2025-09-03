@@ -89,6 +89,8 @@ export async function sendToFlowise({
 
   if (apiKey) {
     headers['Authorization'] = `Bearer ${apiKey}`;
+    // Some Flowise setups expect x-api-key instead of Authorization
+    headers['x-api-key'] = apiKey;
   }
 
   // Optimize: reduce timeout for faster failure detection
@@ -114,6 +116,18 @@ export async function sendToFlowise({
         || /მხოლოდ\s+ტექსტ/i.test(s)
       )
     }
+    // Debug: log header presence without exposing secrets
+    try {
+      console.log('Flowise request debug:', {
+        hasApiKey: Boolean(apiKey),
+        hasAuthHeader: Boolean(headers['Authorization']),
+        hasXApiKeyHeader: Boolean(headers['x-api-key']),
+        host: normalizedHost,
+        chatflowId,
+        isMultipart: Boolean(file),
+      })
+    } catch {}
+
     if (isMultipart) {
       // Use prediction endpoint directly for file uploads since internal-prediction requires auth
       const arrayBuffer = await (file as any).arrayBuffer()

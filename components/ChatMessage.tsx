@@ -132,7 +132,7 @@ export default function ChatMessage({ message, index, shouldAnimate }: ChatMessa
                 <img src={message.imageUrl} alt="attachment" className="rounded-md border border-gray-200 dark:border-gray-700 max-w-full" />
               )}
               {message.content && (
-                <p className="text-base leading-relaxed whitespace-pre-wrap break-words" style={{ wordBreak: 'normal' }}>{message.content}</p>
+                <span className="inline-block text-base leading-relaxed whitespace-pre-wrap break-words" style={{ wordBreak: 'normal' }}>{message.content}</span>
               )}
             </div>
           </div>

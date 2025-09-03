@@ -282,6 +282,8 @@ textarea {
   line-break: auto;
 }
 
+/* Removed mobile display override for chat-bubble-user descendants to preserve natural wrapping */
+
 /* iOS-specific: prevent flicker by letting native content size manage height */
 @supports (-webkit-touch-callout: none) {
   textarea.auto-resize {
