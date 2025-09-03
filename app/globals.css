@@ -277,8 +277,9 @@ textarea {
 
 /* Prevent multi-script characters from breaking per-letter on narrow widths */
 .chat-bubble-user p, .chat-bubble-user span, .chat-bubble-user div {
-  word-break: keep-all;
-  line-break: anywhere;
+  word-break: normal;      /* don't split letters */
+  overflow-wrap: anywhere; /* wrap only when needed */
+  line-break: auto;
 }
 
 /* iOS-specific: prevent flicker by letting native content size manage height */
