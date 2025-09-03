@@ -10,13 +10,13 @@ npx prisma generate
 echo "🏗️ Building Next.js application..."
 npm run build
 
-# Try to initialize database after build (optional)
-echo "🔄 Initializing database (optional)..."
-if [ -n "$ALUDAAI_DATABASE_URL" ]; then
-  echo "✅ Database URL found, initializing database..."
-  node scripts/init-db.js || echo "⚠️ Database initialization failed, but build succeeded"
+# Run migrations after build (optional)
+echo "🔄 Running database migrations (optional)..."
+if [ -n "$ALUDAAI_DATABASE_URL" ] || [ -n "$DATABASE_URL" ]; then
+  echo "✅ Database URL found, deploying migrations..."
+  node scripts/deploy-db.js || echo "⚠️ Migration deploy failed, but build succeeded"
 else
-  echo "⚠️ No database URL found, skipping database initialization"
+  echo "⚠️ No database URL found, skipping migration deploy"
 fi
 
 echo "✅ Build process completed!"
