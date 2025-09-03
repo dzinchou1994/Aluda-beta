@@ -132,9 +132,7 @@ export default function ChatMessage({ message, index, shouldAnimate }: ChatMessa
                 <img src={message.imageUrl} alt="attachment" className="rounded-md border border-gray-200 dark:border-gray-700 max-w-full" />
               )}
               {message.content && (
-                <div className="prose prose-sm dark:prose-invert max-w-none leading-relaxed prose-h1:text-[1.1rem] prose-h2:text-[1.05rem] prose-h3:text-[1rem] prose-h4:text-[0.95rem] prose-p:my-2 prose-ul:my-2 prose-ol:my-2">
-                  <ReactMarkdown remarkPlugins={[remarkGfm, remarkBreaks]} rehypePlugins={[rehypeRaw]} components={mdComponents}>{message.content}</ReactMarkdown>
-                </div>
+                <p className="text-base leading-relaxed whitespace-pre-wrap break-words">{message.content}</p>
               )}
             </div>
           </div>
