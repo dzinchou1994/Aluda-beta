@@ -193,7 +193,7 @@ export async function POST(request: NextRequest) {
               question: message,
               chatId: flowiseSessionId,
               streaming: true,
-              overrideConfig: { renderHTML: true },
+              overrideConfig: { renderHTML: true, sessionId: flowiseSessionId },
             }),
           })
 
