@@ -275,6 +275,12 @@ textarea {
   transition: none;
 }
 
+/* Prevent multi-script characters from breaking per-letter on narrow widths */
+.chat-bubble-user p, .chat-bubble-user span, .chat-bubble-user div {
+  word-break: keep-all;
+  line-break: anywhere;
+}
+
 /* iOS-specific: prevent flicker by letting native content size manage height */
 @supports (-webkit-touch-callout: none) {
   textarea.auto-resize {
