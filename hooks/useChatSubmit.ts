@@ -240,6 +240,34 @@ export function useChatSubmit({
       onChatCreated(activeChatId);
       setTimeout(() => setCurrentChatId(activeChatId), 25); // Reduced from 50ms to 25ms
 
+      // Title generation: call suggest API immediately; fallback to first line if slow
+      if (createdNewChat && messageToSend) {
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), 2200);
+        (async () => {
+          try {
+            const res = await fetch('/api/chat/title', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ question: messageToSend, sessionId: activeChatId }),
+              signal: controller.signal,
+            });
+            if (res.ok) {
+              const { title } = await res.json();
+              const trimmed = (title || '').trim();
+              if (trimmed) renameChat(activeChatId!, trimmed);
+              return;
+            }
+          } catch {}
+          finally { clearTimeout(timer); }
+          // Fallback
+          const firstLine = messageToSend.split(/\n+/)[0].trim();
+          const noPunct = firstLine.replace(/[.!?\-—–,:;]+$/g, '').trim();
+          const limited = noPunct.length > 42 ? (noPunct.slice(0, 42).trim() + '…') : noPunct;
+          if (limited) renameChat(activeChatId!, limited);
+        })();
+      }
+
       const response = await responsePromise;
       
       if (!response.ok) {
