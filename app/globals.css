@@ -13,6 +13,9 @@
   max-width: 70%;
   word-wrap: break-word;
   position: relative;
+  display: inline-flex;
+  align-items: center;
+  vertical-align: middle;
 }
 
 .chat-bubble-user {

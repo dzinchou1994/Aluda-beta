@@ -2,7 +2,7 @@
 
 import { createContext, useCallback, useContext, useEffect, useState } from 'react'
 
-type ModelType = 'mini' | 'aluda2' | 'test'
+type ModelType = 'mini' | 'aluda2' | 'test' | 'aluda_test'
 
 type ModelContextValue = {
   model: ModelType
@@ -18,7 +18,7 @@ export function ModelProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     try {
       const saved = localStorage.getItem('aluda_model') as ModelType | null
-      if (saved === 'mini' || saved === 'aluda2' || saved === 'test') setModelState(saved)
+      if (saved === 'mini' || saved === 'aluda2' || saved === 'test' || saved === 'aluda_test') setModelState(saved)
     } catch {}
     setInitialized(true)
   }, [])

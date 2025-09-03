@@ -359,7 +359,7 @@ export async function sendToFlowiseWithRetry(
   let lastError: Error;
   
   // OPTIMIZATION: For test model, use faster retry settings
-  const isTestModel = params.chatflowIdOverride === '286c3991-be03-47f3-aa47-56a6b65c5d00'
+  const isTestModel = params.chatflowIdOverride === (process.env.ALUDAAI_FLOWISE_CHATFLOW_ID_TEST || process.env.FLOWISE_CHATFLOW_ID_TEST || '286c3991-be03-47f3-aa47-56a6b65c5d00')
   const effectiveMaxRetries = isTestModel ? 0 : maxRetries // No retries for test model
   
   for (let attempt = 1; attempt <= effectiveMaxRetries + 1; attempt++) {

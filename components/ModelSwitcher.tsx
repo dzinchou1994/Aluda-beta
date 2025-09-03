@@ -28,7 +28,7 @@ export default function ModelSwitcher() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const handleModelSelect = (newModel: 'mini' | 'aluda2' | 'test') => {
+  const handleModelSelect = (newModel: 'mini' | 'aluda2' | 'test' | 'aluda_test') => {
     if (newModel === 'aluda2' && !hasPremium) {
       handleUpgrade();
       return;
@@ -42,7 +42,7 @@ export default function ModelSwitcher() {
     setIsOpen(false);
   };
 
-  const getModelDisplayName = (modelName: 'mini' | 'aluda2' | 'test') => {
+  const getModelDisplayName = (modelName: 'mini' | 'aluda2' | 'test' | 'aluda_test') => {
     switch (modelName) {
       case 'mini':
         return 'Aluda mini';
@@ -50,12 +50,14 @@ export default function ModelSwitcher() {
         return 'Aluda 2.0';
       case 'test':
         return 'Aluda Free';
+      case 'aluda_test':
+        return 'Aluda Test';
       default:
         return 'Aluda mini';
     }
   };
 
-  const getModelDescription = (modelName: 'mini' | 'aluda2' | 'test') => {
+  const getModelDescription = (modelName: 'mini' | 'aluda2' | 'test' | 'aluda_test') => {
     switch (modelName) {
       case 'mini':
         return 'Great for everyday tasks';
@@ -63,12 +65,14 @@ export default function ModelSwitcher() {
         return 'Our smartest model & more';
       case 'test':
         return 'Free unlimited model';
+      case 'aluda_test':
+        return 'Internal testing flow';
       default:
         return 'Great for everyday tasks';
     }
   };
 
-  const getModelIcon = (modelName: 'mini' | 'aluda2' | 'test') => {
+  const getModelIcon = (modelName: 'mini' | 'aluda2' | 'test' | 'aluda_test') => {
     switch (modelName) {
       case 'mini':
         return <Zap className="h-4 w-4" />;
@@ -76,6 +80,8 @@ export default function ModelSwitcher() {
         return <Sparkles className="h-4 w-4 text-purple-500" />;
       case 'test':
         return <Zap className="h-4 w-4" />;
+      case 'aluda_test':
+        return <Sparkles className="h-4 w-4 text-blue-500" />;
       default:
         return <Zap className="h-4 w-4" />;
     }
@@ -147,6 +153,23 @@ export default function ModelSwitcher() {
               ) : (
                 model === 'aluda2' && <Check className="h-4 w-4 text-green-600 dark:text-green-400" />
               )}
+            </div>
+          </div>
+
+          {/* Divider */}
+          <div className="border-t border-gray-200/60 dark:border-white/10" />
+
+          {/* Aluda Test Option (separate from Free) */}
+          <div className="p-3 cursor-pointer hover:bg-gray-50 dark:hover:bg-white/5 transition-colors duration-200" onClick={() => handleModelSelect('aluda_test')}>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                {getModelIcon('aluda_test')}
+                <div>
+                  <div className="text-gray-900 dark:text-white font-medium text-sm">Aluda Test</div>
+                  <div className="text-gray-600 dark:text-gray-400 text-xs">Internal testing flow</div>
+                </div>
+              </div>
+              {model === 'aluda_test' && <Check className="h-4 w-4 text-green-600 dark:text-green-400" />}
             </div>
           </div>
         </div>

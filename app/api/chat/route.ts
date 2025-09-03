@@ -97,12 +97,12 @@ export async function POST(request: NextRequest) {
       actor = { type: 'guest' as const, id: cookieSess.guestId || cookieSess.sessionId }
     }
 
-    // Model handling: 'mini' (default), 'aluda2', or 'test'
-    const selectedModel = (model === 'aluda2') ? 'aluda2' : (model === 'test') ? 'test' : 'mini'
+    // Model handling: 'mini' (default), 'aluda2', 'test' (free), or 'aluda_test' (internal)
+    const selectedModel = (model === 'aluda2') ? 'aluda2' : (model === 'test') ? 'test' : (model === 'aluda_test') ? 'aluda_test' : 'mini'
     // Premium users default to aluda2 without extra token multiplier
     const isPremium = actor.type === 'user' && actor.plan === 'PREMIUM'
     // Test model is free and unlimited for everyone
-    const tokenMultiplier = selectedModel === 'test' ? 0 : (selectedModel === 'aluda2' && !isPremium && actor.type !== 'guest' ? 5 : 1)
+    const tokenMultiplier = (selectedModel === 'test' || selectedModel === 'aluda_test') ? 0 : (selectedModel === 'aluda2' && !isPremium && actor.type !== 'guest' ? 5 : 1)
     // Guests cannot use aluda2, but can use test model
     if (actor.type === 'guest' && selectedModel === 'aluda2') {
       return NextResponse.json({ error: 'გაიარეთ ავტორიზაცია Aluda 2.0-ისთვის', redirect: '/auth/signin' }, { status: 402 })
@@ -114,7 +114,7 @@ export async function POST(request: NextRequest) {
 
     // For test model, skip token consumption check
     let estimatedTokens = 0
-    if (selectedModel !== 'test') {
+    if (selectedModel !== 'test' && selectedModel !== 'aluda_test') {
       // Rough token estimate (chars/4)
       estimatedTokens = Math.ceil((message?.length || 0) / 4) * tokenMultiplier
       const { allowed, limits, usage } = await canConsume(actor, estimatedTokens)
@@ -148,11 +148,150 @@ export async function POST(request: NextRequest) {
     if (wantsStreaming) {
       console.log('Starting streaming response...');
       
-      // For now, return non-streaming response since Flowise doesn't support streaming
-      // We'll implement proper streaming later
-      console.log('Flowise doesn\'t support streaming, falling back to non-streaming');
-      
-      // Fall through to non-streaming logic
+      if (uploadedFile) {
+        // For now, we do not stream multipart/image requests; fall back to non-streaming logic
+        console.log('Streaming disabled for multipart/image requests; falling back to non-stream');
+      } else {
+        // Implement streaming proxy to Flowise internal-prediction endpoint
+        try {
+          // Choose chatflow by model (streaming)
+          const chatflowIdOverride = selectedModel === 'aluda2'
+            ? (process.env.ALUDAAI_FLOWISE_CHATFLOW_ID_ALUDAA2
+              || process.env.FLOWISE_CHATFLOW_ID_ALUDAA2
+              || (process.env as any).ALUDAAI_FLOWISE_CHATFLOW_ID_ALUDA2)
+            : selectedModel === 'test'
+            ? (process.env.ALUDAAI_FLOWISE_CHATFLOW_ID_TEST || process.env.FLOWISE_CHATFLOW_ID_TEST || '286c3991-be03-47f3-aa47-56a6b65c5d00')
+            : selectedModel === 'aluda_test'
+            ? (process.env.ALUDAAI_FLOWISE_CHATFLOW_ID_TEST || process.env.FLOWISE_CHATFLOW_ID_TEST || '286c3991-be03-47f3-aa47-56a6b65c5d00')
+            : (process.env.ALUDAAI_FLOWISE_CHATFLOW_ID || process.env.FLOWISE_CHATFLOW_ID)
+
+          if (selectedModel === 'aluda2' && !chatflowIdOverride) {
+            return new Response(JSON.stringify({ error: 'Aluda 2.0 disabled: set ALUDAAI_FLOWISE_CHATFLOW_ID_ALUDAA2 in Vercel envs' }), { status: 500, headers: { 'Content-Type': 'application/json' } })
+          }
+
+          // Prepare Flowise host and endpoint
+          const flowiseHost = process.env.ALUDAAI_FLOWISE_HOST || process.env.FLOWISE_HOST
+          if (!flowiseHost || !chatflowIdOverride) {
+            return new Response(JSON.stringify({ error: 'FLOWISE host or chatflow ID missing' }), { status: 500, headers: { 'Content-Type': 'application/json' } })
+          }
+          const hostWithProtocol = /^(http|https):\/\//i.test(flowiseHost) ? flowiseHost : `https://${flowiseHost}`
+          const normalizedHost = hostWithProtocol.replace(/\/+$/, '')
+          const internalUrl = `${normalizedHost}/api/v1/internal-prediction/${chatflowIdOverride}`
+          const apiKey = process.env.ALUDAAI_FLOWISE_API_KEY || process.env.FLOWISE_API_KEY
+
+          // Use the provided chatId as session for Flowise memory
+          const flowiseSessionId = chatId || `${actor.type}_${actor.id}_${selectedModel}_${Date.now()}`
+
+          const upstream = await fetch(internalUrl, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'text/event-stream',
+              ...(apiKey ? { Authorization: `Bearer ${apiKey}`, 'x-api-key': apiKey } : {}),
+            },
+            body: JSON.stringify({
+              question: message,
+              chatId: flowiseSessionId,
+              streaming: true,
+            }),
+          })
+
+          if (!upstream.ok) {
+            const text = await upstream.text().catch(() => '')
+            return new Response(text || 'Upstream error', { status: upstream.status, headers: { 'Content-Type': upstream.headers.get('content-type') || 'text/plain' } })
+          }
+
+          const ct = upstream.headers.get('content-type') || ''
+          if (!ct.includes('text/event-stream') || !upstream.body) {
+            const text = await upstream.text().catch(() => '')
+            const contentType = (upstream.headers.get('content-type') || 'text/plain')
+            return new Response(text, { status: upstream.status, headers: { 'Content-Type': contentType } })
+          }
+
+          // Stream SSE back to client while accumulating tokens for usage accounting
+          const { readable, writable } = new TransformStream();
+          const writer = writable.getWriter();
+          const reader = upstream.body.getReader();
+          const decoder = new TextDecoder();
+          let pending = ''
+          let fullContent = ''
+
+          ;(async () => {
+            try {
+              while (true) {
+                const { value, done } = await reader.read();
+                if (done) break;
+                if (value) {
+                  await writer.write(value);
+                  // Also parse the SSE chunk to accumulate token text
+                  try {
+                    const chunk = decoder.decode(value, { stream: true });
+                    pending += chunk;
+                    let idx: number;
+                    while ((idx = pending.indexOf('\n')) !== -1) {
+                      const line = pending.slice(0, idx).trim();
+                      pending = pending.slice(idx + 1);
+                      if (!line || !line.startsWith('data:')) continue;
+                      const data = line.slice(5).trim();
+                      if (!data) continue;
+                      try {
+                        const parsed = JSON.parse(data);
+                        if (parsed && typeof parsed === 'object') {
+                          if (parsed.event === 'end' || parsed.data === '[DONE]') {
+                            // Will end naturally
+                          } else if (parsed.event === 'metadata' || parsed.event === 'start') {
+                            // ignore non-token events for accumulation
+                          } else if (parsed.event === 'token') {
+                            const token = typeof parsed.data === 'string' ? parsed.data : ''
+                            if (token) fullContent += token
+                          } else {
+                            // Fallback only for string fields
+                            const token = typeof parsed.data === 'string' ? parsed.data
+                              : typeof parsed.text === 'string' ? parsed.text
+                              : typeof parsed.message === 'string' ? parsed.message
+                              : typeof parsed.answer === 'string' ? parsed.answer
+                              : ''
+                            if (token) fullContent += token
+                          }
+                        }
+                      } catch {
+                        if (data !== '[DONE]') fullContent += data
+                      }
+                    }
+                  } catch {}
+                }
+              }
+            } finally {
+              try { await writer.close(); } catch {}
+              try { reader.releaseLock(); } catch {}
+              // After streaming ends, attempt to track token usage (best-effort)
+              try {
+                const tokenMultiplier = (selectedModel === 'test') ? 0 : (selectedModel === 'aluda2' && !(actor.type === 'user' && actor.plan === 'PREMIUM') && actor.type !== 'guest' ? 5 : 1)
+                const assistantTokens = Math.ceil((fullContent.length || 0) / 4) * tokenMultiplier
+                const promptTokens = Math.ceil((message?.length || 0) / 4) * tokenMultiplier
+                if (selectedModel !== 'test') {
+                  await addUsage(actor, promptTokens + assistantTokens)
+                }
+              } catch (e) {
+                console.warn('Usage accounting after stream failed:', e)
+              }
+            }
+          })();
+
+          return new Response(readable, {
+            status: 200,
+            headers: {
+              'Content-Type': 'text/event-stream; charset=utf-8',
+              'Cache-Control': 'no-cache, no-transform',
+              'Connection': 'keep-alive',
+              'Transfer-Encoding': 'chunked',
+              'X-Accel-Buffering': 'no',
+            },
+          })
+        } catch (e: any) {
+          return new Response(`Streaming error: ${e?.message || 'unknown'}`, { status: 500 })
+        }
+      }
     }
 
     // Non-streaming response (existing logic)
@@ -168,7 +307,9 @@ export async function POST(request: NextRequest) {
           || process.env.FLOWISE_CHATFLOW_ID_ALUDAA2
           || (process.env as any).ALUDAAI_FLOWISE_CHATFLOW_ID_ALUDA2)
         : selectedModel === 'test'
-        ? '286c3991-be03-47f3-aa47-56a6b65c5d00' // Test model chatflow ID
+        ? (process.env.ALUDAAI_FLOWISE_CHATFLOW_ID_TEST || process.env.FLOWISE_CHATFLOW_ID_TEST || '286c3991-be03-47f3-aa47-56a6b65c5d00')
+        : selectedModel === 'aluda_test'
+        ? (process.env.ALUDAAI_FLOWISE_CHATFLOW_ID_TEST || process.env.FLOWISE_CHATFLOW_ID_TEST || '286c3991-be03-47f3-aa47-56a6b65c5d00')
         : (process.env.ALUDAAI_FLOWISE_CHATFLOW_ID || process.env.FLOWISE_CHATFLOW_ID)
       // Flowise often ignores image-only requests if the 'question' is empty.
       // Provide a concise default in ka-GE when an image is sent without text for Aluda 2.0.
@@ -183,7 +324,7 @@ export async function POST(request: NextRequest) {
         chatflowIdOverride,
         envMini: process.env.ALUDAAI_FLOWISE_CHATFLOW_ID || process.env.FLOWISE_CHATFLOW_ID,
         envA2: process.env.ALUDAAI_FLOWISE_CHATFLOW_ID_ALUDAA2 || process.env.FLOWISE_CHATFLOW_ID_ALUDAA2 || (process.env as any).ALUDAAI_FLOWISE_CHATFLOW_ID_ALUDA2,
-        testModel: '286c3991-be03-47f3-aa47-56a6b65c5d00',
+        testModel: process.env.ALUDAAI_FLOWISE_CHATFLOW_ID_TEST || process.env.FLOWISE_CHATFLOW_ID_TEST || '286c3991-be03-47f3-aa47-56a6b65c5d00',
       })
 
       // If Aluda2 chosen but no override configured, fail early instead of silently falling back to mini

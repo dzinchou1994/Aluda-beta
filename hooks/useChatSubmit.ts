@@ -74,6 +74,44 @@ export function useChatSubmit({
     const isImageOnly = model === 'aluda2' && attachedImage && message.trim().length === 0;
     const messageToSend = isImageOnly ? '' : message.trim();
 
+    // Determine if foreign scripts should be allowed based on explicit user intent
+    const allowCyrillicOrCJK = (() => {
+      const q = (messageToSend || '').toLowerCase();
+      const patterns = [
+        /რუსულ(ად|ზე|ში)?/i, // Georgian: "in Russian"
+        /ჩინურ(ად|ზე|ში)?/i, // Georgian: "in Chinese"
+        /გადათარგმ(ნ|ნე|ნოთ|ნოს)/i, // Georgian variants of "translate"
+        /translate\b/i,
+        /in\s+russian/i,
+        /write\s+in\s+russian/i,
+        /на\s+русском/i,
+        /по-русски/i,
+        /russian/i,
+        /in\s+chinese/i,
+        /write\s+in\s+chinese/i,
+        /中文|汉语|汉字/i,
+        /chinese/i,
+      ];
+      return patterns.some((re) => re.test(q));
+    })();
+
+    const cleanStreamingToken = (raw: string): string => {
+      if (!raw) return '';
+      let t = String(raw);
+      // Normalize some common fullwidth punctuation
+      t = t.replace(/，/g, ',').replace(/。/g, '.').replace(/！/g, '!').replace(/？/g, '?').replace(/：/g, ':').replace(/；/g, ';');
+      // Remove zero-width characters
+      t = t.replace(/[\u200B-\u200D\uFEFF]/g, '');
+      if (!allowCyrillicOrCJK) {
+        // Strip CJK Unified Ideographs and Cyrillic blocks when not explicitly requested
+        t = t.replace(/[\u4e00-\u9fff]/g, '');
+        t = t.replace(/[\u0400-\u04FF]/g, '');
+      }
+      // Collapse excessive whitespace
+      t = t.replace(/\s+/g, ' ');
+      return t;
+    };
+
     console.log('ChatComposer: Submitting message, currentChatId:', currentChatId);
 
     // If no current chat, create one
@@ -147,10 +185,13 @@ export function useChatSubmit({
           // Decide if we should trigger Flowise title suggestion (only on very first user message with text)
           const shouldSuggestTitle = (createdNewChat || historyForAPI.length === 0) && messageToSend.length > 0;
           
+          // Request streaming SSE from our API to mirror Flowise behaviour
           responsePromise = fetch("/api/chat", {
             method: "POST",
             headers: { 
-              "Content-Type": "application/json"
+              "Content-Type": "application/json",
+              "Accept": "text/event-stream",
+              "x-streaming": "true"
             },
             body: JSON.stringify({ 
               message: messageToSend, 
@@ -227,6 +268,7 @@ export function useChatSubmit({
         const decoder = new TextDecoder();
         
         let gotAnyToken = false;
+        let hidLoader = false;
         try {
           console.log('Client-side: Starting to read stream...');
           while (true) {
@@ -250,34 +292,57 @@ export function useChatSubmit({
 
               console.log('Client-side: Processing data line:', data);
 
-              let handled = false;
+              let added = false;
               try {
                 const parsed = JSON.parse(data);
                 if (parsed && typeof parsed === 'object') {
                   if (parsed.event === 'end' || parsed.data === '[DONE]') {
                     console.log('Streaming ended, final content:', fullContent);
-                    handled = true;
+                    // do not mark added; we'll exit after loop
                     break;
                   }
-                  const token = parsed.data || parsed.token || parsed.text;
                   if (parsed.event === 'start') {
-                    handled = true;
-                  } else if (token) {
-                    fullContent += token;
-                    gotAnyToken = true;
-                    handled = true;
+                    // ignore
+                  } else if (parsed.event === 'metadata') {
+                    // ignore metadata objects entirely
+                  } else if (parsed.event === 'token') {
+                    const tokenRaw = typeof parsed.data === 'string' ? parsed.data : '';
+                    const token = cleanStreamingToken(tokenRaw);
+                    if (token) {
+                      fullContent += token;
+                      gotAnyToken = true;
+                      if (!hidLoader) { setIsLoading(false); hidLoader = true; }
+                      added = true;
+                    }
+                  } else {
+                    // Fallback only for string fields
+                    const token = cleanStreamingToken(
+                      (typeof parsed.data === 'string' ? parsed.data
+                        : typeof parsed.text === 'string' ? parsed.text
+                        : typeof parsed.message === 'string' ? parsed.message
+                        : typeof parsed.answer === 'string' ? parsed.answer
+                        : '')
+                    );
+                    if (token) {
+                      fullContent += token;
+                      gotAnyToken = true;
+                      if (!hidLoader) { setIsLoading(false); hidLoader = true; }
+                      added = true;
+                    }
                   }
                 }
               } catch {
                 // Not JSON – treat as raw token content
                 if (data !== '[DONE]') {
-                  fullContent += data;
+                  const token = cleanStreamingToken(data);
+                  fullContent += token;
                   gotAnyToken = true;
-                  handled = true;
+                  if (!hidLoader) { setIsLoading(false); hidLoader = true; }
+                  added = true;
                 }
               }
 
-              if (handled) {
+              if (added) {
                 updateMessageInChat(activeChatId, aiMessageId, { content: fullContent });
                 forceScrollBottom();
               }
@@ -325,6 +390,9 @@ export function useChatSubmit({
             throw new Error(responseData.error);
           }
           aiContent = aiContent || responseData.content || responseData.text || responseData.message || responseData.response;
+          if (aiContent && !allowCyrillicOrCJK) {
+            aiContent = cleanStreamingToken(aiContent);
+          }
         }
 
         // Add AI response to chat - handle different response formats (HTML or text)
