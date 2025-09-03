@@ -14,15 +14,16 @@ function looksLikeHtml(text: string): boolean {
   return /<\s*(p|br|h[1-6]|ul|ol|li|strong|em|b|i|a)[^>]*>/i.test(text);
 }
 
-// Render markdown headings with modest styling (not bold), separated by spacing
+// Render markdown headings as bold, and ensure <strong> is emphasized
 const mdComponents = {
   a: (props: any) => <a {...props} target="_blank" rel="noopener noreferrer" />,
-  h1: ({ children }: any) => <h3 className="mt-3 mb-2 font-medium">{children}</h3>,
-  h2: ({ children }: any) => <h3 className="mt-3 mb-2 font-medium">{children}</h3>,
-  h3: ({ children }: any) => <h3 className="mt-3 mb-2 font-medium">{children}</h3>,
-  h4: ({ children }: any) => <h3 className="mt-3 mb-2 font-medium">{children}</h3>,
-  h5: ({ children }: any) => <h3 className="mt-3 mb-2 font-medium">{children}</h3>,
-  h6: ({ children }: any) => <h3 className="mt-3 mb-2 font-medium">{children}</h3>,
+  h1: ({ children }: any) => <h3 className="mt-3 mb-2 font-semibold">{children}</h3>,
+  h2: ({ children }: any) => <h3 className="mt-3 mb-2 font-semibold">{children}</h3>,
+  h3: ({ children }: any) => <h3 className="mt-3 mb-2 font-semibold">{children}</h3>,
+  h4: ({ children }: any) => <h3 className="mt-3 mb-2 font-semibold">{children}</h3>,
+  h5: ({ children }: any) => <h3 className="mt-3 mb-2 font-semibold">{children}</h3>,
+  h6: ({ children }: any) => <h3 className="mt-3 mb-2 font-semibold">{children}</h3>,
+  strong: ({ children }: any) => <strong className="font-semibold">{children}</strong>,
 };
 
 interface ChatMessageProps {
@@ -70,6 +71,39 @@ function normalizeHeadingHashesInHtml(html: string): string {
   return html.replace(/<(h[1-6])(\b[^>]*)>\s*#\s+/gi, '<$1$2>');
 }
 
+// Bold list item titles of the form "Title: description" or "Title — description"
+function emphasizeListTitlesInHtml(html: string): string {
+  // Replace each <li>...</li> if it doesn't already contain <strong> in the first segment
+  return html.replace(/<li>([\s\S]*?)<\/li>/gi, (full, inner) => {
+    // If already bold anywhere in the first paragraph/line, keep as-is
+    if (/^\s*(?:<p[^>]*>)?\s*<\s*strong\b/i.test(inner)) return full;
+
+    // Case 1: The first text is within a <p>...
+    const pRe = /^(\s*<p[^>]*>)([\s\S]*?)(<\/p>[\s\S]*)$/i;
+    const pMatch = inner.match(pRe);
+    if (pMatch) {
+      const lead = pMatch[1];
+      const firstPara = pMatch[2];
+      const tail = pMatch[3];
+      // Bold up to first separator -|–|—|:
+      const tRe = /^(\s*)([^<]{2,160}?)(\s*(?:-|–|—|:)\s+)/;
+      if (tRe.test(firstPara)) {
+        const replaced = firstPara.replace(tRe, (_m: string, sp: string, title: string, sep: string) => `${sp}<strong>${title.trim()}</strong>${sep}`);
+        return `<li>${lead}${replaced}${tail}</li>`;
+      }
+      return full;
+    }
+
+    // Case 2: Plain text directly inside <li>
+    const lineRe = /^(\s*)([^<]{2,160}?)(\s*(?:-|–|—|:)\s+)/;
+    if (lineRe.test(inner)) {
+      const replaced = inner.replace(lineRe, (_m: string, sp: string, title: string, sep: string) => `${sp}<strong>${title.trim()}</strong>${sep}`);
+      return `<li>${replaced}</li>`;
+    }
+    return full;
+  });
+}
+
 export default function ChatMessage({ message, index, shouldAnimate }: ChatMessageProps) {
   // FIXED: Only use typing effect for truly new AI messages
   // Old messages should show content directly without typing effect
@@ -100,7 +134,8 @@ export default function ChatMessage({ message, index, shouldAnimate }: ChatMessa
     // Prefer HTML if provided (Flowise can output HTML when renderHTML is true)
     if (looksLikeHtml(content)) {
       const clean = DOMPurify.sanitize(content, { USE_PROFILES: { html: true } });
-      const normalized = normalizeHeadingHashesInHtml(clean);
+      const enhanced = emphasizeListTitlesInHtml(clean);
+      const normalized = normalizeHeadingHashesInHtml(enhanced);
       return (
         <div className="flowise-html" dangerouslySetInnerHTML={{ __html: normalized }} />
       );

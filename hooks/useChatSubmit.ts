@@ -102,6 +102,8 @@ export function useChatSubmit({
       t = t.replace(/，/g, ',').replace(/。/g, '.').replace(/！/g, '!').replace(/？/g, '?').replace(/：/g, ':').replace(/；/g, ';');
       // Remove zero-width characters
       t = t.replace(/[\u200B-\u200D\uFEFF]/g, '');
+      // Normalize long dashes to simple hyphen for consistent rendering
+      t = t.replace(/[–—]/g, '-');
       if (!allowCyrillicOrCJK) {
         // Strip CJK Unified Ideographs and Cyrillic blocks when not explicitly requested
         t = t.replace(/[\u4e00-\u9fff]/g, '');
