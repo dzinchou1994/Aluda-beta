@@ -127,11 +127,11 @@ export function useChatSubmit({
         });
       } else {
         if (useFlowiseProxy) {
-          // Prefer streaming from Flowise when possible
-          responsePromise = fetch('/api/flowise/stream', {
+          // Use non-stream proxy for now (Flowise stream endpoint returns HTML on this instance)
+          responsePromise = fetch('/api/flowise', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ question: messageToSend }),
+            body: JSON.stringify({ question: messageToSend, overrideConfig: { renderHTML: true } }),
           });
         } else {
           // Get current chat history to send to API
