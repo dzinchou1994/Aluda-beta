@@ -62,7 +62,8 @@ export async function getUsage(actor: Actor) {
           },
         })
       } catch (e: any) {
-        console.warn('ImageUsage lookup failed (proceeding with 0 images). Reason:', e?.message || e)
+        // If table is missing, bootstrap it and continue with 0 usage
+        await ensureImageUsageSchema()
         return null
       }
     })(),
@@ -131,6 +132,8 @@ export async function addImageUsage(actor: Actor, images: number = 1) {
 
   const { month } = getPeriodKeys()
   try {
+    // Ensure table/index exists (no-op if already present)
+    await ensureImageUsageSchema()
     await prisma.imageUsage.upsert({
       where: {
         actorType_actorId_period_periodKey: {
@@ -150,7 +153,30 @@ export async function addImageUsage(actor: Actor, images: number = 1) {
       },
     })
   } catch (e: any) {
-    console.warn('ImageUsage upsert failed (skipping). Reason:', e?.message || e)
+    // Try to self-heal once and retry
+    try {
+      await ensureImageUsageSchema()
+      await prisma.imageUsage.upsert({
+        where: {
+          actorType_actorId_period_periodKey: {
+            actorType: actor.type,
+            actorId: actor.id,
+            period: 'month',
+            periodKey: month,
+          },
+        },
+        update: { images: { increment: images } },
+        create: {
+          actorType: actor.type,
+          actorId: actor.id,
+          period: 'month',
+          periodKey: month,
+          images,
+        },
+      })
+    } catch (e2: any) {
+      console.warn('ImageUsage upsert failed after ensure (skipping). Reason:', e2?.message || e2)
+    }
   }
 }
 
@@ -191,6 +217,30 @@ export async function canGenerateImage(actor: Actor) {
     allowed: usage.images < limits.images,
     usage,
     limits,
+  }
+}
+
+// Ensure ImageUsage table and unique index exist (Postgres-safe)
+async function ensureImageUsageSchema() {
+  try {
+    await prisma.$executeRawUnsafe(`
+      CREATE TABLE IF NOT EXISTS "ImageUsage" (
+        "id" TEXT NOT NULL PRIMARY KEY,
+        "actorType" TEXT NOT NULL,
+        "actorId" TEXT NOT NULL,
+        "period" TEXT NOT NULL,
+        "periodKey" TEXT NOT NULL,
+        "images" INTEGER NOT NULL DEFAULT 0,
+        "createdAt" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        "updatedAt" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+      );
+    `)
+    await prisma.$executeRawUnsafe(`
+      CREATE UNIQUE INDEX IF NOT EXISTS "ImageUsage_actorType_actorId_period_periodKey_key"
+      ON "ImageUsage" ("actorType", "actorId", "period", "periodKey");
+    `)
+  } catch (e: any) {
+    // Ignore if permission denied in restricted envs; normal operations may still work if table exists
   }
 }
 
