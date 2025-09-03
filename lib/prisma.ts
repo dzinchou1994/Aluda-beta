@@ -5,11 +5,14 @@ declare global {
   var prisma: PrismaClient | undefined
 }
 
-// Prefer local environment variables for database URL, fallback to default Neon URL
-const databaseUrl =
-  process.env.ALUDAAI_DATABASE_URL ||
-  process.env.DATABASE_URL ||
-  "postgresql://neondb_owner:npg_Kdjq5JEbg6ei@ep-broad-fire-a2mlchsd-pooler.eu-central-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
+// Require explicit database URL; avoid silently connecting to a default DB
+const databaseUrl = process.env.ALUDAAI_DATABASE_URL || process.env.DATABASE_URL
+
+if (!databaseUrl) {
+  throw new Error(
+    'Database URL is not configured. Set ALUDAAI_DATABASE_URL or DATABASE_URL in the environment.'
+  )
+}
 const prismaOptions = databaseUrl
   ? ({ datasources: { db: { url: databaseUrl } } } as const)
   : ({} as const)
