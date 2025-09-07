@@ -395,35 +395,42 @@ export async function suggestTitleWithFlowise({
   chatflowIdOverride?: string
 }): Promise<string | null> {
   try {
-    const prompt = [
-      'You are a title generator. Generate a very short, human-friendly topic title based on the following user question.',
-      'Return ONLY the title. No quotes. No extra words. Prefer 1-4 words like a folder name.',
-      `Question: ${question}`,
-    ].join('\n')
+    // Use the new dedicated title generation chatflow
+    const titleChatflowId = chatflowIdOverride || 'e3ffe36f-ebdf-4edc-beea-79d8ab2f3914'
+    
+    const response = await fetch(
+      "https://flowise-eden.onrender.com/api/v1/prediction/e3ffe36f-ebdf-4edc-beea-79d8ab2f3914",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          question: question
+        })
+      }
+    );
 
-    // Prefer an explicit override, then env overrides, then main chatflow envs
-    const titleChatflowId = chatflowIdOverride
-      || process.env.ALUDAAI_FLOWISE_CHATFLOW_ID_SUGGEST
-      || process.env.ALUDAAI_FLOWISE_CHATFLOW_ID 
-      || process.env.FLOWISE_CHATFLOW_ID
+    if (!response.ok) {
+      console.warn('Title generation failed:', response.status, response.statusText)
+      return null
+    }
 
-    const res = await sendToFlowiseWithRetry({
-      message: prompt,
-      history: [],
-      sessionId: `${sessionId}_title`,
-      chatflowIdOverride: titleChatflowId,
-    })
-
-    const raw = (res.text || '').trim()
+    const result = await response.json()
+    
+    // Extract text from the response
+    const raw = (result.text || result.response || result.answer || result.message || '').trim()
     if (!raw) return null
+    
     // If Flowise responded with a sentence that includes a quoted title, prefer the quoted text
-    const quotedMatch = raw.match(/["“”]([^"“”]+)["“”]/)
+    const quotedMatch = raw.match(/["""]([^"""]+)["""]/)
     const preferred = quotedMatch ? quotedMatch[1] : raw
     // remove surrounding quotes if any and clean
     let cleaned = preferred.replace(/^"|"$/g, '')
     cleaned = cleanAIResponse(cleaned)
     return cleaned
-  } catch {
+  } catch (error) {
+    console.warn('Title generation error:', error)
     return null
   }
 }
