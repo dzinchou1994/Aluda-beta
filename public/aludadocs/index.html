@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="ka">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ALUDA AI - CV და ინვოისების შექმნა</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <nav class="nav">
+            <div class="nav-brand">
+                <h1>ALUDA AI</h1>
+                <span class="tagline">CV და ინვოისების შექმნა</span>
+            </div>
+            <div class="nav-links">
+                <a href="https://aluda.app/about" class="nav-link back-link" target="_blank">
+                    <i class="fas fa-arrow-left"></i> უკან
+                </a>
+                <a href="#cv" class="nav-link active">CV შექმნა</a>
+                <a href="#invoice" class="nav-link">ინვოისი</a>
+                <a href="#templates" class="nav-link">შაბლონები</a>
+                <a href="#saved" class="nav-link">შენახული</a>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-content">
+            <h2>შექმენით პროფესიონალური CV და ინვოისები</h2>
+            <p>ALUDA AI-ით შექმენით შთამბეჭდავი CV-ები და ინვოისები ქართულ ენაზე</p>
+            <div class="hero-buttons">
+                <button class="btn btn-primary" onclick="showSection('cv')">
+                    <i class="fas fa-file-alt"></i>
+                    CV შექმნა
+                </button>
+                <button class="btn btn-secondary" onclick="showSection('invoice')">
+                    <i class="fas fa-receipt"></i>
+                    ინვოისი შექმნა
+                </button>
+            </div>
+        </div>
+        <div class="hero-image">
+            <div class="mockup">
+                <div class="mockup-screen">
+                    <div class="mockup-content">
+                        <div class="mockup-header"></div>
+                        <div class="mockup-body">
+                            <div class="mockup-line"></div>
+                            <div class="mockup-line short"></div>
+                            <div class="mockup-line"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CV Creation Section -->
+    <section id="cv" class="section cv-section">
+        <div class="container">
+            <div class="section-header">
+                <h2>CV შექმნა</h2>
+                <p>აირჩიეთ CV-ის ტიპი და შეავსეთ ფორმა</p>
+            </div>
+            
+            <!-- CV Template Selection -->
+            <div class="cv-template-selection">
+                <h3><i class="fas fa-palette"></i> CV ტიპის არჩევა</h3>
+                <div class="template-options">
+                    <div class="template-option active" data-template="professional">
+                        <div class="template-icon">
+                            <i class="fas fa-briefcase"></i>
+                        </div>
+                        <h4>პროფესიონალური CV</h4>
+                        <p>კლასიკური სტილი ყველა სფეროსთვის</p>
+                    </div>
+                    <div class="template-option" data-template="portfolio">
+                        <div class="template-icon">
+                            <i class="fas fa-user-circle"></i>
+                        </div>
+                        <h4>პორტფოლიო CV</h4>
+                        <p>კრეატიული სტილი დიზაინერებისთვის</p>
+                    </div>
+                    <div class="template-option" data-template="executive">
+                        <div class="template-icon">
+                            <i class="fas fa-crown"></i>
+                        </div>
+                        <h4>ექსეკუტიური CV</h4>
+                        <p>ელეგანტური სტილი ლიდერებისთვის</p>
+                    </div>
+                    <div class="template-option" data-template="creative">
+                        <div class="template-icon">
+                            <i class="fas fa-paint-brush"></i>
+                        </div>
+                        <h4>კრეატიული CV</h4>
+                        <p>თანამედროვე სტილი კრეატივებისთვის</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Portfolio Design Choices -->
+            <div id="portfolio-designs" class="portfolio-designs" style="display: none;">
+                <h3><i class="fas fa-paint-brush"></i> პორტფოლიო დიზაინის არჩევა</h3>
+                <div class="design-options">
+                    <div class="design-option active" data-design="modern">
+                        <div class="design-preview modern-preview">
+                            <div class="preview-header"></div>
+                            <div class="preview-content">
+                                <div class="preview-line"></div>
+                                <div class="preview-line short"></div>
+                                <div class="preview-line"></div>
+                            </div>
+                        </div>
+                        <h4>თანამედროვე</h4>
+                        <p>მინიმალისტური და ელეგანტური</p>
+                    </div>
+                    <div class="design-option" data-design="colorful">
+                        <div class="design-preview colorful-preview">
+                            <div class="preview-header"></div>
+                            <div class="preview-content">
+                                <div class="preview-line"></div>
+                                <div class="preview-line short"></div>
+                                <div class="preview-line"></div>
+                            </div>
+                        </div>
+                        <h4>ფერადი</h4>
+                        <p>ცხოველისტური და კრეატიული</p>
+                    </div>
+                    <div class="design-option" data-design="elegant">
+                        <div class="design-preview elegant-preview">
+                            <div class="preview-header"></div>
+                            <div class="preview-content">
+                                <div class="preview-line"></div>
+                                <div class="preview-line short"></div>
+                                <div class="preview-line"></div>
+                            </div>
+                        </div>
+                        <h4>ელეგანტური</h4>
+                        <p>კლასიკური და სოფისტიკური</p>
+                    </div>
+                    <div class="design-option" data-design="minimal">
+                        <div class="design-preview minimal-preview">
+                            <div class="preview-header"></div>
+                            <div class="preview-content">
+                                <div class="preview-line"></div>
+                                <div class="preview-line short"></div>
+                                <div class="preview-line"></div>
+                            </div>
+                        </div>
+                        <h4>მინიმალური</h4>
+                        <p>მარტივი და ფოკუსირებული</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="cv-form-container">
+                <form id="cvForm" class="cv-form">
+                    <!-- Personal Information -->
+                    <div class="form-section">
+                        <h3><i class="fas fa-user"></i> პირადი ინფორმაცია</h3>
+                        
+                        <!-- Photo Upload Section -->
+                        <div class="photo-upload-section">
+                            <div class="photo-upload-container">
+                                <div class="photo-preview" id="photoPreview">
+                                    <i class="fas fa-camera"></i>
+                                    <span>ფოტოს ატვირთვა</span>
+                                </div>
+                                <input type="file" id="photoUpload" name="photo" accept="image/*" style="display: none;">
+                                <button type="button" class="btn btn-outline" onclick="document.getElementById('photoUpload').click()">
+                                    <i class="fas fa-upload"></i> ფოტოს არჩევა
+                                </button>
+                                <button type="button" class="btn btn-outline" id="removePhoto" onclick="removePhoto()" style="display: none;">
+                                    <i class="fas fa-trash"></i> წაშლა
+                                </button>
+                            </div>
+                            <p class="photo-help-text">ატვირთეთ თქვენი პროფესიონალური ფოტო (არასავალდებულო)</p>
+                        </div>
+                        
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="firstName">სახელი *</label>
+                                <input type="text" id="firstName" name="firstName" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="lastName">გვარი *</label>
+                                <input type="text" id="lastName" name="lastName" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="email">ელ. ფოსტა *</label>
+                                <input type="email" id="email" name="email" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="phone">ტელეფონი *</label>
+                                <input type="tel" id="phone" name="phone" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="address">მისამართი</label>
+                                <input type="text" id="address" name="address">
+                            </div>
+                            <div class="form-group">
+                                <label for="birthDate">დაბადების თარიღი</label>
+                                <input type="date" id="birthDate" name="birthDate">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Professional Summary -->
+                    <div class="form-section">
+                        <h3><i class="fas fa-briefcase"></i> პროფესიონალური შეჯამება</h3>
+                        <div class="form-group">
+                            <label for="summary">შეჯამება</label>
+                            <textarea id="summary" name="summary" rows="4" placeholder="მოკლე აღწერა თქვენი პროფესიონალური გამოცდილებისა და უნარებისა"></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Work Experience -->
+                    <div class="form-section">
+                        <h3><i class="fas fa-briefcase"></i> სამუშაო გამოცდილება</h3>
+                        <div id="workExperience">
+                            <div class="work-item">
+                                <div class="form-grid">
+                                    <div class="form-group">
+                                        <label>თანამდებობა *</label>
+                                        <input type="text" name="workPosition[]" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>კომპანია *</label>
+                                        <input type="text" name="workCompany[]" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>დაწყების თარიღი</label>
+                                        <input type="date" name="workStartDate[]">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>დასრულების თარიღი</label>
+                                        <input type="date" name="workEndDate[]">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label>აღწერა</label>
+                                    <textarea name="workDescription[]" rows="3" placeholder="მოკლე აღწერა თქვენი მოვალეობებისა და მიღწევებებისა"></textarea>
+                                </div>
+                            </div>
+                        </div>
+                        <button type="button" class="btn btn-outline" onclick="addWorkExperience()">
+                            <i class="fas fa-plus"></i> სამუშაო გამოცდილების დამატება
+                        </button>
+                    </div>
+
+                    <!-- Education -->
+                    <div class="form-section">
+                        <h3><i class="fas fa-graduation-cap"></i> განათლება</h3>
+                        <div id="education">
+                            <div class="education-item">
+                                <div class="form-grid">
+                                    <div class="form-group">
+                                        <label>საგანი/სპეციალობა *</label>
+                                        <input type="text" name="educationDegree[]" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>საგანმანათლებლო დაწესებულება *</label>
+                                        <input type="text" name="educationInstitution[]" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>დაწყების წელი</label>
+                                        <input type="number" name="educationStartYear[]" min="1950" max="2030">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>დასრულების წელი</label>
+                                        <input type="number" name="educationEndYear[]" min="1950" max="2030">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <button type="button" class="btn btn-outline" onclick="addEducation()">
+                            <i class="fas fa-plus"></i> განათლების დამატება
+                        </button>
+                    </div>
+
+                    <!-- Skills -->
+                    <div class="form-section">
+                        <h3><i class="fas fa-cogs"></i> უნარები</h3>
+                        <div class="form-group">
+                            <label for="skills">უნარები (გამოყავით მძიმით)</label>
+                            <textarea id="skills" name="skills" rows="3" placeholder="მაგ: JavaScript, Python, Project Management, ქართული ენა"></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Languages -->
+                    <div class="form-section">
+                        <h3><i class="fas fa-language"></i> ენები</h3>
+                        <div class="form-group">
+                            <label for="languages">ენები (გამოყავით მძიმით)</label>
+                            <textarea id="languages" name="languages" rows="2" placeholder="მაგ: ქართული (მშობლიური), ინგლისური (B2), რუსული (A2)"></textarea>
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-outline" onclick="previewCV()">
+                            <i class="fas fa-eye"></i> წინასწარი ნახვა
+                        </button>
+                        <button type="button" class="btn btn-outline" onclick="saveCV()">
+                            <i class="fas fa-save"></i> შენახვა
+                        </button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-download"></i> CV-ის გადმოწერა
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <!-- Invoice Creation Section -->
+    <section id="invoice" class="section invoice-section" style="display: none;">
+        <div class="container">
+            <div class="section-header">
+                <h2>ინვოისის შექმნა</h2>
+                <p>შექმენით პროფესიონალური ინვოისი</p>
+            </div>
+            
+            <div class="invoice-form-container">
+                <form id="invoiceForm" class="invoice-form">
+                    <!-- Company Information -->
+                    <div class="form-section">
+                        <h3><i class="fas fa-building"></i> კომპანიის ინფორმაცია</h3>
+                        
+                        <!-- Company Logo Upload Section -->
+                        <div class="logo-upload-section">
+                            <div class="logo-upload-container">
+                                <div class="logo-preview" id="logoPreview">
+                                    <i class="fas fa-building"></i>
+                                    <span>ლოგოს ატვირთვა</span>
+                                </div>
+                                <input type="file" id="logoUpload" name="logo" accept="image/*" style="display: none;">
+                                <button type="button" class="btn btn-outline" onclick="document.getElementById('logoUpload').click()">
+                                    <i class="fas fa-upload"></i> ლოგოს არჩევა
+                                </button>
+                                <button type="button" class="btn btn-outline" id="removeLogo" onclick="removeLogo()" style="display: none;">
+                                    <i class="fas fa-trash"></i> წაშლა
+                                </button>
+                            </div>
+                            <p class="logo-help-text">ატვირთეთ თქვენი კომპანიის ლოგო (არასავალდებულო)</p>
+                        </div>
+                        
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="companyName">კომპანიის სახელი *</label>
+                                <input type="text" id="companyName" name="companyName" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="companyAddress">მისამართი</label>
+                                <input type="text" id="companyAddress" name="companyAddress">
+                            </div>
+                            <div class="form-group">
+                                <label for="companyPhone">ტელეფონი</label>
+                                <input type="tel" id="companyPhone" name="companyPhone">
+                            </div>
+                            <div class="form-group">
+                                <label for="companyEmail">ელ. ფოსტა</label>
+                                <input type="email" id="companyEmail" name="companyEmail">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Client Information -->
+                    <div class="form-section">
+                        <h3><i class="fas fa-user-tie"></i> კლიენტის ინფორმაცია</h3>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="clientName">კლიენტის სახელი *</label>
+                                <input type="text" id="clientName" name="clientName" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="clientAddress">მისამართი</label>
+                                <input type="text" id="clientAddress" name="clientAddress">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Invoice Details -->
+                    <div class="form-section">
+                        <h3><i class="fas fa-file-invoice"></i> ინვოისის დეტალები</h3>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="invoiceNumber">ინვოისის ნომერი *</label>
+                                <input type="text" id="invoiceNumber" name="invoiceNumber" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="invoiceDate">თარიღი *</label>
+                                <input type="date" id="invoiceDate" name="invoiceDate" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="dueDate">გადახდის ვადა</label>
+                                <input type="date" id="dueDate" name="dueDate">
+                            </div>
+                            <div class="form-group">
+                                <label for="currency">ვალუტა *</label>
+                                <select id="currency" name="currency" required>
+                                    <option value="GEL">₾ ლარი (GEL)</option>
+                                    <option value="USD">$ დოლარი (USD)</option>
+                                    <option value="EUR">€ ევრო (EUR)</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Items -->
+                    <div class="form-section">
+                        <h3><i class="fas fa-list"></i> ნივთები/სერვისები</h3>
+                        <div id="invoiceItems">
+                            <div class="invoice-item">
+                                <div class="form-grid">
+                                    <div class="form-group">
+                                        <label>აღწერა *</label>
+                                        <input type="text" name="itemDescription[]" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>რაოდენობა</label>
+                                        <input type="number" name="itemQuantity[]" min="1" value="1">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>ფასი (₾) *</label>
+                                        <input type="number" name="itemPrice[]" min="0" step="0.01" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>ჯამი (₾)</label>
+                                        <input type="number" name="itemTotal[]" readonly>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <button type="button" class="btn btn-outline" onclick="addInvoiceItem()">
+                            <i class="fas fa-plus"></i> ნივთის დამატება
+                        </button>
+                    </div>
+
+                    <!-- Digital Signature Section -->
+                    <div class="form-section">
+                        <h3><i class="fas fa-signature"></i> ციფრული ხელმოწერა</h3>
+                        
+                        <div class="signature-toggle-section">
+                            <label class="toggle-label">
+                                <input type="checkbox" id="enableSignature" onchange="toggleSignature()">
+                                <span class="toggle-slider"></span>
+                                <span class="toggle-text">ჩართეთ ციფრული ხელმოწერა</span>
+                            </label>
+                        </div>
+                        
+                        <div id="signatureSection" class="signature-section" style="display: none;">
+                            <div class="signature-container">
+                                <div class="signature-header">
+                                    <h4>ხელმოწერა</h4>
+                                    <div class="signature-controls">
+                                        <button type="button" class="btn btn-outline btn-sm" onclick="clearSignature()">
+                                            <i class="fas fa-eraser"></i> წაშლა
+                                        </button>
+                                    </div>
+                                </div>
+                                <canvas id="signatureCanvas" width="400" height="150"></canvas>
+                                <p class="signature-help">ხელმოწერეთ ზემოთ მოცემულ ადგილას</p>
+                            </div>
+                            
+                            <div class="signature-date-section">
+                                <div class="form-group">
+                                    <label for="signatureDate">ხელმოწერის თარიღი</label>
+                                    <input type="date" id="signatureDate" name="signatureDate">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-outline" onclick="previewInvoice()">
+                            <i class="fas fa-eye"></i> წინასწარი ნახვა
+                        </button>
+                        <button type="button" class="btn btn-outline" onclick="saveInvoice()">
+                            <i class="fas fa-save"></i> შენახვა
+                        </button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-download"></i> ინვოისის გადმოწერა
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <!-- Templates Section -->
+    <section id="templates" class="section templates-section" style="display: none;">
+        <div class="container">
+            <div class="section-header">
+                <h2>CV შაბლონები</h2>
+                <p>აირჩიეთ თქვენთვის შესაფერისი შაბლონი</p>
+            </div>
+            
+            <div class="templates-grid">
+                <div class="template-card">
+                    <div class="template-preview">
+                        <div class="template-preview-content">
+                            <div class="template-header"></div>
+                            <div class="template-body">
+                                <div class="template-line"></div>
+                                <div class="template-line short"></div>
+                                <div class="template-line"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <h3>კლასიკური</h3>
+                    <p>პროფესიონალური და მარტივი დიზაინი</p>
+                    <button class="btn btn-outline">არჩევა</button>
+                </div>
+                
+                <div class="template-card">
+                    <div class="template-preview">
+                        <div class="template-preview-content modern">
+                            <div class="template-header"></div>
+                            <div class="template-body">
+                                <div class="template-line"></div>
+                                <div class="template-line short"></div>
+                                <div class="template-line"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <h3>თანამედროვე</h3>
+                    <p>კრეატიული და თანამედროვე სტილი</p>
+                    <button class="btn btn-outline">არჩევა</button>
+                </div>
+                
+                <div class="template-card">
+                    <div class="template-preview">
+                        <div class="template-preview-content creative">
+                            <div class="template-header"></div>
+                            <div class="template-body">
+                                <div class="template-line"></div>
+                                <div class="template-line short"></div>
+                                <div class="template-line"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <h3>კრეატიული</h3>
+                    <p>შთამბეჭდავი და უნიკალური დიზაინი</p>
+                    <button class="btn btn-outline">არჩევა</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Saved Documents Section -->
+    <section id="saved" class="section saved-section" style="display: none;">
+        <div class="container">
+            <div class="section-header">
+                <h2>შენახული დოკუმენტები</h2>
+                <p>მართეთ თქვენი შენახული CV-ები და ინვოისები</p>
+            </div>
+            
+            <div class="saved-documents">
+                <div class="saved-tabs">
+                    <button class="saved-tab active" onclick="showSavedTab('cvs')">
+                        <i class="fas fa-file-alt"></i> CV-ები
+                    </button>
+                    <button class="saved-tab" onclick="showSavedTab('invoices')">
+                        <i class="fas fa-receipt"></i> ინვოისები
+                    </button>
+                </div>
+                
+                <div id="savedCVs" class="saved-content">
+                    <div class="saved-grid" id="savedCVsGrid">
+                        <!-- CV documents will be loaded here -->
+                    </div>
+                </div>
+                
+                <div id="savedInvoices" class="saved-content" style="display: none;">
+                    <div class="saved-grid" id="savedInvoicesGrid">
+                        <!-- Invoice documents will be loaded here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-brand">
+                    <h3>ALUDA AI</h3>
+                    <p>CV და ინვოისების შექმნა ქართულ ენაზე</p>
+                </div>
+                <div class="footer-links">
+                    <a href="#cv">CV შექმნა</a>
+                    <a href="#invoice">ინვოისი</a>
+                    <a href="#templates">შაბლონები</a>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 ALUDA AI. ყველა უფლება დაცულია.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Preview Modal -->
+    <div id="previewModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>წინასწარი ნახვა</h3>
+                <button class="modal-close" onclick="closePreview()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div id="previewContent"></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" onclick="closePreview()">დახურვა</button>
+                <button class="btn btn-primary" onclick="downloadPDF()">PDF-ის გადმოწერა</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mobile Signature Modal -->
+    <div id="signatureModal" class="modal">
+        <div class="modal-content signature-modal-content">
+            <div class="modal-header">
+                <h3>ხელმოწერა</h3>
+                <button class="modal-close" onclick="closeSignatureModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="signature-canvas-container">
+                    <canvas id="signatureCanvasModal" width="400" height="200"></canvas>
+                </div>
+                <div class="signature-controls">
+                    <button class="btn btn-outline" onclick="clearSignatureModal()">
+                        <i class="fas fa-ესერ"></i> გასუფთავება
+                    </button>
+                    <button class="btn btn-primary" onclick="saveSignatureModal()">
+                        <i class="fas fa-check"></i> შენახვა
+                    </button>
+                </div>
+                <div class="signature-help">
+                    <i class="fas fa-info-circle"></i>
+                    <span>ხელი გაიტანეთ ზემოთ ხელმოწერისთვის</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
+

@@ -101,6 +101,13 @@ export default function Sidebar({
           <ImageIcon className="w-4.5 h-4.5" />
           <span className="text-sm">დააგენერირე სურათი</span>
         </a>
+        {/* Document Generation CTA under Image */}
+        <a
+          href="/docs"
+          className="mt-2 w-full flex items-center justify-center space-x-2 p-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg hover:from-indigo-700 hover:to-purple-700 transition-all duration-200 shadow-md hover:shadow-lg"
+        >
+          <span className="text-sm">დოკუმენტის გენერაცია</span>
+        </a>
       </div>
       {settingsOpen && (
         <UserSettingsModal open={settingsOpen} onClose={() => setSettingsOpen(false)} userEmail={session?.user?.email} />
