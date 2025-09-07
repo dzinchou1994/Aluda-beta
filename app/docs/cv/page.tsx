@@ -30,9 +30,14 @@ export default function CVGeneratorPage() {
   });
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedCV, setGeneratedCV] = useState<string>('');
+  const [showLivePreview, setShowLivePreview] = useState(false);
 
   const handleInputChange = (field: keyof CVData, value: string) => {
     setCvData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const generateLivePreview = () => {
+    return createCVHTML(cvData);
   };
 
   const generateCV = async () => {
@@ -198,24 +203,26 @@ export default function CVGeneratorPage() {
               </svg>
               <span>უკან</span>
             </button>
-            <div className="flex space-x-3">
+            <div className="flex flex-wrap gap-3">
               <button
                 onClick={downloadCV}
-                className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
-                <span>ჩამოტვირთვა</span>
+                <span className="hidden sm:inline">ჩამოტვირთვა</span>
+                <span className="sm:hidden">Download</span>
               </button>
               <button
                 onClick={printCV}
-                className="flex items-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                className="flex items-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
                 </svg>
-                <span>ბეჭდვა</span>
+                <span className="hidden sm:inline">ბეჭდვა</span>
+                <span className="sm:hidden">Print</span>
               </button>
             </div>
           </div>
@@ -246,11 +253,31 @@ export default function CVGeneratorPage() {
             </svg>
             <span>უკან</span>
           </button>
-          <h1 className="text-3xl font-bold text-slate-800">CV გენერატორი</h1>
+          <div className="flex items-center space-x-4">
+            <h1 className="text-3xl font-bold text-slate-800">CV გენერატორი</h1>
+            <button
+              type="button"
+              onClick={() => setShowLivePreview(!showLivePreview)}
+              className={`px-4 py-2 rounded-lg transition-colors ${
+                showLivePreview 
+                  ? 'bg-blue-600 text-white' 
+                  : 'bg-slate-200 text-slate-700 hover:bg-slate-300'
+              }`}
+            >
+              <span className="flex items-center space-x-2">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                </svg>
+                <span>Live Preview</span>
+              </span>
+            </button>
+          </div>
         </div>
 
-        <div className="max-w-4xl mx-auto">
-          <div className="bg-white rounded-xl shadow-lg p-8">
+        <div className={`mx-auto ${showLivePreview ? 'max-w-7xl' : 'max-w-4xl'}`}>
+          <div className={`${showLivePreview ? 'grid grid-cols-1 lg:grid-cols-2 gap-8' : ''}`}>
+            <div className="bg-white rounded-xl shadow-lg p-8">
             <form onSubmit={(e) => { e.preventDefault(); generateCV(); }} className="space-y-6">
               {/* Personal Information */}
               <div className="grid md:grid-cols-2 gap-6">
@@ -398,6 +425,45 @@ export default function CVGeneratorPage() {
                 </button>
               </div>
             </form>
+            </div>
+            
+            {/* Live Preview Panel */}
+            {showLivePreview && (
+              <div className="bg-white rounded-xl shadow-lg p-8">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-xl font-semibold text-slate-800">Live Preview</h3>
+                  <div className="flex space-x-2">
+                    <button
+                      onClick={() => {
+                        const previewHTML = generateLivePreview();
+                        const blob = new Blob([previewHTML], { type: 'text/html' });
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = `CV-Preview-${cvData.fullName || 'Document'}.html`;
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
+                        URL.revokeObjectURL(url);
+                      }}
+                      className="flex items-center space-x-2 px-3 py-1 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                      <span>Download</span>
+                    </button>
+                  </div>
+                </div>
+                <div className="border border-slate-200 rounded-lg overflow-hidden">
+                  <iframe
+                    srcDoc={generateLivePreview()}
+                    className="w-full h-96 border-0"
+                    title="Live CV Preview"
+                  />
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
