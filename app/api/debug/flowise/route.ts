@@ -14,14 +14,14 @@ function normalizeHost(host?: string | null) {
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
-    const model = (searchParams.get('model') || 'mini').toLowerCase()
+    const model = (searchParams.get('model') || 'test').toLowerCase()
 
     const host = normalizeHost(process.env.ALUDAAI_FLOWISE_HOST || process.env.FLOWISE_HOST)
     const envMini = process.env.ALUDAAI_FLOWISE_CHATFLOW_ID || process.env.FLOWISE_CHATFLOW_ID || null
     const envA2 = process.env.ALUDAAI_FLOWISE_CHATFLOW_ID_ALUDAA2 || process.env.FLOWISE_CHATFLOW_ID_ALUDAA2 || null
     const envTest = process.env.ALUDAAI_FLOWISE_CHATFLOW_ID_TEST || process.env.FLOWISE_CHATFLOW_ID_TEST || null
 
-    const selectedModel = model === 'aluda2' ? 'aluda2' : model === 'test' ? 'test' : model === 'aluda_test' ? 'aluda_test' : 'mini'
+    const selectedModel = model === 'aluda2' ? 'aluda2' : model === 'test' ? 'test' : model === 'aluda_test' ? 'aluda_test' : 'test'
 
     const chatflowId = selectedModel === 'aluda2'
       ? (envA2 || '')

@@ -97,8 +97,8 @@ export async function POST(request: NextRequest) {
       actor = { type: 'guest' as const, id: cookieSess.guestId || cookieSess.sessionId }
     }
 
-    // Model handling: 'mini' (default), 'aluda2', 'test' (free), or 'aluda_test' (internal)
-    const selectedModel = (model === 'aluda2') ? 'aluda2' : (model === 'test') ? 'test' : (model === 'aluda_test') ? 'aluda_test' : 'mini'
+    // Model handling: 'aluda2', 'test' (free), or 'aluda_test' (internal)
+    const selectedModel = (model === 'aluda2') ? 'aluda2' : (model === 'test') ? 'test' : (model === 'aluda_test') ? 'aluda_test' : 'test'
     // Premium users default to aluda2 without extra token multiplier
     const isPremium = actor.type === 'user' && actor.plan === 'PREMIUM'
     // Test model is free and unlimited for everyone
@@ -328,7 +328,7 @@ export async function POST(request: NextRequest) {
         testModel: process.env.ALUDAAI_FLOWISE_CHATFLOW_ID_TEST || process.env.FLOWISE_CHATFLOW_ID_TEST || '286c3991-be03-47f3-aa47-56a6b65c5d00',
       })
 
-      // If Aluda2 chosen but no override configured, fail early instead of silently falling back to mini
+      // If Aluda2 chosen but no override configured, fail early instead of silently falling back to test
       if (selectedModel === 'aluda2' && !chatflowIdOverride) {
         return NextResponse.json({
           error: 'Aluda 2.0 disabled: set ALUDAAI_FLOWISE_CHATFLOW_ID_ALUDAA2 in Vercel envs',

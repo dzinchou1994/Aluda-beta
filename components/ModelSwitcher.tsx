@@ -28,7 +28,7 @@ export default function ModelSwitcher() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const handleModelSelect = (newModel: 'mini' | 'aluda2' | 'test' | 'aluda_test') => {
+  const handleModelSelect = (newModel: 'aluda2' | 'test' | 'aluda_test') => {
     if (newModel === 'aluda2' && !hasPremium) {
       handleUpgrade();
       return;
@@ -42,25 +42,21 @@ export default function ModelSwitcher() {
     setIsOpen(false);
   };
 
-  const getModelDisplayName = (modelName: 'mini' | 'aluda2' | 'test' | 'aluda_test') => {
+  const getModelDisplayName = (modelName: 'aluda2' | 'test' | 'aluda_test') => {
     switch (modelName) {
-      case 'mini':
-        return 'Aluda mini';
       case 'aluda2':
-        return 'Aluda 2.0';
+        return 'Aluda Plus';
       case 'test':
         return 'Aluda Free';
       case 'aluda_test':
         return 'Aluda Test';
       default:
-        return 'Aluda mini';
+        return 'Aluda Free';
     }
   };
 
-  const getModelDescription = (modelName: 'mini' | 'aluda2' | 'test' | 'aluda_test') => {
+  const getModelDescription = (modelName: 'aluda2' | 'test' | 'aluda_test') => {
     switch (modelName) {
-      case 'mini':
-        return 'Great for everyday tasks';
       case 'aluda2':
         return 'Our smartest model & more';
       case 'test':
@@ -68,14 +64,12 @@ export default function ModelSwitcher() {
       case 'aluda_test':
         return 'Internal testing flow';
       default:
-        return 'Great for everyday tasks';
+        return 'Free unlimited model';
     }
   };
 
-  const getModelIcon = (modelName: 'mini' | 'aluda2' | 'test' | 'aluda_test') => {
+  const getModelIcon = (modelName: 'aluda2' | 'test' | 'aluda_test') => {
     switch (modelName) {
-      case 'mini':
-        return <Zap className="h-4 w-4" />;
       case 'aluda2':
         return <Sparkles className="h-4 w-4 text-purple-500" />;
       case 'test':
@@ -94,8 +88,7 @@ export default function ModelSwitcher() {
         onClick={() => setIsOpen(!isOpen)}
         className="group flex items-center gap-2 w-full px-3 py-2 rounded-xl border border-transparent bg-gray-100/70 dark:bg-white/5 hover:bg-gray-200/70 dark:hover:bg-white/10 text-gray-900 dark:text-white shadow-[inset_0_0_0_1px_rgba(0,0,0,0.04)] dark:shadow-[inset_0_0_0_1px_rgba(255,255,255,0.06)] transition-colors"
       >
-        <span className="text-[11px] uppercase tracking-wide text-gray-500 dark:text-gray-400">მოდელი</span>
-        <span className="font-medium">{getModelDisplayName(model)}</span>
+        <span className="font-medium text-sm">{getModelDisplayName(model)}</span>
         <ChevronDown className={`ml-1 h-4 w-4 text-gray-500 dark:text-gray-400 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
       </button>
 
@@ -116,27 +109,14 @@ export default function ModelSwitcher() {
             </div>
           </div>
 
-          {/* Aluda mini Option (Standard) */}
-          <div className="p-3 border-b border-gray-200/60 dark:border-white/10 cursor-pointer hover:bg-gray-50 dark:hover:bg-white/5 transition-colors duration-200" onClick={() => handleModelSelect('mini')}>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-3">
-                {getModelIcon('mini')}
-                <div>
-                  <div className="text-gray-900 dark:text-white font-medium text-sm">Aluda mini</div>
-                  <div className="text-gray-600 dark:text-gray-400 text-xs">კარგია ყოველდღიური ამოცანებისთვის</div>
-                </div>
-              </div>
-              {model === 'mini' && <Check className="h-4 w-4 text-green-600 dark:text-green-400" />}
-            </div>
-          </div>
 
-          {/* Aluda 2.0 Option (Premium) - Last and most prominent */}
+          {/* Aluda Plus Option (Premium) - Last and most prominent */}
           <div className="p-3 cursor-pointer hover:bg-gray-50 dark:hover:bg-white/5 transition-colors duration-200" onClick={() => handleModelSelect('aluda2')}>
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-3">
                 {getModelIcon('aluda2')}
                 <div>
-                  <div className="text-gray-900 dark:text-white font-medium text-sm">Aluda 2.0</div>
+                  <div className="text-gray-900 dark:text-white font-medium text-sm">Aluda Plus</div>
                   <div className="text-gray-600 dark:text-gray-400 text-xs">ჩვენი ყველაზე ჭკვიანი მოდელი</div>
                 </div>
               </div>

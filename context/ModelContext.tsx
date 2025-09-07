@@ -2,7 +2,7 @@
 
 import { createContext, useCallback, useContext, useEffect, useState } from 'react'
 
-type ModelType = 'mini' | 'aluda2' | 'test' | 'aluda_test'
+type ModelType = 'aluda2' | 'test' | 'aluda_test'
 
 type ModelContextValue = {
   model: ModelType
@@ -12,13 +12,13 @@ type ModelContextValue = {
 const ModelContext = createContext<ModelContextValue | null>(null)
 
 export function ModelProvider({ children }: { children: React.ReactNode }) {
-  const [model, setModelState] = useState<ModelType>('mini')
+  const [model, setModelState] = useState<ModelType>('test')
   const [initialized, setInitialized] = useState(false)
 
   useEffect(() => {
     try {
       const saved = localStorage.getItem('aluda_model') as ModelType | null
-      if (saved === 'mini' || saved === 'aluda2' || saved === 'test' || saved === 'aluda_test') setModelState(saved)
+      if (saved === 'aluda2' || saved === 'test' || saved === 'aluda_test') setModelState(saved)
     } catch {}
     setInitialized(true)
   }, [])
