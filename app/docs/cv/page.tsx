@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 interface CVData {
@@ -30,19 +30,25 @@ export default function CVGeneratorPage() {
   });
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedCV, setGeneratedCV] = useState<string>('');
-  const [showLivePreview, setShowLivePreview] = useState(false);
+  const [showLivePreview, setShowLivePreview] = useState(true);
+  const [previewZoom, setPreviewZoom] = useState(0.5);
+  const [cvTemplate, setCvTemplate] = useState<'minimal' | 'classic'>('minimal');
+
+  // Approximate A4 size at 96 DPI
+  const a4WidthPx = 794; // 210mm @ ~96dpi
+  const a4HeightPx = 1123; // 297mm @ ~96dpi
 
   const handleInputChange = (field: keyof CVData, value: string) => {
     setCvData(prev => ({ ...prev, [field]: value }));
   };
 
   const generateLivePreview = () => {
-    return createCVHTML(cvData);
+    return createCVHTML(cvData, cvTemplate);
   };
 
   const generateCV = async () => {
     if (!cvData.fullName || !cvData.email || !cvData.phone) {
-      alert('გთხოვთ შეავსოთ ყველა სავალდებულო ველი');
+      alert('გთხოვ თ შეავსოთ ყველა სავალდებულო ველი');
       return;
     }
 
@@ -50,13 +56,26 @@ export default function CVGeneratorPage() {
     
     // Simulate generation process
     setTimeout(() => {
-      const cvHTML = createCVHTML(cvData);
+      const cvHTML = createCVHTML(cvData, cvTemplate);
       setGeneratedCV(cvHTML);
       setIsGenerating(false);
     }, 2000);
   };
 
-  const createCVHTML = (data: CVData) => {
+  const createCVHTML = (data: CVData, template: 'minimal' | 'classic') => {
+    const skillItems = (data.skills || '')
+      .split(/[\,\n]/)
+      .map(s => s.trim())
+      .filter(Boolean);
+    const experienceItems = (data.experience || '')
+      .split('\n')
+      .map(s => s.trim())
+      .filter(Boolean);
+    const educationItems = (data.education || '')
+      .split('\n')
+      .map(s => s.trim())
+      .filter(Boolean);
+
     return `
       <!DOCTYPE html>
       <html>
@@ -64,104 +83,67 @@ export default function CVGeneratorPage() {
         <meta charset="UTF-8">
         <title>CV - ${data.fullName}</title>
         <style>
-          body { 
-            font-family: 'Inter', Arial, sans-serif; 
-            margin: 0; 
-            padding: 40px; 
-            background: white; 
-            line-height: 1.6;
-            color: #333;
-          }
-          .cv-container { max-width: 800px; margin: 0 auto; }
-          .cv-header { 
-            text-align: center; 
-            margin-bottom: 40px; 
-            padding-bottom: 20px; 
-            border-bottom: 3px solid #667eea; 
-          }
-          .cv-header h1 { 
-            color: #333; 
-            margin-bottom: 15px; 
-            font-size: 2.5rem;
-            font-weight: 700;
-          }
-          .contact-info { 
-            display: flex; 
-            justify-content: center; 
-            gap: 30px; 
-            flex-wrap: wrap;
-            margin-top: 20px;
-          }
-          .contact-info p { 
-            margin: 5px 0; 
-            color: #666; 
-            font-size: 1rem;
-          }
-          .cv-section { 
-            margin-bottom: 30px; 
-            padding: 20px;
-            background: #f8f9fa;
-            border-radius: 10px;
-            border-left: 4px solid #667eea;
-          }
-          .cv-section h2 { 
-            color: #333; 
-            border-bottom: 2px solid #667eea; 
-            padding-bottom: 10px; 
-            margin-bottom: 15px;
-            font-size: 1.5rem;
-            font-weight: 600;
-          }
-          .cv-section p { 
-            margin: 10px 0; 
-            color: #555;
-            font-size: 1rem;
-          }
-          @media print {
-            body { padding: 20px; }
-            .cv-section { background: white; border: 1px solid #ddd; }
-          }
+          :root { --text: #0f172a; --muted: #475569; --border: #e2e8f0; --bg: #ffffff; --subtle: #f8fafc; --accent: #2563eb; --font: 'Inter', ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, Noto Sans, 'Apple Color Emoji', 'Segoe UI Emoji'; }
+          body.t-minimal { --text: #0f172a; --muted: #475569; --border: #e2e8f0; --bg: #ffffff; --subtle: #f8fafc; --accent: #2563eb; --font: 'Inter', ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial; }
+          body.t-classic { --text: #111827; --muted: #4b5563; --border: #e5e7eb; --bg: #ffffff; --subtle: #ffffff; --accent: #111827; --font: Georgia, 'Times New Roman', serif; }
+          /* art template removed */
+          * { box-sizing: border-box; }
+          body { font-family: var(--font); margin: 0; padding: 24px; background: var(--bg); color: var(--text); line-height: 1.6; }
+          .cv-page { max-width: 800px; margin: 0 auto; background: #fff; }
+          .cv-header { padding-bottom: 20px; border-bottom: 1px solid var(--border); text-align: center; }
+          .cv-name { margin: 0 0 8px 0; font-size: 34px; letter-spacing: -0.02em; }
+          .contact-info { display: flex; justify-content: center; flex-wrap: wrap; gap: 16px; color: var(--muted); font-size: 14px; }
+          .cv-section { padding: 18px 0; border-bottom: 1px solid var(--border); }
+          .cv-section:last-child { border-bottom: 0; }
+          .cv-section h2 { margin: 0 0 10px 0; font-size: 14px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+          .cv-section p { margin: 8px 0; color: var(--text); }
+          ul.clean { margin: 8px 0; padding-left: 18px; }
+          ul.clean li { margin: 6px 0; }
+          .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+          .chip { display: inline-block; padding: 6px 10px; border-radius: 9999px; background: var(--subtle); border: 1px solid var(--border); font-size: 13px; color: var(--text); }
+          .placeholder { color: #94a3b8; }
+          .placeholder-block { background: #f1f5f9; border: 1px dashed #cbd5e1; border-radius: 8px; padding: 12px; }
+          /* Classic tweaks */
+          .t-classic .cv-header { text-align: left; padding-bottom: 12px; border-bottom: 2px solid var(--accent); }
+          .t-classic .cv-name { font-size: 36px; letter-spacing: 0; }
+          .t-classic .contact-info { justify-content: flex-start; gap: 12px; font-style: italic; }
+          .t-classic .cv-section { padding: 20px 0; border-bottom: 1px solid var(--border); }
+          .t-classic .cv-section h2 { font-variant: small-caps; letter-spacing: 0.12em; color: var(--text); }
+          /* art template removed */
+          @media print { @page { size: A4; margin: 16mm; } body { padding: 0; } }
         </style>
       </head>
-      <body>
-        <div class="cv-container">
+      <body class="t-${template}">
+        <div class="cv-page">
           <div class="cv-header">
-            <h1>${data.fullName || ''}</h1>
+            <h1 class="cv-name">${data.fullName || 'თქვენი სრული სახელი'}</h1>
             <div class="contact-info">
-              ${data.email ? `<p>📧 ${data.email}</p>` : ''}
-              ${data.phone ? `<p>📱 ${data.phone}</p>` : ''}
-              ${data.address ? `<p>📍 ${data.address}</p>` : ''}
-              ${data.linkedin ? `<p>🔗 ${data.linkedin}</p>` : ''}
+              <span>${data.email || '<span class="placeholder">ელ-ფოსტა</span>'}</span>
+              <span>${data.phone || '<span class="placeholder">ტელეფონი</span>'}</span>
+              <span>${data.address || '<span class="placeholder">მისამართი</span>'}</span>
+              <span>${data.linkedin || '<span class="placeholder">LinkedIn</span>'}</span>
             </div>
           </div>
-          
-          ${data.summary ? `
-          <div class="cv-section">
+
+          <div class="cv-section cv-summary">
             <h2>შესახებ</h2>
-            <p>${data.summary}</p>
+            ${data.summary ? `<p>${data.summary}</p>` : `<div class="placeholder-block"><p class="placeholder">მოკლე შეჯამება თქვენი გამოცდილებისა და მიზნების შესახებ...</p></div>`}
           </div>
-          ` : ''}
-          
-          ${data.experience ? `
-          <div class="cv-section">
+
+          <div class="cv-section cv-experience">
             <h2>გამოცდილება</h2>
-            <p>${data.experience}</p>
+            ${experienceItems.length ? `<ul class="clean">${experienceItems.map(i => `<li>${i}</li>`).join('')}</ul>` : `<div class="placeholder-block"><p class="placeholder">დაამატეთ თქვენი სამუშაო გამოცდილება, როლები და მიღწევები...</p></div>`}
           </div>
-          ` : ''}
-          
-          ${data.education ? `
-          <div class="cv-section">
+
+          <div class="cv-section cv-education">
             <h2>განათლება</h2>
-            <p>${data.education}</p>
+            ${educationItems.length ? `<ul class="clean">${educationItems.map(i => `<li>${i}</li>`).join('')}</ul>` : `<div class="placeholder-block"><p class="placeholder">დაამატეთ სასწავლებლები, ხარისხები და თარიღები...</p></div>`}
           </div>
-          ` : ''}
-          
-          ${data.skills ? `
-          <div class="cv-section">
+
+          <div class="cv-section cv-skills">
             <h2>უნარები</h2>
-            <p>${data.skills}</p>
+            ${skillItems.length ? `<div class="chips">${skillItems.map(s => `<span class="chip">${s}</span>`).join('')}</div>` : `<div class="placeholder-block"><p class="placeholder">ჩამოთვალეთ თქვენი ძირითადი ტექნიკური და რბილი უნარები...</p></div>`}
           </div>
-          ` : ''}
         </div>
       </body>
       </html>
@@ -272,12 +254,24 @@ export default function CVGeneratorPage() {
                 <span>Live Preview</span>
               </span>
             </button>
+
+            <div className="hidden sm:flex items-center space-x-2">
+              <label className="text-sm text-slate-600">Template</label>
+              <select
+                value={cvTemplate}
+                onChange={(e) => setCvTemplate(e.target.value as 'minimal' | 'classic')}
+                className="px-3 py-2 rounded-lg border border-slate-300 bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="minimal">Minimalistic</option>
+                <option value="classic">Classic</option>
+              </select>
+            </div>
           </div>
         </div>
 
         <div className={`mx-auto ${showLivePreview ? 'max-w-7xl' : 'max-w-4xl'}`}>
-          <div className={`${showLivePreview ? 'grid grid-cols-1 lg:grid-cols-2 gap-8' : ''}`}>
-            <div className="bg-white rounded-xl shadow-lg p-8">
+          <div className={`${showLivePreview ? 'grid grid-cols-1 lg:grid-cols-2 gap-8 items-start' : ''}`}>
+            <div className={`bg-white rounded-xl shadow-lg p-8 ${showLivePreview ? 'max-h-[800px] overflow-y-auto' : ''}`}>
             <form onSubmit={(e) => { e.preventDefault(); generateCV(); }} className="space-y-6">
               {/* Personal Information */}
               <div className="grid md:grid-cols-2 gap-6">
@@ -429,10 +423,29 @@ export default function CVGeneratorPage() {
             
             {/* Live Preview Panel */}
             {showLivePreview && (
-              <div className="bg-white rounded-xl shadow-lg p-8">
+              <div className="bg-white rounded-xl shadow-lg p-8 max-h-[800px] flex flex-col lg:sticky lg:top-4">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-xl font-semibold text-slate-800">Live Preview</h3>
-                  <div className="flex space-x-2">
+                  <div className="flex items-center space-x-2">
+                    <div className="flex items-center rounded-lg border border-slate-200 overflow-hidden">
+                      <button
+                        type="button"
+                        onClick={() => setPreviewZoom(z => Math.max(0.5, Math.round((z - 0.1) * 10) / 10))}
+                        className="px-2 py-1 text-slate-700 hover:bg-slate-100"
+                        aria-label="Zoom out"
+                      >
+                        −
+                      </button>
+                      <div className="px-3 py-1 text-sm tabular-nums text-slate-700">{Math.round(previewZoom * 100)}%</div>
+                      <button
+                        type="button"
+                        onClick={() => setPreviewZoom(z => Math.min(2, Math.round((z + 0.1) * 10) / 10))}
+                        className="px-2 py-1 text-slate-700 hover:bg-slate-100"
+                        aria-label="Zoom in"
+                      >
+                        +
+                      </button>
+                    </div>
                     <button
                       onClick={() => {
                         const previewHTML = generateLivePreview();
@@ -455,12 +468,25 @@ export default function CVGeneratorPage() {
                     </button>
                   </div>
                 </div>
-                <div className="border border-slate-200 rounded-lg overflow-hidden">
-                  <iframe
-                    srcDoc={generateLivePreview()}
-                    className="w-full h-96 border-0"
-                    title="Live CV Preview"
-                  />
+                <div className="border border-slate-200 rounded-lg overflow-auto flex-1 bg-slate-50">
+                  <div
+                    className="mx-auto my-4"
+                    style={{ width: `${Math.round(a4WidthPx * previewZoom)}px`, height: `${Math.round(a4HeightPx * previewZoom)}px` }}
+                  >
+                    <iframe
+                      srcDoc={generateLivePreview()}
+                      title="Live CV Preview"
+                      style={{
+                        width: `${a4WidthPx}px`,
+                        height: `${a4HeightPx}px`,
+                        border: '0',
+                        transform: `scale(${previewZoom})`,
+                        transformOrigin: 'top left',
+                        background: 'white',
+                        boxShadow: '0 2px 10px rgba(0,0,0,0.08)'
+                      }}
+                    />
+                  </div>
                 </div>
               </div>
             )}

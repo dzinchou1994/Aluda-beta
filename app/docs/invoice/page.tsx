@@ -115,183 +115,96 @@ export default function InvoiceGeneratorPage() {
         <meta charset="UTF-8">
         <title>Invoice - ${data.invoiceNumber}</title>
         <style>
-          body { 
-            font-family: 'Inter', Arial, sans-serif; 
-            margin: 0; 
-            padding: 40px; 
-            background: white; 
-            line-height: 1.6;
-            color: #333;
-          }
-          .invoice-container { max-width: 800px; margin: 0 auto; }
-          .invoice-header { 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: flex-start;
-            margin-bottom: 40px; 
-            padding-bottom: 20px; 
-            border-bottom: 3px solid #667eea; 
-          }
-          .invoice-logo { 
-            font-size: 2rem; 
-            font-weight: 700; 
-            color: #667eea; 
-          }
-          .invoice-details { text-align: right; }
-          .invoice-number { 
-            font-size: 1.5rem; 
-            font-weight: 600; 
-            margin-bottom: 10px; 
-            color: #333;
-          }
-          .invoice-date { color: #666; font-size: 1rem; }
-          .invoice-parties { 
-            display: grid; 
-            grid-template-columns: 1fr 1fr; 
-            gap: 40px; 
-            margin-bottom: 40px; 
-          }
-          .party-info { 
-            background: #f8f9fa; 
-            padding: 20px; 
-            border-radius: 10px; 
-            border-left: 4px solid #667eea; 
-          }
-          .party-title { 
-            font-weight: 600; 
-            margin-bottom: 15px; 
-            color: #333; 
-            font-size: 1.1rem;
-          }
-          .party-info p { margin: 5px 0; color: #555; }
-          .items-table { 
-            width: 100%; 
-            border-collapse: collapse; 
-            margin-bottom: 30px; 
-            background: white;
-            border-radius: 10px;
-            overflow: hidden;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-          }
-          .items-table th, .items-table td { 
-            padding: 15px; 
-            text-align: left; 
-            border-bottom: 1px solid #e1e5e9; 
-          }
-          .items-table th { 
-            background: linear-gradient(135deg, #667eea, #764ba2); 
-            color: white; 
-            font-weight: 600; 
-            font-size: 1rem;
-          }
-          .items-table tr:hover { background: rgba(102, 126, 234, 0.05); }
-          .totals { 
-            background: #f8f9fa; 
-            padding: 20px; 
-            border-radius: 10px; 
-            border-left: 4px solid #667eea; 
-            text-align: right; 
-          }
-          .totals-row { 
-            display: flex; 
-            justify-content: space-between; 
-            margin-bottom: 10px; 
-            padding: 5px 0; 
-          }
-          .totals-row.total { 
-            font-weight: 700; 
-            font-size: 1.3rem; 
-            border-top: 2px solid #667eea; 
-            margin-top: 15px; 
-            padding-top: 15px; 
-            color: #333; 
-          }
-          .notes { 
-            margin-top: 30px; 
-            padding: 20px; 
-            background: #f8f9fa; 
-            border-radius: 10px; 
-            border-left: 4px solid #667eea; 
-          }
-          .notes h3 { 
-            margin-bottom: 10px; 
-            color: #333; 
-            font-weight: 600; 
-          }
-          @media print {
-            body { padding: 20px; }
-            .party-info, .totals, .notes { background: white; border: 1px solid #ddd; }
-          }
+          :root { --text:#0f172a; --muted:#475569; --border:#e2e8f0; --bg:#ffffff; --subtle:#f8fafc; --accent:#16a34a; }
+          * { box-sizing: border-box; }
+          body { font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial; margin:0; padding:24px; background:var(--bg); color:var(--text); line-height:1.6; }
+          .invoice-page { max-width: 900px; margin:0 auto; background:#fff; }
+          .invoice-header { display:flex; justify-content:space-between; align-items:flex-start; padding-bottom:16px; border-bottom:1px solid var(--border); }
+          .brand { font-size:28px; font-weight:700; letter-spacing:-0.02em; color:var(--text); }
+          .meta { text-align:right; color:var(--muted); font-size:14px; }
+          .meta .number { font-size:16px; color:var(--text); font-weight:600; }
+          .parties { display:grid; grid-template-columns:1fr 1fr; gap:24px; padding:18px 0; border-bottom:1px solid var(--border); }
+          .card { background:var(--subtle); border:1px solid var(--border); border-radius:10px; padding:16px; }
+          .card h3 { margin:0 0 10px 0; font-size:13px; text-transform:uppercase; letter-spacing:0.08em; color:var(--muted); }
+          .card p { margin:6px 0; }
+          table { width:100%; border-collapse: collapse; margin-top:18px; border:1px solid var(--border); }
+          thead th { font-size:13px; text-transform:uppercase; letter-spacing:0.08em; text-align:left; padding:12px; background:var(--subtle); color:var(--muted); border-bottom:1px solid var(--border); }
+          tbody td { padding:12px; border-bottom:1px solid var(--border); }
+          tbody tr:nth-child(odd) { background:#fff; }
+          tbody tr:nth-child(even) { background:#fcfdff; }
+          .right { text-align:right; }
+          .totals { display:grid; grid-template-columns: 1fr 280px; gap:24px; align-items:start; margin-top:18px; }
+          .totals .summary { background:var(--subtle); border:1px solid var(--border); border-radius:10px; padding:16px; }
+          .row { display:flex; justify-content:space-between; padding:6px 0; }
+          .row.total { border-top:1px dashed var(--border); margin-top:8px; padding-top:10px; font-weight:700; font-size:18px; }
+          .notes { background:var(--subtle); border:1px solid var(--border); border-radius:10px; padding:16px; margin-top:18px; }
+          .badge { display:inline-block; font-size:12px; padding:4px 8px; border-radius:9999px; border:1px solid var(--border); background:#fff; color:var(--muted); }
+          @media print { @page { size:A4; margin: 12mm; } body { padding:0; } }
         </style>
       </head>
       <body>
-        <div class="invoice-container">
+        <div class="invoice-page">
           <div class="invoice-header">
-            <div class="invoice-logo">${data.billerName || 'Company'}</div>
-            <div class="invoice-details">
-              <div class="invoice-number">Invoice #${data.invoiceNumber}</div>
-              <div class="invoice-date">Date: ${new Date(data.invoiceDate).toLocaleDateString('ka-GE')}</div>
+            <div>
+              <div class="brand">${data.billerName || 'Company'}</div>
+              <div class="badge">Invoice</div>
+            </div>
+            <div class="meta">
+              <div class="number">#${data.invoiceNumber}</div>
+              <div>${new Date(data.invoiceDate).toLocaleDateString('ka-GE')}</div>
             </div>
           </div>
-          
-          <div class="invoice-parties">
-            <div class="party-info">
-              <div class="party-title">From:</div>
+
+          <div class="parties">
+            <div class="card">
+              <h3>From</h3>
               <p><strong>${data.billerName || ''}</strong></p>
               ${data.billerAddress ? `<p>${data.billerAddress}</p>` : ''}
-              ${data.billerEmail ? `<p>📧 ${data.billerEmail}</p>` : ''}
-              ${data.billerPhone ? `<p>📱 ${data.billerPhone}</p>` : ''}
+              ${data.billerEmail ? `<p>${data.billerEmail}</p>` : ''}
+              ${data.billerPhone ? `<p>${data.billerPhone}</p>` : ''}
             </div>
-            <div class="party-info">
-              <div class="party-title">To:</div>
+            <div class="card">
+              <h3>To</h3>
               <p><strong>${data.clientName || ''}</strong></p>
               ${data.clientAddress ? `<p>${data.clientAddress}</p>` : ''}
-              ${data.clientEmail ? `<p>📧 ${data.clientEmail}</p>` : ''}
-              ${data.clientPhone ? `<p>📱 ${data.clientPhone}</p>` : ''}
+              ${data.clientEmail ? `<p>${data.clientEmail}</p>` : ''}
+              ${data.clientPhone ? `<p>${data.clientPhone}</p>` : ''}
             </div>
           </div>
-          
-          <table class="items-table">
+
+          <table>
             <thead>
               <tr>
                 <th>Description</th>
-                <th>Quantity</th>
-                <th>Price</th>
-                <th>Total</th>
+                <th class="right">Qty</th>
+                <th class="right">Price</th>
+                <th class="right">Total</th>
               </tr>
             </thead>
             <tbody>
               ${items.map(item => `
                 <tr>
                   <td>${item.description}</td>
-                  <td>${item.quantity}</td>
-                  <td>₾${item.price.toFixed(2)}</td>
-                  <td>₾${item.total.toFixed(2)}</td>
+                  <td class="right">${item.quantity}</td>
+                  <td class="right">₾${item.price.toFixed(2)}</td>
+                  <td class="right">₾${item.total.toFixed(2)}</td>
                 </tr>
               `).join('')}
             </tbody>
           </table>
-          
+
           <div class="totals">
-            <div class="totals-row">
-              <span>Subtotal:</span>
-              <span>₾${subtotal.toFixed(2)}</span>
-            </div>
-            ${data.taxRate > 0 ? `
-            <div class="totals-row">
-              <span>Tax (${data.taxRate}%):</span>
-              <span>₾${tax.toFixed(2)}</span>
-            </div>
-            ` : ''}
-            <div class="totals-row total">
-              <span>Total:</span>
-              <span>₾${total.toFixed(2)}</span>
+            <div></div>
+            <div class="summary">
+              <div class="row"><span>Subtotal</span><span>₾${subtotal.toFixed(2)}</span></div>
+              ${data.taxRate > 0 ? `<div class="row"><span>Tax (${data.taxRate}%)</span><span>₾${tax.toFixed(2)}</span></div>` : ''}
+              <div class="row total"><span>Total</span><span>₾${total.toFixed(2)}</span></div>
             </div>
           </div>
-          
+
           ${data.notes ? `
           <div class="notes">
-            <h3>Notes:</h3>
+            <div class="badge">Notes</div>
             <p>${data.notes}</p>
           </div>
           ` : ''}
