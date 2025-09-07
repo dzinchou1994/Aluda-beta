@@ -1,6 +1,6 @@
 "use client"
 
-import { MessageSquare, Trash2, Plus, LogIn, LogOut, User, MoreVertical, Pencil, Brain } from "lucide-react"
+import { MessageSquare, Trash2, Plus, LogIn, LogOut, User, MoreVertical, Pencil, Brain, FileText } from "lucide-react"
 import { useTokens } from '@/context/TokensContext'
 import UserSettingsModal from './UserSettingsModal'
 import ModelSwitcher from './ModelSwitcher'
@@ -93,21 +93,27 @@ export default function Sidebar({
           <Plus className="w-4.5 h-4.5" />
           <span className="text-sm">ახალი საუბარი</span>
         </button>
-        {/* Generate Image CTA under New Chat */}
-        <a
-          href="/image"
-          className="mt-2 w-full flex items-center justify-center space-x-2 p-3 bg-gradient-to-r from-fuchsia-500 to-pink-600 text-white rounded-lg hover:from-fuchsia-600 hover:to-pink-700 transition-all duration-200 shadow-md hover:shadow-lg"
-        >
-          <ImageIcon className="w-4.5 h-4.5" />
-          <span className="text-sm">დააგენერირე სურათი</span>
-        </a>
-        {/* Document Generation CTA under Image */}
-        <a
-          href="/docs"
-          className="mt-2 w-full flex items-center justify-center space-x-2 p-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg hover:from-indigo-700 hover:to-purple-700 transition-all duration-200 shadow-md hover:shadow-lg"
-        >
-          <span className="text-sm">დოკუმენტის გენერაცია</span>
-        </a>
+        {/* Quick actions separator */}
+        <div className="my-3">
+          <div className="border-t border-gray-200 dark:border-gray-800"></div>
+        </div>
+        {/* Quick actions */}
+        <div className="grid grid-cols-2 gap-2">
+          <a
+            href="/image"
+            className="flex items-center justify-center gap-1.5 px-2 py-2 rounded-md bg-fuchsia-50 text-fuchsia-700 hover:bg-fuchsia-100 transition-colors dark:bg-[#2a1f2a] dark:text-fuchsia-300"
+          >
+            <ImageIcon className="w-4 h-4" />
+            <span className="text-[11px] font-medium">სურათი</span>
+          </a>
+          <a
+            href="/docs"
+            className="flex items-center justify-center gap-1.5 px-2 py-2 rounded-md bg-indigo-50 text-indigo-700 hover:bg-indigo-100 transition-colors dark:bg-[#23253a] dark:text-indigo-300"
+          >
+            <FileText className="w-4 h-4" />
+            <span className="text-[11px] font-medium">დოკუმენტი</span>
+          </a>
+        </div>
       </div>
       {settingsOpen && (
         <UserSettingsModal open={settingsOpen} onClose={() => setSettingsOpen(false)} userEmail={session?.user?.email} />

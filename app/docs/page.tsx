@@ -1,12 +1,47 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+import { Brain } from 'lucide-react';
 
 export default function DocumentsPage() {
   const router = useRouter();
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
+      {/* Sticky Header with Back and Logo */}
+      <div className="sticky top-0 z-40 backdrop-blur supports-[backdrop-filter]:bg-white/60 dark:supports-[backdrop-filter]:bg-slate-900/60 bg-white/90 dark:bg-slate-900/90 border-b border-slate-200 dark:border-slate-800">
+        <div className="container mx-auto px-4 py-3 flex items-center justify-between">
+          <button
+            type="button"
+            onClick={() => {
+              if (typeof window !== 'undefined' && window.history.length > 1) {
+                router.back();
+              } else {
+                router.push('/');
+              }
+            }}
+            className="inline-flex items-center gap-2 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors"
+            aria-label="Back"
+          >
+            <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M15 18l-6-6 6-6" />
+            </svg>
+            <span className="hidden sm:inline">Back</span>
+          </button>
+
+          <Link href="/chat" className="flex items-center" aria-label="AludaAI">
+            <div className="w-7 h-7 logo-gradient rounded-lg flex items-center justify-center mr-2">
+              <Brain className="w-4 h-4 text-white" />
+            </div>
+            <span className="text-sm font-semibold bg-gradient-to-r from-blue-600 to-purple-600 dark:from-white dark:to-gray-300 bg-clip-text text-transparent">AludaAI</span>
+          </Link>
+
+          {/* Spacer to balance flex layout */}
+          <div className="w-10" />
+        </div>
+      </div>
+
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="text-center mb-12">

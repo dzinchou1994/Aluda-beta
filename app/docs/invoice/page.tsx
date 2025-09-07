@@ -47,6 +47,12 @@ export default function InvoiceGeneratorPage() {
   ]);
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedInvoice, setGeneratedInvoice] = useState<string>('');
+  const [showLivePreview, setShowLivePreview] = useState(true);
+  const [previewZoom, setPreviewZoom] = useState(0.5);
+
+  // Approximate A4 size at 96 DPI
+  const a4WidthPx = 794; // 210mm @ ~96dpi
+  const a4HeightPx = 1123; // 297mm @ ~96dpi
 
   const handleInputChange = (field: keyof InvoiceData, value: string | number) => {
     setInvoiceData(prev => ({ ...prev, [field]: value }));
@@ -80,6 +86,10 @@ export default function InvoiceGeneratorPage() {
       }
       return item;
     }));
+  };
+
+  const generateLivePreview = () => {
+    return createInvoiceHTML(invoiceData, items);
   };
 
   const generateInvoice = async () => {
@@ -299,12 +309,32 @@ export default function InvoiceGeneratorPage() {
             </svg>
             <span>უკან</span>
           </button>
-          <h1 className="text-3xl font-bold text-slate-800">ინვოისის გენერატორი</h1>
+          <div className="flex items-center space-x-4">
+            <h1 className="text-3xl font-bold text-slate-800">ინვოისის გენერატორი</h1>
+            <button
+              type="button"
+              onClick={() => setShowLivePreview(!showLivePreview)}
+              className={`px-4 py-2 rounded-lg transition-colors ${
+                showLivePreview 
+                  ? 'bg-emerald-600 text-white' 
+                  : 'bg-slate-200 text-slate-700 hover:bg-slate-300'
+              }`}
+            >
+              <span className="flex items-center space-x-2">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                </svg>
+                <span>Live Preview</span>
+              </span>
+            </button>
+          </div>
         </div>
 
-        <div className="max-w-6xl mx-auto">
-          <div className="bg-white rounded-xl shadow-lg p-8">
-            <form onSubmit={(e) => { e.preventDefault(); generateInvoice(); }} className="space-y-8">
+        <div className={`mx-auto ${showLivePreview ? 'max-w-7xl' : 'max-w-6xl'}`}>
+          <div className={`${showLivePreview ? 'grid grid-cols-1 lg:grid-cols-2 gap-8 items-start' : ''}`}>
+            <div className={`bg-white rounded-xl shadow-lg p-8 ${showLivePreview ? 'max-h-[800px] overflow-y-auto' : ''}`}>
+              <form onSubmit={(e) => { e.preventDefault(); generateInvoice(); }} className="space-y-8">
               {/* Invoice Header */}
               <div className="grid md:grid-cols-2 gap-6">
                 <div>
@@ -583,7 +613,60 @@ export default function InvoiceGeneratorPage() {
                   )}
                 </button>
               </div>
-            </form>
+              </form>
+            </div>
+
+          {showLivePreview && (
+            <div className="bg-white rounded-xl shadow-lg p-8 max-h-[800px] flex flex-col lg:sticky lg:top-4">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-xl font-semibold text-slate-800">Live Preview</h3>
+                <div className="flex items-center space-x-2">
+                  <div className="flex items-center rounded-lg border border-slate-200 overflow-hidden">
+                    <button type="button" onClick={() => setPreviewZoom(z => Math.max(0.5, Math.round((z - 0.1) * 10) / 10))} className="px-2 py-1 text-slate-700 hover:bg-slate-100" aria-label="Zoom out">−</button>
+                    <div className="px-3 py-1 text-sm tabular-nums text-slate-700">{Math.round(previewZoom * 100)}%</div>
+                    <button type="button" onClick={() => setPreviewZoom(z => Math.min(2, Math.round((z + 0.1) * 10) / 10))} className="px-2 py-1 text-slate-700 hover:bg-slate-100" aria-label="Zoom in">+</button>
+                  </div>
+                  <button
+                    onClick={() => {
+                      const previewHTML = generateLivePreview();
+                      const blob = new Blob([previewHTML], { type: 'text/html' });
+                      const url = URL.createObjectURL(blob);
+                      const a = document.createElement('a');
+                      a.href = url;
+                      a.download = `Invoice-Preview-${invoiceData.invoiceNumber || 'Document'}.html`;
+                      document.body.appendChild(a);
+                      a.click();
+                      document.body.removeChild(a);
+                      URL.revokeObjectURL(url);
+                    }}
+                    className="flex items-center space-x-2 px-3 py-1 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors text-sm"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    <span>Download</span>
+                  </button>
+                </div>
+              </div>
+              <div className="border border-slate-200 rounded-lg overflow-auto flex-1 bg-slate-50">
+                <div className="mx-auto my-4" style={{ width: `${Math.round(a4WidthPx * previewZoom)}px`, height: `${Math.round(a4HeightPx * previewZoom)}px` }}>
+                  <iframe
+                    srcDoc={generateLivePreview()}
+                    title="Live Invoice Preview"
+                    style={{
+                      width: `${a4WidthPx}px`,
+                      height: `${a4HeightPx}px`,
+                      border: '0',
+                      transform: `scale(${previewZoom})`,
+                      transformOrigin: 'top left',
+                      background: 'white',
+                      boxShadow: '0 2px 10px rgba(0,0,0,0.08)'
+                    }}
+                  />
+                </div>
+              </div>
+            </div>
+          )}
           </div>
         </div>
       </div>
