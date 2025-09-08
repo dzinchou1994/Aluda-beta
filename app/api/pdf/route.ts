@@ -28,10 +28,10 @@ export async function POST(req: NextRequest) {
 
     await browser.close();
 
-    // Use Blob to satisfy BodyInit across environments
-    const blob = new Blob([pdfBuffer], { type: 'application/pdf' });
-
-    return new Response(blob, {
+    // Convert Uint8Array to ArrayBuffer to satisfy TypeScript strict typing
+    const arrayBuffer = pdfBuffer.buffer.slice(pdfBuffer.byteOffset, pdfBuffer.byteOffset + pdfBuffer.byteLength);
+    
+    return new Response(arrayBuffer, {
       status: 200,
       headers: {
         'Content-Type': 'application/pdf'
