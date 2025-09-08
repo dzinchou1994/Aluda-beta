@@ -991,8 +991,14 @@ export default function CVGeneratorPage() {
       tempDiv.style.position = 'absolute';
       tempDiv.style.left = '-9999px';
       tempDiv.style.top = '0';
-      tempDiv.style.width = '210mm'; // A4 width
+      tempDiv.style.width = '794px'; // A4 width in pixels
+      tempDiv.style.minHeight = '1123px'; // A4 height in pixels
       tempDiv.style.backgroundColor = 'white';
+      tempDiv.style.fontFamily = 'Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, Noto Sans, sans-serif';
+      tempDiv.style.lineHeight = '1.6';
+      tempDiv.style.color = '#0f172a';
+      tempDiv.style.padding = '24px';
+      tempDiv.style.boxSizing = 'border-box';
       document.body.appendChild(tempDiv);
 
       console.log('Created temporary div, converting to canvas...');
@@ -1004,7 +1010,22 @@ export default function CVGeneratorPage() {
         allowTaint: true,
         backgroundColor: '#ffffff',
         width: 794, // A4 width in pixels at 96 DPI
-        height: 1123 // A4 height in pixels at 96 DPI
+        height: 1123, // A4 height in pixels at 96 DPI
+        logging: false,
+        foreignObjectRendering: true,
+        removeContainer: false,
+        imageTimeout: 0,
+        onclone: (clonedDoc) => {
+          // Ensure styles are properly applied in the cloned document
+          const clonedDiv = clonedDoc.querySelector('div');
+          if (clonedDiv) {
+            clonedDiv.style.width = '794px';
+            clonedDiv.style.minHeight = '1123px';
+            clonedDiv.style.backgroundColor = 'white';
+            clonedDiv.style.padding = '24px';
+            clonedDiv.style.boxSizing = 'border-box';
+          }
+        }
       });
 
       console.log('Canvas created, removing temp div...');
@@ -1015,29 +1036,30 @@ export default function CVGeneratorPage() {
       console.log('Creating PDF...');
 
       // Create PDF
-      const imgData = canvas.toDataURL('image/png');
+      const imgData = canvas.toDataURL('image/png', 1.0); // High quality
       const pdf = new jsPDF({
         orientation: 'portrait',
         unit: 'mm',
-        format: 'a4'
+        format: 'a4',
+        compress: true
       });
 
       const imgWidth = 210; // A4 width in mm
-      const pageHeight = 295; // A4 height in mm
+      const pageHeight = 297; // A4 height in mm (corrected)
       const imgHeight = (canvas.height * imgWidth) / canvas.width;
       let heightLeft = imgHeight;
 
       let position = 0;
 
       // Add first page
-      pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+      pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight, undefined, 'FAST');
       heightLeft -= pageHeight;
 
       // Add additional pages if needed
       while (heightLeft >= 0) {
         position = heightLeft - imgHeight;
         pdf.addPage();
-        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight, undefined, 'FAST');
         heightLeft -= pageHeight;
       }
 
@@ -1077,6 +1099,19 @@ export default function CVGeneratorPage() {
   if (generatedCV) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
+        {/* Sticky Download Button */}
+        <div className="fixed top-4 right-4 z-50">
+          <button
+            onClick={downloadCV}
+            className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors shadow-lg"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            <span>Download PDF</span>
+          </button>
+        </div>
+        
         <div className="container mx-auto px-4 py-8">
           <div className="flex justify-between items-center mb-6">
             <button
@@ -1441,24 +1476,13 @@ export default function CVGeneratorPage() {
                       </button>
                     </div>
                     <button
-                      onClick={() => {
-                        const previewHTML = generateLivePreview();
-                        const blob = new Blob([previewHTML], { type: 'text/html' });
-                        const url = URL.createObjectURL(blob);
-                        const a = document.createElement('a');
-                        a.href = url;
-                        a.download = `CV-Preview-${cvData.fullName || 'Document'}.html`;
-                        document.body.appendChild(a);
-                        a.click();
-                        document.body.removeChild(a);
-                        URL.revokeObjectURL(url);
-                      }}
+                      onClick={downloadCV}
                       className="flex items-center space-x-2 px-3 py-1 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm"
                     >
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                       </svg>
-                      <span>Download</span>
+                      <span>Download PDF</span>
                     </button>
                   </div>
                 </div>

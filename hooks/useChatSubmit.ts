@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Message } from '@/hooks/useChats';
-import { compressImageIfNeeded } from '@/lib/chatUtils';
+import { compressImageIfNeeded, fileToBase64 } from '@/lib/chatUtils';
 import { suggestTitleWithFlowise } from '@/lib/flowise';
 
 interface UseChatSubmitProps {
@@ -138,12 +138,22 @@ export function useChatSubmit({
       createdNewChat = true;
     }
 
+    // Convert image to base64 for persistent storage
+    let imageBase64: string | undefined;
+    if (attachedImage) {
+      try {
+        imageBase64 = await fileToBase64(attachedImage);
+      } catch (error) {
+        console.error('Failed to convert image to base64:', error);
+      }
+    }
+
     // Prepare to send and only add message to UI after the request is started
     const pendingUserMessage: Omit<Message, 'timestamp'> = {
       id: `user_${Date.now()}`,
       role: "user",
       content: messageToSend,
-      imageUrl: attachedPreviewUrl || undefined,
+      imageUrl: imageBase64 || attachedPreviewUrl || undefined,
     };
     
     setIsLoading(true);

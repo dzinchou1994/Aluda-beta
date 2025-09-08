@@ -13,49 +13,24 @@ interface Props {
 
 export default function UserSettingsModal({ open, onClose, userEmail }: Props) {
   const { usage, limits, actor, refresh } = useTokens()
-  const [email, setEmail] = useState(userEmail || '')
-  const [emailMsg, setEmailMsg] = useState('')
-  const [emailLoading, setEmailLoading] = useState(false)
   const [currentPassword, setCurrentPassword] = useState('')
   const [newPassword, setNewPassword] = useState('')
   const [passMsg, setPassMsg] = useState('')
   const [passLoading, setPassLoading] = useState(false)
-  const [showEmailChange, setShowEmailChange] = useState(false)
   const [showPasswordChange, setShowPasswordChange] = useState(false)
 
   useEffect(() => {
     if (open) {
-      setEmail(userEmail || '')
-      setEmailMsg('')
       setCurrentPassword('')
       setNewPassword('')
       setPassMsg('')
-      setShowEmailChange(false)
       setShowPasswordChange(false)
       refresh()
     }
-  }, [open, userEmail, refresh])
+  }, [open, refresh])
 
   if (!open) return null
 
-  const handleEmailSave = async () => {
-    setEmailMsg('')
-    setEmailLoading(true)
-    try {
-      const res = await fetch('/api/user/email', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email })
-      })
-      const data = await res.json().catch(() => ({}))
-      if (!res.ok) throw new Error(data?.error || 'ვერ განახლდა ელფოსტა')
-      setEmailMsg('ელფოსტა განახლდა')
-    } catch (e: any) {
-      setEmailMsg(e.message || 'შეცდომა')
-    } finally {
-      setEmailLoading(false)
-    }
-  }
 
   const handlePasswordSave = async () => {
     setPassMsg('')
@@ -88,24 +63,43 @@ export default function UserSettingsModal({ open, onClose, userEmail }: Props) {
         <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">პარამეტრები</h2>
 
         <div className="space-y-6">
-          {/* User Plan */}
+          {/* User Account Info */}
           <div>
-            <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">მომხმარებლის გეგმა</h3>
-            <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
-              <div className="flex items-center space-x-2">
-                <span className={`w-3 h-3 rounded-full ${actor?.plan === 'PREMIUM' ? 'bg-purple-500' : 'bg-gray-400'}`}></span>
-                <span className="text-sm text-gray-900 dark:text-white">
-                  {actor?.plan === 'PREMIUM' ? 'პრემიუმ' : 'უფასო'}
-                </span>
+            <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">ანგარიშის ინფორმაცია</h3>
+            <div className="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700 rounded-xl p-4 border border-gray-200 dark:border-gray-600">
+              <div className="space-y-3">
+                {/* Email */}
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+                    <span className="text-xs font-medium text-gray-600 dark:text-gray-400 uppercase tracking-wide">ელფოსტა</span>
+                  </div>
+                  <span className="text-sm text-gray-900 dark:text-white font-medium">
+                    {userEmail || 'ელფოსტა არ არის მითითებული'}
+                  </span>
+                </div>
+                
+                {/* Plan */}
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    <span className={`w-2 h-2 rounded-full ${actor?.plan === 'PREMIUM' ? 'bg-purple-500' : 'bg-gray-400'}`}></span>
+                    <span className="text-xs font-medium text-gray-600 dark:text-gray-400 uppercase tracking-wide">გეგმა</span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <span className="text-sm text-gray-900 dark:text-white font-medium">
+                      {actor?.plan === 'PREMIUM' ? 'პრემიუმ' : 'უფასო'}
+                    </span>
+                    {actor?.plan !== 'PREMIUM' && (
+                      <button
+                        onClick={() => window.open('/buy', '_blank')}
+                        className="px-2 py-1 bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white text-xs rounded-md transition-all duration-200 transform hover:scale-105"
+                      >
+                        გახდი პრემიუმ
+                      </button>
+                    )}
+                  </div>
+                </div>
               </div>
-              {actor?.plan !== 'PREMIUM' && (
-                <button
-                  onClick={() => window.open('/buy', '_blank')}
-                  className="px-3 py-1 bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white text-xs rounded-lg transition-colors duration-200"
-                >
-                  გახდი პრემიუმ
-                </button>
-              )}
             </div>
           </div>
 
@@ -172,36 +166,6 @@ export default function UserSettingsModal({ open, onClose, userEmail }: Props) {
             </div>
           </div>
 
-          {/* Email Change */}
-          <div>
-            <button
-              onClick={() => setShowEmailChange(!showEmailChange)}
-              className="w-full flex items-center justify-between p-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-input-bg hover:bg-gray-50 dark:hover:bg-user-bubble transition-all duration-200"
-            >
-              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">ელფოსტის შეცვლა</span>
-              <ChevronDown className={`w-4 h-4 text-gray-500 transition-transform duration-200 ${showEmailChange ? 'rotate-180' : ''}`} />
-            </button>
-            
-            {showEmailChange && (
-              <div className="mt-3 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-transparent text-gray-900 dark:text-white"
-                  placeholder="ახალი ელფოსტა"
-                />
-                <div className="mt-2 flex justify-end">
-                  <button
-                    onClick={handleEmailSave}
-                    disabled={emailLoading}
-                    className="px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg disabled:opacity-50"
-                  >შენახვა</button>
-                </div>
-                {emailMsg && <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">{emailMsg}</p>}
-              </div>
-            )}
-          </div>
 
           {/* Password Change */}
           <div>

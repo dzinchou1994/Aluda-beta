@@ -17,6 +17,19 @@ export const formatFullDateTime = (iso?: string) => {
   }
 }
 
+// Convert File to base64 string for persistent storage
+export const fileToBase64 = (file: File): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = reader.result as string;
+      resolve(result);
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+};
+
 // Image compression utility
 export const compressImageIfNeeded = async (file: File): Promise<Blob> => {
   if (file.size <= 1024 * 1024) return file; // No compression needed if under 1MB
