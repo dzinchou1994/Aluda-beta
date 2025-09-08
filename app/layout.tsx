@@ -8,7 +8,7 @@ const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
   title: "AludaAI - AI ასისტენტი ქართულ ენაზე",
-  description: "თქვენი AI ასისტენტი ქართულ ენაზე Flowise-ზე დაფუძნებული",
+  description: "თქვენი AI ასისტენტი ქართულ ენაზე - ინტელექტუალური საუბარი და დახმარება",
   icons: {
     icon: [
       { url: '/brain-icon.svg', type: 'image/svg+xml' },

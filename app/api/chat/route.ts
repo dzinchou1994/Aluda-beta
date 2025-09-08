@@ -42,11 +42,11 @@ export async function POST(request: NextRequest) {
 
     if (contentType.includes('multipart/form-data')) {
       const form = await request.formData()
-      // Support both our field names and Flowise chatbot-style 'question'
+      // Support both our field names and AI chatbot-style 'question'
       message = String(form.get('message') || form.get('question') || '')
       chatId = form.get('chatId') ? String(form.get('chatId')) : undefined
       model = form.get('model') ? String(form.get('model')) : undefined
-      // Flowise expects 'files' for prediction multipart, but support multiple common aliases
+      // AI service expects 'files' for prediction multipart, but support multiple common aliases
       const f = form.get('files') || form.get('file') || form.get('files[]') || form.get('upload') || form.get('image') || form.get('images')
       // Be permissive: in some runtimes the object may be a Blob, not strictly a File
       if (f && typeof f === 'object' && 'arrayBuffer' in (f as any)) {
@@ -152,7 +152,7 @@ export async function POST(request: NextRequest) {
         // For now, we do not stream multipart/image requests; fall back to non-streaming logic
         console.log('Streaming disabled for multipart/image requests; falling back to non-stream');
       } else {
-        // Implement streaming proxy to Flowise internal-prediction endpoint
+        // Implement streaming proxy to AI internal-prediction endpoint
         try {
           // Choose chatflow by model (streaming)
           const chatflowIdOverride = selectedModel === 'aluda2'
@@ -169,7 +169,7 @@ export async function POST(request: NextRequest) {
             return new Response(JSON.stringify({ error: 'Aluda 2.0 disabled: set ALUDAAI_FLOWISE_CHATFLOW_ID_ALUDAA2 in Vercel envs' }), { status: 500, headers: { 'Content-Type': 'application/json' } })
           }
 
-          // Prepare Flowise host and endpoint
+          // Prepare AI service host and endpoint
           const flowiseHost = process.env.ALUDAAI_FLOWISE_HOST || process.env.FLOWISE_HOST
           if (!flowiseHost || !chatflowIdOverride) {
             return new Response(JSON.stringify({ error: 'FLOWISE host or chatflow ID missing' }), { status: 500, headers: { 'Content-Type': 'application/json' } })
