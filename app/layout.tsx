@@ -1,10 +1,25 @@
 import type { Metadata, Viewport } from "next"
-import { Inter } from "next/font/google"
+import { Inter, Caveat, Dancing_Script, Pacifico } from "next/font/google"
 import "./globals.css"
 import Providers from "@/components/Providers"
 import { Toaster } from "@/components/ui/toaster"
 
 const inter = Inter({ subsets: ["latin"] })
+const caveat = Caveat({ 
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-handwriting"
+})
+const dancingScript = Dancing_Script({ 
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-dancing"
+})
+const pacifico = Pacifico({ 
+  subsets: ["latin"],
+  weight: ["400"],
+  variable: "--font-pacifico"
+})
 
 export const metadata: Metadata = {
   title: "AludaAI - AI ასისტენტი ქართულ ენაზე",
@@ -32,7 +47,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="ka">
-      <body className={inter.className}>
+      <body className={`${inter.className} ${caveat.variable} ${dancingScript.variable} ${pacifico.variable}`}>
         <Providers>
           {children}
         </Providers>

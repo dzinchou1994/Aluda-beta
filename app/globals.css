@@ -5,6 +5,31 @@
 /* stylelint-disable-next-line */
 @tailwind utilities;
 
+/* Handwriting font classes */
+.handwriting-font {
+  font-family: var(--font-handwriting), 'Caveat', cursive !important;
+  font-weight: 600 !important;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.handwriting-script {
+  font-family: var(--font-dancing), 'Dancing Script', cursive !important;
+  font-weight: 600 !important;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.handwriting-casual {
+  font-family: var(--font-pacifico), 'Pacifico', cursive !important;
+  font-weight: 400 !important;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
 /* User Chat Bubble Styles */
 .chat-bubble {
   border-radius: 18px;

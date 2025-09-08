@@ -12,8 +12,12 @@ export default function WelcomeMessage() {
         რას ფიქრობ დღეს?
       </p>
       <p className="mt-2 text-xs md:text-sm text-gray-500 dark:text-gray-400">
-        დაიწყო წერით ქვემოთ
+        ალუდა მზადაა საუბრისთვის, მკითხე რაც გინდა
       </p>
+      {/* Font style options - you can change the class above to test different styles */}
+      {/* handwriting-font = Caveat (most handwritten) */}
+      {/* handwriting-script = Dancing Script (elegant script) */}
+      {/* handwriting-casual = Pacifico (casual brush) */}
     </div>
   );
 }
