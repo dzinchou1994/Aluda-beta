@@ -98,7 +98,7 @@ export default function BuyPage() {
                     </div>
                   ) : (
                     <div className="flex items-baseline justify-center gap-2">
-                      <span className="text-4xl sm:text-5xl font-extrabold text-gray-900 dark:text-white">₾1</span>
+                      <span className="text-4xl sm:text-5xl font-extrabold text-gray-900 dark:text-white">₾10</span>
                       <span className="text-gray-600 dark:text-gray-400">/ თვე</span>
                     </div>
                   )}
@@ -149,7 +149,7 @@ export default function BuyPage() {
                           const res = await fetch('/api/payments/bog/create', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ amount: 100, currency: 'GEL' }),
+                            body: JSON.stringify({ amount: 1000, currency: 'GEL' }),
                           })
                           const data = await res.json()
                           if (!res.ok) throw new Error(data?.error || 'Payment create failed')
@@ -165,7 +165,7 @@ export default function BuyPage() {
                       disabled={loading}
                       className="w-full bg-gray-900 text-white dark:bg-white dark:text-gray-900 py-3 sm:py-3.5 px-4 rounded-lg font-medium hover:opacity-90 transition disabled:opacity-60"
                     >
-                      {loading ? 'იტვირთება…' : 'გააქტიურე პრემიუმი — ₾1/თვე'}
+                      {loading ? 'იტვირთება…' : 'გააქტიურე პრემიუმი — ₾10/თვე'}
                     </button>
                   )}
                   {error && (

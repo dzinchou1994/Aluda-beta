@@ -81,7 +81,7 @@ export async function POST(request: NextRequest) {
     console.log('Database user found:', user)
 
     const json = await request.json().catch(() => ({}))
-    const { amount = 100, currency = 'GEL' } = json || {}
+    const { amount = 1000, currency = 'GEL' } = json || {}
 
     // Create unique order identifier bound to user
     const orderId = `aluda_${session.user.id}_${Date.now()}`
