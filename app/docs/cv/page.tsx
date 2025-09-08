@@ -9,12 +9,32 @@ interface LanguageSkill {
   level: 'Beginner' | 'Elementary' | 'Intermediate' | 'Advanced' | 'Native' | 'Fluent';
 }
 
+interface Link {
+  type: 'linkedin' | 'website' | 'github' | 'portfolio' | 'custom';
+  label: string;
+  url: string;
+}
+
 interface LanguageSkillsInputProps {
   languages: LanguageSkill[];
   onAddLanguage: (name: string, level: LanguageSkill['level']) => void;
   onRemoveLanguage: (index: number) => void;
   onUpdateLanguageLevel: (index: number, level: LanguageSkill['level']) => void;
   popularLanguages: string[];
+}
+
+interface SmartSkillsInputProps {
+  skills: string[];
+  onAddSkill: (skill: string) => void;
+  onRemoveSkill: (index: number) => void;
+  skillCategories: Record<string, string[]>;
+}
+
+interface LinksInputProps {
+  links: Link[];
+  onAddLink: (link: Link) => void;
+  onRemoveLink: (index: number) => void;
+  onUpdateLink: (index: number, link: Link) => void;
 }
 
 const LanguageSkillsInput: React.FC<LanguageSkillsInputProps> = ({
@@ -178,16 +198,392 @@ const LanguageSkillsInput: React.FC<LanguageSkillsInputProps> = ({
   );
 };
 
+const SmartSkillsInput: React.FC<SmartSkillsInputProps> = ({
+  skills,
+  onAddSkill,
+  onRemoveSkill,
+  skillCategories
+}) => {
+  const [newSkill, setNewSkill] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState<string>('Technical');
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [showCategories, setShowCategories] = useState(false);
+
+  // Get all skills from all categories
+  const allSkills = Object.values(skillCategories).flat();
+
+  const filteredSkills = allSkills.filter(skill =>
+    skill.toLowerCase().includes(newSkill.toLowerCase()) &&
+    !(Array.isArray(skills) && skills.some(existing => existing.toLowerCase() === skill.toLowerCase()))
+  );
+
+  const handleAddSkill = () => {
+    if (newSkill.trim()) {
+      onAddSkill(newSkill.trim());
+      setNewSkill('');
+      setShowSuggestions(false);
+    }
+  };
+
+  const handleSkillSelect = (skill: string) => {
+    setNewSkill(skill);
+    setShowSuggestions(false);
+  };
+
+  const handleCategorySkillSelect = (skill: string) => {
+    onAddSkill(skill);
+    setShowCategories(false);
+  };
+
+  const getCategoryColor = (category: string) => {
+    const colors = {
+      'Technical': 'bg-blue-100 text-blue-800 border-blue-200',
+      'Design': 'bg-purple-100 text-purple-800 border-purple-200',
+      'Soft Skills': 'bg-green-100 text-green-800 border-green-200',
+      'Business': 'bg-orange-100 text-orange-800 border-orange-200',
+      'Other': 'bg-gray-100 text-gray-800 border-gray-200'
+    };
+    return colors[category as keyof typeof colors] || colors['Other'];
+  };
+
+  return (
+    <div className="space-y-4">
+      {/* Add new skill input */}
+      <div className="flex flex-col sm:flex-row gap-3">
+        <div className="flex-1 relative">
+          <input
+            type="text"
+            value={newSkill}
+            onChange={(e) => {
+              setNewSkill(e.target.value);
+              setShowSuggestions(e.target.value.length > 0);
+            }}
+            onFocus={() => setShowSuggestions(newSkill.length > 0)}
+            onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
+            className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            placeholder="შეიყვანეთ უნარი..."
+          />
+          {showSuggestions && filteredSkills.length > 0 && (
+            <div className="absolute z-10 w-full mt-1 bg-white border border-slate-200 rounded-lg shadow-lg max-h-48 overflow-y-auto">
+              {filteredSkills.slice(0, 8).map((skill, index) => (
+                <button
+                  key={index}
+                  type="button"
+                  onClick={() => handleSkillSelect(skill)}
+                  className="w-full px-4 py-2 text-left hover:bg-slate-50 focus:bg-slate-50 focus:outline-none"
+                >
+                  {skill}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+        <button
+          type="button"
+          onClick={handleAddSkill}
+          disabled={!newSkill.trim()}
+          className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center"
+        >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+          </svg>
+        </button>
+      </div>
+
+      {/* Category-based skill selection */}
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <h4 className="text-sm font-medium text-slate-700">პოპულარული უნარები</h4>
+          <button
+            type="button"
+            onClick={() => setShowCategories(!showCategories)}
+            className="text-sm text-blue-600 hover:text-blue-700 flex items-center gap-1"
+          >
+            <span>{showCategories ? 'დამალვა' : 'ნახვა'}</span>
+            <svg 
+              className={`w-4 h-4 transition-transform ${showCategories ? 'rotate-180' : ''}`} 
+              fill="none" 
+              stroke="currentColor" 
+              viewBox="0 0 24 24"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+        </div>
+
+        {showCategories && (
+          <div className="space-y-4">
+            {Object.entries(skillCategories).map(([category, categorySkills]) => (
+              <div key={category} className="space-y-2">
+                <h5 className="text-xs font-semibold text-slate-600 uppercase tracking-wide">
+                  {category}
+                </h5>
+                <div className="flex flex-wrap gap-2">
+                  {categorySkills.slice(0, 8).map((skill) => (
+                    <button
+                      key={skill}
+                      type="button"
+                      onClick={() => handleCategorySkillSelect(skill)}
+                      disabled={Array.isArray(skills) && skills.some(existing => existing.toLowerCase() === skill.toLowerCase())}
+                      className={`px-3 py-1 text-xs rounded-full border transition-colors ${
+                        Array.isArray(skills) && skills.some(existing => existing.toLowerCase() === skill.toLowerCase())
+                          ? 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed'
+                          : `${getCategoryColor(category)} hover:opacity-80 cursor-pointer`
+                      }`}
+                    >
+                      {skill}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Skills list */}
+      {skills.length > 0 && (
+        <div className="space-y-3">
+          <h4 className="text-sm font-medium text-slate-700">თქვენი უნარები</h4>
+          <div className="flex flex-wrap gap-2">
+            {skills.map((skill, index) => (
+              <div
+                key={index}
+                className="flex items-center gap-2 px-3 py-2 bg-slate-100 rounded-lg border border-slate-200"
+              >
+                <span className="text-sm font-medium text-slate-800">{skill}</span>
+                <button
+                  type="button"
+                  onClick={() => onRemoveSkill(index)}
+                  className="p-1 text-red-600 hover:bg-red-100 rounded-full transition-colors"
+                >
+                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {skills.length === 0 && (
+        <div className="text-center py-8 text-slate-500">
+          <svg className="w-12 h-12 mx-auto mb-3 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+          </svg>
+          <p className="text-sm">დაამატეთ თქვენი უნარები</p>
+        </div>
+      )}
+    </div>
+  );
+};
+
+const LinksInput: React.FC<LinksInputProps> = ({
+  links,
+  onAddLink,
+  onRemoveLink,
+  onUpdateLink
+}) => {
+  const [newLink, setNewLink] = useState<Link>({
+    type: 'linkedin',
+    label: '',
+    url: ''
+  });
+  const [showAddForm, setShowAddForm] = useState(false);
+
+  const linkTypes = [
+    { value: 'linkedin', label: 'LinkedIn', icon: '💼', placeholder: 'https://linkedin.com/in/username' },
+    { value: 'website', label: 'Personal Website', icon: '🌐', placeholder: 'https://yourwebsite.com' },
+    { value: 'github', label: 'GitHub', icon: '💻', placeholder: 'https://github.com/username' },
+    { value: 'portfolio', label: 'Portfolio', icon: '🎨', placeholder: 'https://portfolio.com' },
+    { value: 'custom', label: 'Custom', icon: '🔗', placeholder: 'https://example.com' }
+  ];
+
+  const getLinkIcon = (type: string) => {
+    const linkType = linkTypes.find(lt => lt.value === type);
+    return linkType ? linkType.icon : '🔗';
+  };
+
+  const getLinkLabel = (type: string) => {
+    const linkType = linkTypes.find(lt => lt.value === type);
+    return linkType ? linkType.label : 'Custom';
+  };
+
+  const validateUrl = (url: string) => {
+    try {
+      new URL(url);
+      return true;
+    } catch {
+      return false;
+    }
+  };
+
+  const handleAddLink = () => {
+    if (newLink.url.trim() && validateUrl(newLink.url.trim())) {
+      const linkToAdd = {
+        ...newLink,
+        url: newLink.url.trim(),
+        label: newLink.type === 'custom' ? newLink.label.trim() : getLinkLabel(newLink.type)
+      };
+      onAddLink(linkToAdd);
+      setNewLink({ type: 'linkedin', label: '', url: '' });
+      setShowAddForm(false);
+    }
+  };
+
+  const handleTypeChange = (type: Link['type']) => {
+    setNewLink(prev => ({
+      ...prev,
+      type,
+      label: type === 'custom' ? prev.label : ''
+    }));
+  };
+
+  return (
+    <div className="space-y-4">
+      {/* Add new link form */}
+      {showAddForm && (
+        <div className="p-4 bg-slate-50 rounded-lg border border-slate-200 space-y-3">
+          <div className="flex items-center justify-between">
+            <h4 className="text-sm font-medium text-slate-700">ახალი ლინკის დამატება</h4>
+            <button
+              type="button"
+              onClick={() => setShowAddForm(false)}
+              className="text-slate-400 hover:text-slate-600"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+          
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs font-medium text-slate-600 mb-1">ტიპი</label>
+              <select
+                value={newLink.type}
+                onChange={(e) => handleTypeChange(e.target.value as Link['type'])}
+                className="w-full px-3 py-2 text-sm border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              >
+                {linkTypes.map(type => (
+                  <option key={type.value} value={type.value}>
+                    {type.icon} {type.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+            
+            {newLink.type === 'custom' && (
+              <div>
+                <label className="block text-xs font-medium text-slate-600 mb-1">ლეიბლი</label>
+                <input
+                  type="text"
+                  value={newLink.label}
+                  onChange={(e) => setNewLink(prev => ({ ...prev, label: e.target.value }))}
+                  className="w-full px-3 py-2 text-sm border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="მაგ: Twitter, Instagram"
+                />
+              </div>
+            )}
+          </div>
+          
+          <div>
+            <label className="block text-xs font-medium text-slate-600 mb-1">URL</label>
+            <input
+              type="url"
+              value={newLink.url}
+              onChange={(e) => setNewLink(prev => ({ ...prev, url: e.target.value }))}
+              className="w-full px-3 py-2 text-sm border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder={linkTypes.find(lt => lt.value === newLink.type)?.placeholder}
+            />
+          </div>
+          
+          <div className="flex justify-end space-x-2">
+            <button
+              type="button"
+              onClick={() => setShowAddForm(false)}
+              className="px-3 py-2 text-sm text-slate-600 hover:text-slate-800 transition-colors"
+            >
+              გაუქმება
+            </button>
+            <button
+              type="button"
+              onClick={handleAddLink}
+              disabled={!newLink.url.trim() || !validateUrl(newLink.url.trim())}
+              className="px-4 py-2 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              დამატება
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Add link button */}
+      {!showAddForm && (
+        <button
+          type="button"
+          onClick={() => setShowAddForm(true)}
+          className="w-full p-3 border-2 border-dashed border-slate-300 rounded-lg text-slate-600 hover:border-blue-400 hover:text-blue-600 transition-colors flex items-center justify-center space-x-2"
+        >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+          </svg>
+          <span className="text-sm font-medium">ლინკის დამატება</span>
+        </button>
+      )}
+
+      {/* Links list */}
+      {links.length > 0 && (
+        <div className="space-y-3">
+          <h4 className="text-sm font-medium text-slate-700">თქვენი ლინკები</h4>
+          <div className="space-y-2">
+            {links.map((link, index) => (
+              <div key={index} className="flex items-center justify-between p-3 bg-white rounded-lg border border-slate-200">
+                <div className="flex items-center space-x-3">
+                  <span className="text-lg">{getLinkIcon(link.type)}</span>
+                  <div>
+                    <div className="text-sm font-medium text-slate-800">{link.label}</div>
+                    <div className="text-xs text-slate-500 truncate max-w-xs">{link.url}</div>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => onRemoveLink(index)}
+                  className="p-1 text-red-600 hover:bg-red-50 rounded-full transition-colors"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {links.length === 0 && !showAddForm && (
+        <div className="text-center py-8 text-slate-500">
+          <svg className="w-12 h-12 mx-auto mb-3 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+          </svg>
+          <p className="text-sm">დაამატეთ თქვენი ლინკები</p>
+        </div>
+      )}
+    </div>
+  );
+};
+
 interface CVData {
   fullName: string;
   email: string;
   phone: string;
   address: string;
-  linkedin: string;
+  links: Link[];
   summary: string;
   experience: string;
   education: string;
-  skills: string;
+  skills: string[];
   languages: LanguageSkill[];
   picture: string;
 }
@@ -209,7 +605,27 @@ const loadFromLocalStorage = (): CVData | null => {
   try {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved) {
-      return JSON.parse(saved);
+      const data = JSON.parse(saved);
+      // Migrate old skills format (string) to new format (array)
+      if (data.skills && typeof data.skills === 'string') {
+        data.skills = data.skills
+          .split(/[,\n]/)
+          .map((s: string) => s.trim())
+          .filter(Boolean);
+      }
+      
+      // Migrate old linkedin format (string) to new links format (array)
+      if (data.linkedin && typeof data.linkedin === 'string' && data.linkedin.trim()) {
+        data.links = [{
+          type: 'linkedin',
+          label: 'LinkedIn',
+          url: data.linkedin.trim()
+        }];
+        delete data.linkedin;
+      } else if (!data.links) {
+        data.links = [];
+      }
+      return data;
     }
   } catch (error) {
     console.warn('Failed to load CV data from localStorage:', error);
@@ -236,11 +652,11 @@ export default function CVGeneratorPage() {
     email: '',
     phone: '',
     address: '',
-    linkedin: '',
+    links: [],
     summary: '',
     experience: '',
     education: '',
-    skills: '',
+    skills: [],
     languages: [],
     picture: ''
   });
@@ -259,6 +675,36 @@ export default function CVGeneratorPage() {
     'Lithuanian', 'Latvian', 'Estonian', 'Slovenian', 'Macedonian', 'Albanian', 'Moldovan', 'Belarusian'
   ];
 
+  // Popular skills by category
+  const skillCategories = {
+    'Technical': [
+      'JavaScript', 'Python', 'Java', 'C++', 'C#', 'PHP', 'Ruby', 'Go', 'Rust', 'Swift',
+      'React', 'Vue.js', 'Angular', 'Node.js', 'Express.js', 'Django', 'Flask', 'Laravel',
+      'HTML', 'CSS', 'SASS', 'TypeScript', 'jQuery', 'Bootstrap', 'Tailwind CSS',
+      'MySQL', 'PostgreSQL', 'MongoDB', 'Redis', 'SQLite', 'Oracle',
+      'Git', 'Docker', 'Kubernetes', 'AWS', 'Azure', 'Google Cloud', 'Linux', 'Windows'
+    ],
+    'Design': [
+      'Photoshop', 'Illustrator', 'Figma', 'Sketch', 'Adobe XD', 'InDesign', 'Canva',
+      'UI/UX Design', 'Web Design', 'Graphic Design', 'Logo Design', 'Branding',
+      'Wireframing', 'Prototyping', 'User Research', 'Design Systems'
+    ],
+    'Soft Skills': [
+      'Leadership', 'Teamwork', 'Communication', 'Problem Solving', 'Critical Thinking',
+      'Time Management', 'Project Management', 'Negotiation', 'Presentation Skills',
+      'Customer Service', 'Adaptability', 'Creativity', 'Analytical Skills'
+    ],
+    'Business': [
+      'Marketing', 'Sales', 'Business Development', 'Strategic Planning', 'Financial Analysis',
+      'Data Analysis', 'Market Research', 'Digital Marketing', 'SEO', 'SEM',
+      'Social Media Marketing', 'Content Marketing', 'Email Marketing', 'CRM'
+    ],
+    'Other': [
+      'Microsoft Office', 'Excel', 'PowerPoint', 'Word', 'Google Workspace',
+      'Slack', 'Trello', 'Asana', 'Jira', 'Confluence', 'Notion'
+    ]
+  };
+
   // Approximate A4 size at 96 DPI
   const a4WidthPx = 794; // 210mm @ ~96dpi
   const a4HeightPx = 1123; // 297mm @ ~96dpi
@@ -268,6 +714,10 @@ export default function CVGeneratorPage() {
     setIsClient(true);
     const savedData = loadFromLocalStorage();
     if (savedData) {
+      // Ensure skills is always an array
+      if (!Array.isArray(savedData.skills)) {
+        savedData.skills = [];
+      }
       setCvData(savedData);
     }
   }, []);
@@ -322,6 +772,43 @@ export default function CVGeneratorPage() {
     }));
   };
 
+  const addSkill = (skill: string) => {
+    if (skill.trim() && Array.isArray(cvData.skills) && !cvData.skills.some(existing => existing.toLowerCase() === skill.toLowerCase())) {
+      setCvData(prev => ({
+        ...prev,
+        skills: [...(Array.isArray(prev.skills) ? prev.skills : []), skill.trim()]
+      }));
+    }
+  };
+
+  const removeSkill = (index: number) => {
+    setCvData(prev => ({
+      ...prev,
+      skills: Array.isArray(prev.skills) ? prev.skills.filter((_, i) => i !== index) : []
+    }));
+  };
+
+  const addLink = (link: Link) => {
+    setCvData(prev => ({
+      ...prev,
+      links: [...prev.links, link]
+    }));
+  };
+
+  const removeLink = (index: number) => {
+    setCvData(prev => ({
+      ...prev,
+      links: prev.links.filter((_, i) => i !== index)
+    }));
+  };
+
+  const updateLink = (index: number, link: Link) => {
+    setCvData(prev => ({
+      ...prev,
+      links: prev.links.map((l, i) => i === index ? link : l)
+    }));
+  };
+
   const resetForm = () => {
     if (confirm('ნამდვილად გსურთ ყველა მონაცემის წაშლა? ეს მოქმედება შეუქცევადია.')) {
       const defaultData: CVData = {
@@ -329,11 +816,11 @@ export default function CVGeneratorPage() {
         email: '',
         phone: '',
         address: '',
-        linkedin: '',
+        links: [],
         summary: '',
         experience: '',
         education: '',
-        skills: '',
+        skills: [],
         languages: [],
         picture: ''
       };
@@ -366,10 +853,7 @@ export default function CVGeneratorPage() {
   };
 
   const createCVHTML = (data: CVData, template: 'minimal' | 'classic') => {
-    const skillItems = (data.skills || '')
-      .split(/[\,\n]/)
-      .map(s => s.trim())
-      .filter(Boolean);
+    const skillItems = data.skills || [];
     const experienceItems = (data.experience || '')
       .split('\n')
       .map(s => s.trim())
@@ -435,7 +919,7 @@ export default function CVGeneratorPage() {
               <span>${data.email || '<span class="placeholder">ელ-ფოსტა</span>'}</span>
               <span>${data.phone || '<span class="placeholder">ტელეფონი</span>'}</span>
               <span>${data.address || '<span class="placeholder">მისამართი</span>'}</span>
-              <span>${data.linkedin || '<span class="placeholder">LinkedIn</span>'}</span>
+              ${data.links && data.links.length > 0 ? data.links.map(link => `<span><a href="${link.url}" target="_blank" class="text-blue-600 hover:text-blue-800">${link.label}</a></span>`).join('') : ''}
             </div>
           </div>
 
@@ -744,14 +1228,13 @@ export default function CVGeneratorPage() {
                 </div>
                 <div className="md:col-span-2">
                   <label className="block text-sm font-semibold text-slate-700 mb-2">
-                    LinkedIn
+                    ლინკები
                   </label>
-                  <input
-                    type="url"
-                    value={cvData.linkedin}
-                    onChange={(e) => handleInputChange('linkedin', e.target.value)}
-                    className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="https://linkedin.com/in/yourprofile"
+                  <LinksInput 
+                    links={cvData.links}
+                    onAddLink={addLink}
+                    onRemoveLink={removeLink}
+                    onUpdateLink={updateLink}
                   />
                 </div>
               </div>
@@ -803,12 +1286,11 @@ export default function CVGeneratorPage() {
                 <label className="block text-sm font-semibold text-slate-700 mb-2">
                   უნარები
                 </label>
-                <textarea
-                  value={cvData.skills}
-                  onChange={(e) => handleInputChange('skills', e.target.value)}
-                  className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  rows={3}
-                  placeholder="შეიყვანეთ თქვენი უნარები..."
+                <SmartSkillsInput 
+                  skills={cvData.skills}
+                  onAddSkill={addSkill}
+                  onRemoveSkill={removeSkill}
+                  skillCategories={skillCategories}
                 />
               </div>
 
