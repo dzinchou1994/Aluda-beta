@@ -3,8 +3,6 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Brain } from 'lucide-react';
-import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
 
 interface LanguageSkill {
   name: string;
@@ -976,7 +974,17 @@ export default function CVGeneratorPage() {
   const downloadCV = async () => {
     if (!generatedCV) return;
     
+    console.log('Starting PDF generation...');
+    
     try {
+      // Dynamic imports for better compatibility
+      const [{ default: jsPDF }, { default: html2canvas }] = await Promise.all([
+        import('jspdf'),
+        import('html2canvas')
+      ]);
+      
+      console.log('Libraries loaded successfully');
+
       // Create a temporary container for the CV content
       const tempDiv = document.createElement('div');
       tempDiv.innerHTML = generatedCV;
@@ -986,6 +994,8 @@ export default function CVGeneratorPage() {
       tempDiv.style.width = '210mm'; // A4 width
       tempDiv.style.backgroundColor = 'white';
       document.body.appendChild(tempDiv);
+
+      console.log('Created temporary div, converting to canvas...');
 
       // Convert to canvas
       const canvas = await html2canvas(tempDiv, {
@@ -997,8 +1007,12 @@ export default function CVGeneratorPage() {
         height: 1123 // A4 height in pixels at 96 DPI
       });
 
+      console.log('Canvas created, removing temp div...');
+
       // Remove temporary element
       document.body.removeChild(tempDiv);
+
+      console.log('Creating PDF...');
 
       // Create PDF
       const imgData = canvas.toDataURL('image/png');
@@ -1027,11 +1041,17 @@ export default function CVGeneratorPage() {
         heightLeft -= pageHeight;
       }
 
+      console.log('PDF created, downloading...');
+
       // Download PDF
       const fileName = `${cvData.fullName || 'CV'}.pdf`;
       pdf.save(fileName);
+      
+      console.log('PDF download completed successfully!');
     } catch (error) {
       console.error('Error generating PDF:', error);
+      console.log('Falling back to HTML download...');
+      
       // Fallback to HTML download
       const blob = new Blob([generatedCV], { type: 'text/html' });
       const url = URL.createObjectURL(blob);
