@@ -107,7 +107,7 @@ export async function sendToFlowise({
   try {
     const isMultipart = Boolean(file);
     let response: Response
-    let endpointUsed: 'prediction' | 'chatbot' | 'unknown' = 'unknown'
+      let endpointUsed: 'prediction' | 'chatbot' | 'chatflow' | 'unknown' = 'unknown'
     const isImageMissingText = (t: string) => {
       const s = (t || '').toLowerCase()
       return (
@@ -129,28 +129,112 @@ export async function sendToFlowise({
     } catch {}
 
     if (isMultipart) {
-      // Use prediction endpoint directly for file uploads since internal-prediction requires auth
+      // Try multiple approaches for image uploads
       const arrayBuffer = await (file as any).arrayBuffer()
       const base64 = Buffer.from(arrayBuffer).toString('base64')
       const mime = (file as any)?.type || 'application/octet-stream'
       const dataUrl = `data:${mime};base64,${base64}`
       const fname = (file as any)?.name || 'upload.jpg'
       
-      const jsonBody = {
+      // Try internal-prediction endpoint first (most reliable for image uploads)
+      const internalBody = {
         question: requestBody.question || '',
         chatId: requestBody.overrideConfig?.sessionId || '',
         uploads: [{ data: dataUrl, name: fname, mime, type: 'file' }],
-        streaming: true,
         overrideConfig: requestBody.overrideConfig || {},
       }
 
-      response = await fetch(predictionUrl, {
-        method: 'POST',
-        headers: { ...headers, 'Content-Type': 'application/json' },
-        body: JSON.stringify(jsonBody),
-        signal: AbortSignal.timeout(timeoutMs),
-      })
-      endpointUsed = 'prediction'
+      try {
+        console.log('Trying internal-prediction endpoint for image upload:', {
+          url: internalPredictionUrl,
+          hasApiKey: Boolean(apiKey),
+          bodySize: JSON.stringify(internalBody).length
+        })
+        
+        response = await fetch(internalPredictionUrl, {
+          method: 'POST',
+          headers: { ...headers, 'Content-Type': 'application/json' },
+          body: JSON.stringify(internalBody),
+          signal: AbortSignal.timeout(timeoutMs),
+        })
+        endpointUsed = 'prediction'
+        
+        console.log('Internal-prediction response:', {
+          status: response.status,
+          ok: response.ok,
+          contentType: response.headers.get('content-type')
+        })
+        
+        // If internal-prediction fails, try chatflow chat endpoint
+        if (!response.ok) {
+          const chatflowBody = {
+            question: requestBody.question || '',
+            chatId: requestBody.overrideConfig?.sessionId || '',
+            uploads: [{ data: dataUrl, name: fname, mime, type: 'file' }],
+            overrideConfig: requestBody.overrideConfig || {},
+          }
+          
+          response = await fetch(chatflowChatUrl, {
+            method: 'POST',
+            headers: { ...headers, 'Content-Type': 'application/json' },
+            body: JSON.stringify(chatflowBody),
+            signal: AbortSignal.timeout(timeoutMs),
+          })
+          endpointUsed = 'chatflow'
+        }
+        
+        // If both fail, try chatbot endpoint
+        if (!response.ok) {
+          const chatbotBody = {
+            question: requestBody.question || '',
+            chatId: requestBody.overrideConfig?.sessionId || '',
+            uploads: [{ data: dataUrl, name: fname, mime, type: 'file' }],
+            overrideConfig: requestBody.overrideConfig || {},
+          }
+          
+          response = await fetch(chatbotUrl, {
+            method: 'POST',
+            headers: { ...headers, 'Content-Type': 'application/json' },
+            body: JSON.stringify(chatbotBody),
+            signal: AbortSignal.timeout(timeoutMs),
+          })
+          endpointUsed = 'chatbot'
+        }
+        
+        // Final fallback: prediction endpoint
+        if (!response.ok) {
+          const predictionBody = {
+            question: requestBody.question || '',
+            chatId: requestBody.overrideConfig?.sessionId || '',
+            uploads: [{ data: dataUrl, name: fname, mime, type: 'file' }],
+            overrideConfig: requestBody.overrideConfig || {},
+          }
+          
+          response = await fetch(predictionUrl, {
+            method: 'POST',
+            headers: { ...headers, 'Content-Type': 'application/json' },
+            body: JSON.stringify(predictionBody),
+            signal: AbortSignal.timeout(timeoutMs),
+          })
+          endpointUsed = 'prediction'
+        }
+      } catch (error) {
+        // Fallback to prediction endpoint
+        const predictionBody = {
+          question: requestBody.question || '',
+          chatId: requestBody.overrideConfig?.sessionId || '',
+          uploads: [{ data: dataUrl, name: fname, mime, type: 'file' }],
+          overrideConfig: requestBody.overrideConfig || {},
+        }
+        
+        response = await fetch(predictionUrl, {
+          method: 'POST',
+          headers: { ...headers, 'Content-Type': 'application/json' },
+          body: JSON.stringify(predictionBody),
+          signal: AbortSignal.timeout(timeoutMs),
+        })
+        endpointUsed = 'prediction'
+      }
     } else {
       // JSON mode: use prediction endpoint directly since internal-prediction requires auth
       response = await fetch(predictionUrl, {
@@ -290,7 +374,22 @@ export async function sendToFlowise({
         const cleanedText = cleanAIResponse(text);
         return { text: cleanedText, sources: lastPayload.sources || lastPayload.documents || [], ...lastPayload, __meta: { chatflowId, host: normalizedHost, endpoint: endpointUsed } }
       }
-      throw new Error(`SSE with no parsable data: ${raw.slice(0, 200)}`)
+      
+      // If SSE parsing failed, try to fall back to JSON parsing of the raw response
+      if (raw.trim()) {
+        try {
+          const jsonData = JSON.parse(raw)
+          const text = jsonData.text || jsonData.response || jsonData.answer || jsonData.message || ''
+          if (text && String(text).trim().length > 0) {
+            const cleanedText = cleanAIResponse(text);
+            return { text: cleanedText, sources: jsonData.sources || jsonData.documents || [], ...jsonData, __meta: { chatflowId, host: normalizedHost, endpoint: endpointUsed } }
+          }
+        } catch {}
+      }
+      
+      // If all parsing attempts failed, return a more helpful error message
+      console.warn('Flowise SSE parsing failed:', { raw: raw.slice(0, 200), contentType, endpointUsed })
+      throw new Error(`Flowise returned empty or unparseable response. Please try again.`)
     }
     // Generic fallback: attempt to parse the body as text, try JSON, then try SSE-like lines, finally return raw text
     const rawFallback = await response.text().catch(() => '')

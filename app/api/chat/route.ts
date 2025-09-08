@@ -256,7 +256,9 @@ export async function POST(request: NextRequest) {
                           }
                         }
                       } catch {
-                        if (data !== '[DONE]') fullContent += data
+                        if (data !== '[DONE]' && data.trim() !== '[DONE]') {
+                          fullContent += data
+                        }
                       }
                     }
                   } catch {}
@@ -267,6 +269,8 @@ export async function POST(request: NextRequest) {
               try { reader.releaseLock(); } catch {}
               // After streaming ends, attempt to track token usage (best-effort)
               try {
+                // Clean up any remaining [DONE] markers from the final content
+                fullContent = fullContent.replace(/\[DONE\]/g, '').trim();
                 const tokenMultiplier = (selectedModel === 'test') ? 0 : (selectedModel === 'aluda2' && !(actor.type === 'user' && actor.plan === 'PREMIUM') && actor.type !== 'guest' ? 5 : 1)
                 const assistantTokens = Math.ceil((fullContent.length || 0) / 4) * tokenMultiplier
                 const promptTokens = Math.ceil((message?.length || 0) / 4) * tokenMultiplier
@@ -308,7 +312,7 @@ export async function POST(request: NextRequest) {
           || process.env.FLOWISE_CHATFLOW_ID_ALUDAA2
           || (process.env as any).ALUDAAI_FLOWISE_CHATFLOW_ID_ALUDA2)
         : selectedModel === 'test'
-        ? (process.env.ALUDAAI_FLOWISE_CHATFLOW_ID_TEST || process.env.FLOWISE_CHATFLOW_ID_TEST || '286c3991-be03-47f3-aa47-56a6b65c5d00')
+        ? (process.env.ALUDAAI_FLOWISE_CHATFLOW_ID_FREE || process.env.FLOWISE_CHATFLOW_ID_FREE || '286c3991-be03-47f3-aa47-56a6b65c5d00')
         : selectedModel === 'aluda_test'
         ? (process.env.ALUDAAI_FLOWISE_CHATFLOW_ID_TEST || process.env.FLOWISE_CHATFLOW_ID_TEST || '286c3991-be03-47f3-aa47-56a6b65c5d00')
         : (process.env.ALUDAAI_FLOWISE_CHATFLOW_ID || process.env.FLOWISE_CHATFLOW_ID)
@@ -327,7 +331,7 @@ export async function POST(request: NextRequest) {
         chatflowIdOverride,
         envMini: process.env.ALUDAAI_FLOWISE_CHATFLOW_ID || process.env.FLOWISE_CHATFLOW_ID,
         envA2: process.env.ALUDAAI_FLOWISE_CHATFLOW_ID_ALUDAA2 || process.env.FLOWISE_CHATFLOW_ID_ALUDAA2 || (process.env as any).ALUDAAI_FLOWISE_CHATFLOW_ID_ALUDA2,
-        testModel: process.env.ALUDAAI_FLOWISE_CHATFLOW_ID_TEST || process.env.FLOWISE_CHATFLOW_ID_TEST || '286c3991-be03-47f3-aa47-56a6b65c5d00',
+        testModel: process.env.ALUDAAI_FLOWISE_CHATFLOW_ID_FREE || process.env.FLOWISE_CHATFLOW_ID_FREE || '286c3991-be03-47f3-aa47-56a6b65c5d00',
       })
 
       // If Aluda2 chosen but no override configured, fail early instead of silently falling back to test
@@ -343,8 +347,9 @@ export async function POST(request: NextRequest) {
       
       // OPTIMIZATION: Create a stable session ID for Flowise conversation continuity
       // IMPORTANT: Use the chatId directly as sessionId for Flowise memory to work
+      // For image uploads, add a timestamp to ensure unique session IDs to avoid cached failed responses
       if (chatId) {
-        flowiseSessionId = chatId // Use chatId directly for consistent session tracking
+        flowiseSessionId = uploadedFile ? `${chatId}_${Date.now()}` : chatId
       } else {
         flowiseSessionId = `${actor.type}_${actor.id}_${selectedModel}_${Date.now()}`
       }
@@ -372,8 +377,20 @@ export async function POST(request: NextRequest) {
       const hint = error?.message || 'Unknown error'
       // Clean the error hint as well
       const cleanedHint = cleanAIResponse(hint?.slice(0, 200) || '');
+      
+      // Provide more specific error messages for image uploads
+      let errorMessage = `ბოდიში, ამ მომენტში ვერ შეგიძლიათ მიმართოთ. 💡 ${cleanedHint}`
+      
+      if (uploadedFile && hint.includes('SSE with no parsable data')) {
+        errorMessage = 'ბოდიში, სურათის დამუშავება ვერ მოხერხდა. გთხოვთ სცადოთ ხელახლა ან სხვა სურათი ატვირთოთ.'
+      } else if (uploadedFile && hint.includes('timeout')) {
+        errorMessage = 'სურათის დამუშავება ძალიან დიდხანს გრძელდება. გთხოვთ სცადოთ ხელახლა.'
+      } else if (uploadedFile) {
+        errorMessage = 'სურათის ანალიზი ვერ მოხერხდა. გთხოვთ სცადოთ ხელახლა.'
+      }
+      
       flowiseResponse = {
-        text: `ბოდიში, ამ მომენტში ვერ შეგიძლიათ მიმართოთ. 💡 ${cleanedHint}`
+        text: errorMessage
       }
     }
 

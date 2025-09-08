@@ -98,6 +98,8 @@ export function useChatSubmit({
     const cleanStreamingToken = (raw: string): string => {
       if (!raw) return '';
       let t = String(raw);
+      // Remove [DONE] markers that might leak through
+      t = t.replace(/\[DONE\]/g, '');
       // Normalize some common fullwidth punctuation
       t = t.replace(/，/g, ',').replace(/。/g, '.').replace(/！/g, '!').replace(/？/g, '?').replace(/：/g, ':').replace(/；/g, ';');
       // Remove zero-width characters
@@ -384,12 +386,14 @@ export function useChatSubmit({
                 }
               } catch {
                 // Not JSON – treat as raw token content
-                if (data !== '[DONE]') {
+                if (data !== '[DONE]' && data.trim() !== '[DONE]') {
                   const token = cleanStreamingToken(data);
-                  fullContent += token;
-                  gotAnyToken = true;
-                  if (!hidLoader) { setIsLoading(false); hidLoader = true; }
-                  added = true;
+                  if (token && token.trim() !== '[DONE]') {
+                    fullContent += token;
+                    gotAnyToken = true;
+                    if (!hidLoader) { setIsLoading(false); hidLoader = true; }
+                    added = true;
+                  }
                 }
               }
 
@@ -417,9 +421,11 @@ export function useChatSubmit({
               forceScrollBottom();
             } catch {}
           }
-          // Final cleanup: strip any trailing tool logs accidentally surfaced
+          // Final cleanup: strip any trailing tool logs and [DONE] markers accidentally surfaced
           try {
-            const cleaned = stripTrailingToolLogs(fullContent);
+            let cleaned = stripTrailingToolLogs(fullContent);
+            // Remove any remaining [DONE] markers
+            cleaned = cleaned.replace(/\[DONE\]/g, '').trim();
             if (cleaned !== fullContent) {
               fullContent = cleaned;
               updateMessageInChat(activeChatId, aiMessageId, { content: fullContent });
