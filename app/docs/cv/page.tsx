@@ -15,6 +15,25 @@ interface Link {
   url: string;
 }
 
+interface ExperienceItem {
+  id: string;
+  title: string;
+  company: string;
+  startDate: string;
+  endDate: string;
+  isCurrent: boolean;
+  description: string;
+}
+
+interface EducationItem {
+  id: string;
+  degree: string;
+  institution: string;
+  startDate: string;
+  endDate: string;
+  description: string;
+}
+
 interface LanguageSkillsInputProps {
   languages: LanguageSkill[];
   onAddLanguage: (name: string, level: LanguageSkill['level']) => void;
@@ -35,6 +54,20 @@ interface LinksInputProps {
   onAddLink: (link: Link) => void;
   onRemoveLink: (index: number) => void;
   onUpdateLink: (index: number, link: Link) => void;
+}
+
+interface ExperienceInputProps {
+  experiences: ExperienceItem[];
+  onAddExperience: (experience: ExperienceItem) => void;
+  onUpdateExperience: (index: number, experience: ExperienceItem) => void;
+  onRemoveExperience: (index: number) => void;
+}
+
+interface EducationInputProps {
+  educations: EducationItem[];
+  onAddEducation: (education: EducationItem) => void;
+  onUpdateEducation: (index: number, education: EducationItem) => void;
+  onRemoveEducation: (index: number) => void;
 }
 
 const LanguageSkillsInput: React.FC<LanguageSkillsInputProps> = ({
@@ -574,6 +607,562 @@ const LinksInput: React.FC<LinksInputProps> = ({
   );
 };
 
+const ExperienceInput: React.FC<ExperienceInputProps> = ({
+  experiences,
+  onAddExperience,
+  onUpdateExperience,
+  onRemoveExperience
+}) => {
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [newExperience, setNewExperience] = useState<ExperienceItem>({
+    id: '',
+    title: '',
+    company: '',
+    startDate: '',
+    endDate: '',
+    isCurrent: false,
+    description: ''
+  });
+
+  const generateId = () => Math.random().toString(36).substr(2, 9);
+
+  const handleAddExperience = () => {
+    if (newExperience.title.trim() && newExperience.company.trim() && newExperience.startDate) {
+      const experienceToAdd = {
+        ...newExperience,
+        id: generateId(),
+        endDate: newExperience.isCurrent ? '' : newExperience.endDate
+      };
+      onAddExperience(experienceToAdd);
+      setNewExperience({
+        id: '',
+        title: '',
+        company: '',
+        startDate: '',
+        endDate: '',
+        isCurrent: false,
+        description: ''
+      });
+      setShowAddForm(false);
+    }
+  };
+
+  const formatDate = (dateString: string) => {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('ka-GE', { year: 'numeric', month: 'long' });
+  };
+
+  const getCurrentYear = () => new Date().getFullYear();
+  const getYears = () => {
+    const currentYear = getCurrentYear();
+    return Array.from({ length: 50 }, (_, i) => currentYear - i);
+  };
+
+  const getMonths = () => [
+    { value: '01', label: 'იანვარი' },
+    { value: '02', label: 'თებერვალი' },
+    { value: '03', label: 'მარტი' },
+    { value: '04', label: 'აპრილი' },
+    { value: '05', label: 'მაისი' },
+    { value: '06', label: 'ივნისი' },
+    { value: '07', label: 'ივლისი' },
+    { value: '08', label: 'აგვისტო' },
+    { value: '09', label: 'სექტემბერი' },
+    { value: '10', label: 'ოქტომბერი' },
+    { value: '11', label: 'ნოემბერი' },
+    { value: '12', label: 'დეკემბერი' }
+  ];
+
+  return (
+    <div className="space-y-4">
+      {/* Add new experience form */}
+      {showAddForm && (
+        <div className="p-4 bg-slate-50 rounded-lg border border-slate-200 space-y-4">
+          <div className="flex items-center justify-between">
+            <h4 className="text-sm font-medium text-slate-700">ახალი სამუშაო გამოცდილების დამატება</h4>
+            <button
+              type="button"
+              onClick={() => setShowAddForm(false)}
+              className="text-slate-400 hover:text-slate-600"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+          
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs font-medium text-slate-600 mb-1">პოზიცია *</label>
+              <input
+                type="text"
+                value={newExperience.title}
+                onChange={(e) => setNewExperience(prev => ({ ...prev, title: e.target.value }))}
+                className="w-full px-3 py-2 text-sm border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="მაგ: Frontend Developer"
+              />
+            </div>
+            
+            <div>
+              <label className="block text-xs font-medium text-slate-600 mb-1">კომპანია *</label>
+              <input
+                type="text"
+                value={newExperience.company}
+                onChange={(e) => setNewExperience(prev => ({ ...prev, company: e.target.value }))}
+                className="w-full px-3 py-2 text-sm border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="მაგ: Tech Company Ltd"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div>
+              <label className="block text-xs font-medium text-slate-600 mb-1">დაწყების თვე</label>
+              <select
+                value={newExperience.startDate.split('-')[1] || ''}
+                onChange={(e) => {
+                  const year = newExperience.startDate.split('-')[0] || getCurrentYear().toString();
+                  setNewExperience(prev => ({ ...prev, startDate: `${year}-${e.target.value}` }));
+                }}
+                className="w-full px-3 py-2 text-sm border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              >
+                <option value="">თვე</option>
+                {getMonths().map(month => (
+                  <option key={month.value} value={month.value}>{month.label}</option>
+                ))}
+              </select>
+            </div>
+            
+            <div>
+              <label className="block text-xs font-medium text-slate-600 mb-1">დაწყების წელი</label>
+              <select
+                value={newExperience.startDate.split('-')[0] || ''}
+                onChange={(e) => {
+                  const month = newExperience.startDate.split('-')[1] || '';
+                  setNewExperience(prev => ({ ...prev, startDate: `${e.target.value}-${month}` }));
+                }}
+                className="w-full px-3 py-2 text-sm border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              >
+                <option value="">წელი</option>
+                {getYears().map(year => (
+                  <option key={year} value={year.toString()}>{year}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="flex items-center">
+              <label className="flex items-center space-x-2 text-sm text-slate-600">
+                <input
+                  type="checkbox"
+                  checked={newExperience.isCurrent}
+                  onChange={(e) => setNewExperience(prev => ({ ...prev, isCurrent: e.target.checked, endDate: '' }))}
+                  className="rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                />
+                <span>ამჟამად ვმუშაობ</span>
+              </label>
+            </div>
+          </div>
+
+          {!newExperience.isCurrent && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-medium text-slate-600 mb-1">დასრულების თვე</label>
+                <select
+                  value={newExperience.endDate.split('-')[1] || ''}
+                  onChange={(e) => {
+                    const year = newExperience.endDate.split('-')[0] || '';
+                    setNewExperience(prev => ({ ...prev, endDate: `${year}-${e.target.value}` }));
+                  }}
+                  className="w-full px-3 py-2 text-sm border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+                  <option value="">თვე</option>
+                  {getMonths().map(month => (
+                    <option key={month.value} value={month.value}>{month.label}</option>
+                  ))}
+                </select>
+              </div>
+              
+              <div>
+                <label className="block text-xs font-medium text-slate-600 mb-1">დასრულების წელი</label>
+                <select
+                  value={newExperience.endDate.split('-')[0] || ''}
+                  onChange={(e) => {
+                    const month = newExperience.endDate.split('-')[1] || '';
+                    setNewExperience(prev => ({ ...prev, endDate: `${e.target.value}-${month}` }));
+                  }}
+                  className="w-full px-3 py-2 text-sm border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+                  <option value="">წელი</option>
+                  {getYears().map(year => (
+                    <option key={year} value={year.toString()}>{year}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+          )}
+          
+          <div>
+            <label className="block text-xs font-medium text-slate-600 mb-1">აღწერა</label>
+            <textarea
+              value={newExperience.description}
+              onChange={(e) => setNewExperience(prev => ({ ...prev, description: e.target.value }))}
+              className="w-full px-3 py-2 text-sm border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              rows={3}
+              placeholder="მოკლე აღწერა თქვენი მოვალეობებისა და მიღწევების შესახებ..."
+            />
+          </div>
+          
+          <div className="flex justify-end space-x-2">
+            <button
+              type="button"
+              onClick={() => setShowAddForm(false)}
+              className="px-3 py-2 text-sm text-slate-600 hover:text-slate-800 transition-colors"
+            >
+              გაუქმება
+            </button>
+            <button
+              type="button"
+              onClick={handleAddExperience}
+              disabled={!newExperience.title.trim() || !newExperience.company.trim() || !newExperience.startDate}
+              className="px-4 py-2 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              დამატება
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Add experience button */}
+      {!showAddForm && (
+        <button
+          type="button"
+          onClick={() => setShowAddForm(true)}
+          className="w-full p-3 border-2 border-dashed border-slate-300 rounded-lg text-slate-600 hover:border-blue-400 hover:text-blue-600 transition-colors flex items-center justify-center space-x-2"
+        >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+          </svg>
+          <span className="text-sm font-medium">სამუშაო გამოცდილების დამატება</span>
+        </button>
+      )}
+
+      {/* Experience list */}
+      {experiences.length > 0 && (
+        <div className="space-y-3">
+          <h4 className="text-sm font-medium text-slate-700">თქვენი სამუშაო გამოცდილება</h4>
+          <div className="space-y-3">
+            {experiences.map((experience, index) => (
+              <div key={experience.id} className="p-4 bg-white rounded-lg border border-slate-200">
+                <div className="flex items-start justify-between mb-2">
+                  <div className="flex-1">
+                    <h5 className="font-semibold text-slate-800">{experience.title}</h5>
+                    <p className="text-sm text-slate-600">{experience.company}</p>
+                    <p className="text-xs text-slate-500">
+                      {formatDate(experience.startDate)} - {experience.isCurrent ? 'ამჟამად' : formatDate(experience.endDate)}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => onRemoveExperience(index)}
+                    className="p-1 text-red-600 hover:bg-red-50 rounded-full transition-colors"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                  </button>
+                </div>
+                {experience.description && (
+                  <p className="text-sm text-slate-700 mt-2">{experience.description}</p>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {experiences.length === 0 && !showAddForm && (
+        <div className="text-center py-8 text-slate-500">
+          <svg className="w-12 h-12 mx-auto mb-3 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2-2v2m8 0V6a2 2 0 012 2v6a2 2 0 01-2 2H6a2 2 0 01-2-2V8a2 2 0 012-2V6" />
+          </svg>
+          <p className="text-sm">დაამატეთ თქვენი სამუშაო გამოცდილება</p>
+        </div>
+      )}
+    </div>
+  );
+};
+
+const EducationInput: React.FC<EducationInputProps> = ({
+  educations,
+  onAddEducation,
+  onUpdateEducation,
+  onRemoveEducation
+}) => {
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [newEducation, setNewEducation] = useState<EducationItem>({
+    id: '',
+    degree: '',
+    institution: '',
+    startDate: '',
+    endDate: '',
+    description: ''
+  });
+
+  const generateId = () => Math.random().toString(36).substr(2, 9);
+
+  const handleAddEducation = () => {
+    if (newEducation.degree.trim() && newEducation.institution.trim() && newEducation.startDate && newEducation.endDate) {
+      const educationToAdd = {
+        ...newEducation,
+        id: generateId()
+      };
+      onAddEducation(educationToAdd);
+      setNewEducation({
+        id: '',
+        degree: '',
+        institution: '',
+        startDate: '',
+        endDate: '',
+        description: ''
+      });
+      setShowAddForm(false);
+    }
+  };
+
+  const formatDate = (dateString: string) => {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('ka-GE', { year: 'numeric', month: 'long' });
+  };
+
+  const getCurrentYear = () => new Date().getFullYear();
+  const getYears = () => {
+    const currentYear = getCurrentYear();
+    return Array.from({ length: 50 }, (_, i) => currentYear - i);
+  };
+
+  const getMonths = () => [
+    { value: '01', label: 'იანვარი' },
+    { value: '02', label: 'თებერვალი' },
+    { value: '03', label: 'მარტი' },
+    { value: '04', label: 'აპრილი' },
+    { value: '05', label: 'მაისი' },
+    { value: '06', label: 'ივნისი' },
+    { value: '07', label: 'ივლისი' },
+    { value: '08', label: 'აგვისტო' },
+    { value: '09', label: 'სექტემბერი' },
+    { value: '10', label: 'ოქტომბერი' },
+    { value: '11', label: 'ნოემბერი' },
+    { value: '12', label: 'დეკემბერი' }
+  ];
+
+  return (
+    <div className="space-y-4">
+      {/* Add new education form */}
+      {showAddForm && (
+        <div className="p-4 bg-slate-50 rounded-lg border border-slate-200 space-y-4">
+          <div className="flex items-center justify-between">
+            <h4 className="text-sm font-medium text-slate-700">ახალი განათლების დამატება</h4>
+            <button
+              type="button"
+              onClick={() => setShowAddForm(false)}
+              className="text-slate-400 hover:text-slate-600"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+          
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs font-medium text-slate-600 mb-1">ხარისხი/სპეციალობა *</label>
+              <input
+                type="text"
+                value={newEducation.degree}
+                onChange={(e) => setNewEducation(prev => ({ ...prev, degree: e.target.value }))}
+                className="w-full px-3 py-2 text-sm border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="მაგ: კომპიუტერული მეცნიერება"
+              />
+            </div>
+            
+            <div>
+              <label className="block text-xs font-medium text-slate-600 mb-1">სასწავლებელი *</label>
+              <input
+                type="text"
+                value={newEducation.institution}
+                onChange={(e) => setNewEducation(prev => ({ ...prev, institution: e.target.value }))}
+                className="w-full px-3 py-2 text-sm border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="მაგ: თბილისის სახელმწიფო უნივერსიტეტი"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs font-medium text-slate-600 mb-1">დაწყების თვე</label>
+              <select
+                value={newEducation.startDate.split('-')[1] || ''}
+                onChange={(e) => {
+                  const year = newEducation.startDate.split('-')[0] || '';
+                  setNewEducation(prev => ({ ...prev, startDate: `${year}-${e.target.value}` }));
+                }}
+                className="w-full px-3 py-2 text-sm border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              >
+                <option value="">თვე</option>
+                {getMonths().map(month => (
+                  <option key={month.value} value={month.value}>{month.label}</option>
+                ))}
+              </select>
+            </div>
+            
+            <div>
+              <label className="block text-xs font-medium text-slate-600 mb-1">დაწყების წელი</label>
+              <select
+                value={newEducation.startDate.split('-')[0] || ''}
+                onChange={(e) => {
+                  const month = newEducation.startDate.split('-')[1] || '';
+                  setNewEducation(prev => ({ ...prev, startDate: `${e.target.value}-${month}` }));
+                }}
+                className="w-full px-3 py-2 text-sm border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              >
+                <option value="">წელი</option>
+                {getYears().map(year => (
+                  <option key={year} value={year.toString()}>{year}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs font-medium text-slate-600 mb-1">დასრულების თვე</label>
+              <select
+                value={newEducation.endDate.split('-')[1] || ''}
+                onChange={(e) => {
+                  const year = newEducation.endDate.split('-')[0] || '';
+                  setNewEducation(prev => ({ ...prev, endDate: `${year}-${e.target.value}` }));
+                }}
+                className="w-full px-3 py-2 text-sm border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              >
+                <option value="">თვე</option>
+                {getMonths().map(month => (
+                  <option key={month.value} value={month.value}>{month.label}</option>
+                ))}
+              </select>
+            </div>
+            
+            <div>
+              <label className="block text-xs font-medium text-slate-600 mb-1">დასრულების წელი</label>
+              <select
+                value={newEducation.endDate.split('-')[0] || ''}
+                onChange={(e) => {
+                  const month = newEducation.endDate.split('-')[1] || '';
+                  setNewEducation(prev => ({ ...prev, endDate: `${e.target.value}-${month}` }));
+                }}
+                className="w-full px-3 py-2 text-sm border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              >
+                <option value="">წელი</option>
+                {getYears().map(year => (
+                  <option key={year} value={year.toString()}>{year}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+          
+          <div>
+            <label className="block text-xs font-medium text-slate-600 mb-1">აღწერა</label>
+            <textarea
+              value={newEducation.description}
+              onChange={(e) => setNewEducation(prev => ({ ...prev, description: e.target.value }))}
+              className="w-full px-3 py-2 text-sm border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              rows={3}
+              placeholder="მოკლე აღწერა თქვენი სწავლის შესახებ..."
+            />
+          </div>
+          
+          <div className="flex justify-end space-x-2">
+            <button
+              type="button"
+              onClick={() => setShowAddForm(false)}
+              className="px-3 py-2 text-sm text-slate-600 hover:text-slate-800 transition-colors"
+            >
+              გაუქმება
+            </button>
+            <button
+              type="button"
+              onClick={handleAddEducation}
+              disabled={!newEducation.degree.trim() || !newEducation.institution.trim() || !newEducation.startDate || !newEducation.endDate}
+              className="px-4 py-2 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              დამატება
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Add education button */}
+      {!showAddForm && (
+        <button
+          type="button"
+          onClick={() => setShowAddForm(true)}
+          className="w-full p-3 border-2 border-dashed border-slate-300 rounded-lg text-slate-600 hover:border-blue-400 hover:text-blue-600 transition-colors flex items-center justify-center space-x-2"
+        >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+          </svg>
+          <span className="text-sm font-medium">განათლების დამატება</span>
+        </button>
+      )}
+
+      {/* Education list */}
+      {educations.length > 0 && (
+        <div className="space-y-3">
+          <h4 className="text-sm font-medium text-slate-700">თქვენი განათლება</h4>
+          <div className="space-y-3">
+            {educations.map((education, index) => (
+              <div key={education.id} className="p-4 bg-white rounded-lg border border-slate-200">
+                <div className="flex items-start justify-between mb-2">
+                  <div className="flex-1">
+                    <h5 className="font-semibold text-slate-800">{education.degree}</h5>
+                    <p className="text-sm text-slate-600">{education.institution}</p>
+                    <p className="text-xs text-slate-500">
+                      {formatDate(education.startDate)} - {formatDate(education.endDate)}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => onRemoveEducation(index)}
+                    className="p-1 text-red-600 hover:bg-red-50 rounded-full transition-colors"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                  </button>
+                </div>
+                {education.description && (
+                  <p className="text-sm text-slate-700 mt-2">{education.description}</p>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {educations.length === 0 && !showAddForm && (
+        <div className="text-center py-8 text-slate-500">
+          <svg className="w-12 h-12 mx-auto mb-3 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M12 14l9-5-9-5-9 5 9 5z" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" />
+          </svg>
+          <p className="text-sm">დაამატეთ თქვენი განათლება</p>
+        </div>
+      )}
+    </div>
+  );
+};
+
 interface CVData {
   fullName: string;
   email: string;
@@ -581,8 +1170,10 @@ interface CVData {
   address: string;
   links: Link[];
   summary: string;
-  experience: string;
-  education: string;
+  experience: string; // Keep for backward compatibility
+  education: string; // Keep for backward compatibility
+  experiences: ExperienceItem[]; // New structured data
+  educations: EducationItem[]; // New structured data
   skills: string[];
   languages: LanguageSkill[];
   picture: string;
@@ -625,6 +1216,15 @@ const loadFromLocalStorage = (): CVData | null => {
       } else if (!data.links) {
         data.links = [];
       }
+      
+      // Initialize new structured data fields if they don't exist
+      if (!data.experiences) {
+        data.experiences = [];
+      }
+      if (!data.educations) {
+        data.educations = [];
+      }
+      
       return data;
     }
   } catch (error) {
@@ -656,6 +1256,8 @@ export default function CVGeneratorPage() {
     summary: '',
     experience: '',
     education: '',
+    experiences: [],
+    educations: [],
     skills: [],
     languages: [],
     picture: ''
@@ -809,6 +1411,48 @@ export default function CVGeneratorPage() {
     }));
   };
 
+  const addExperience = (experience: ExperienceItem) => {
+    setCvData(prev => ({
+      ...prev,
+      experiences: [...prev.experiences, experience]
+    }));
+  };
+
+  const updateExperience = (index: number, experience: ExperienceItem) => {
+    setCvData(prev => ({
+      ...prev,
+      experiences: prev.experiences.map((exp, i) => i === index ? experience : exp)
+    }));
+  };
+
+  const removeExperience = (index: number) => {
+    setCvData(prev => ({
+      ...prev,
+      experiences: prev.experiences.filter((_, i) => i !== index)
+    }));
+  };
+
+  const addEducation = (education: EducationItem) => {
+    setCvData(prev => ({
+      ...prev,
+      educations: [...prev.educations, education]
+    }));
+  };
+
+  const updateEducation = (index: number, education: EducationItem) => {
+    setCvData(prev => ({
+      ...prev,
+      educations: prev.educations.map((edu, i) => i === index ? education : edu)
+    }));
+  };
+
+  const removeEducation = (index: number) => {
+    setCvData(prev => ({
+      ...prev,
+      educations: prev.educations.filter((_, i) => i !== index)
+    }));
+  };
+
   const resetForm = () => {
     if (confirm('ნამდვილად გსურთ ყველა მონაცემის წაშლა? ეს მოქმედება შეუქცევადია.')) {
       const defaultData: CVData = {
@@ -820,6 +1464,8 @@ export default function CVGeneratorPage() {
         summary: '',
         experience: '',
         education: '',
+        experiences: [],
+        educations: [],
         skills: [],
         languages: [],
         picture: ''
@@ -854,14 +1500,31 @@ export default function CVGeneratorPage() {
 
   const createCVHTML = (data: CVData, template: 'minimal' | 'classic') => {
     const skillItems = data.skills || [];
-    const experienceItems = (data.experience || '')
-      .split('\n')
-      .map(s => s.trim())
-      .filter(Boolean);
-    const educationItems = (data.education || '')
-      .split('\n')
-      .map(s => s.trim())
-      .filter(Boolean);
+    
+    // Use structured data if available, otherwise fall back to text data
+    const experienceItems = data.experiences && data.experiences.length > 0 
+      ? data.experiences.map(exp => {
+          const startDate = exp.startDate ? new Date(exp.startDate).toLocaleDateString('ka-GE', { year: 'numeric', month: 'long' }) : '';
+          const endDate = exp.isCurrent ? 'ამჟამად' : (exp.endDate ? new Date(exp.endDate).toLocaleDateString('ka-GE', { year: 'numeric', month: 'long' }) : '');
+          const dateRange = startDate && endDate ? `${startDate} - ${endDate}` : '';
+          return `${exp.title} at ${exp.company}${dateRange ? ` (${dateRange})` : ''}${exp.description ? ` - ${exp.description}` : ''}`;
+        })
+      : (data.experience || '')
+          .split('\n')
+          .map(s => s.trim())
+          .filter(Boolean);
+    
+    const educationItems = data.educations && data.educations.length > 0
+      ? data.educations.map(edu => {
+          const startDate = edu.startDate ? new Date(edu.startDate).toLocaleDateString('ka-GE', { year: 'numeric', month: 'long' }) : '';
+          const endDate = edu.endDate ? new Date(edu.endDate).toLocaleDateString('ka-GE', { year: 'numeric', month: 'long' }) : '';
+          const dateRange = startDate && endDate ? `${startDate} - ${endDate}` : '';
+          return `${edu.degree} at ${edu.institution}${dateRange ? ` (${dateRange})` : ''}${edu.description ? ` - ${edu.description}` : ''}`;
+        })
+      : (data.education || '')
+          .split('\n')
+          .map(s => s.trim())
+          .filter(Boolean);
 
     return `
       <!DOCTYPE html>
@@ -877,9 +1540,9 @@ export default function CVGeneratorPage() {
           * { box-sizing: border-box; }
           body { font-family: var(--font); margin: 0; padding: 24px; background: var(--bg); color: var(--text); line-height: 1.6; }
           .cv-page { max-width: 800px; margin: 0 auto; background: #fff; }
-          .cv-header { padding-bottom: 20px; border-bottom: 1px solid var(--border); text-align: center; }
-          .cv-photo { margin-bottom: 16px; }
-          .cv-photo img { width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 3px solid var(--border); box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+          .cv-header { padding-bottom: 20px; border-bottom: 1px solid var(--border); text-align: center; background: #ffffff; }
+          .cv-photo { margin-bottom: 16px; display: inline-flex; align-items: center; justify-content: center; }
+          .cv-photo img { width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 2px solid #e5e7eb; }
           .cv-name { margin: 0 0 8px 0; font-size: 34px; letter-spacing: -0.02em; }
           .contact-info { display: flex; justify-content: center; flex-wrap: wrap; gap: 16px; color: var(--muted); font-size: 14px; }
           .cv-section { padding: 18px 0; border-bottom: 1px solid var(--border); }
@@ -907,7 +1570,12 @@ export default function CVGeneratorPage() {
           .t-classic .cv-section { padding: 20px 0; border-bottom: 1px solid var(--border); }
           .t-classic .cv-section h2 { font-variant: small-caps; letter-spacing: 0.12em; color: var(--text); }
           /* art template removed */
-          @media print { @page { size: A4; margin: 16mm; } body { padding: 0; } }
+          @media print {
+            @page { size: A4; margin: 16mm; }
+            html, body, .cv-page { background: #ffffff !important; }
+            body { padding: 0 !important; }
+            * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+          }
         </style>
       </head>
       <body class="t-${template}">
@@ -924,7 +1592,7 @@ export default function CVGeneratorPage() {
           </div>
 
           <div class="cv-section cv-summary">
-            <h2>შესახებ</h2>
+            <h2>შენს შესახებ</h2>
             ${data.summary ? `<p>${data.summary}</p>` : `<div class="placeholder-block"><p class="placeholder">მოკლე შეჯამება თქვენი გამოცდილებისა და მიზნების შესახებ...</p></div>`}
           </div>
 
@@ -971,13 +1639,147 @@ export default function CVGeneratorPage() {
     `;
   };
 
-  const downloadCV = async () => {
-    if (!generatedCV) return;
+  const downloadPDFViaAPI = async (html: string, suggestedName: string) => {
+    const name = (suggestedName && suggestedName.trim()) || 'CV';
+    const response = await fetch('/api/pdf', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ html, fileName: name })
+    });
+    if (!response.ok) {
+      throw new Error('PDF API returned non-OK');
+    }
+    const blob = await response.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${name}.pdf`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  const downloadCVFromPreview = async () => {
+    try {
+      console.log('Generating PDF from Live Preview via API...');
+      
+      // Check if there's any meaningful content
+      if (!cvData.fullName && !cvData.email && !cvData.phone) {
+        alert('გთხოვთ შეავსოთ მინიმუმ სახელი, ელ-ფოსტა და ტელეფონი PDF-ის ჩამოტვირთვისთვის.');
+        return;
+      }
+      
+      const cvHTML = generateLivePreview();
+      console.log('Generated HTML length:', cvHTML.length);
+      await downloadPDFViaAPI(cvHTML, cvData.fullName || 'CV');
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      alert('შეცდომა PDF-ის გენერაციისას. გთხოვთ სცადოთ კვლავ.');
+    }
+  };
+
+  const createSimplifiedHTMLForPDF = (data: CVData) => {
+    const skillItems = data.skills || [];
+    
+    // Use structured data if available, otherwise fall back to text data
+    const experienceItems = data.experiences && data.experiences.length > 0 
+      ? data.experiences.map(exp => {
+          const startDate = exp.startDate ? new Date(exp.startDate).toLocaleDateString('ka-GE', { year: 'numeric', month: 'long' }) : '';
+          const endDate = exp.isCurrent ? 'ამჟამად' : (exp.endDate ? new Date(exp.endDate).toLocaleDateString('ka-GE', { year: 'numeric', month: 'long' }) : '');
+          const dateRange = startDate && endDate ? `${startDate} - ${endDate}` : '';
+          return `${exp.title} at ${exp.company}${dateRange ? ` (${dateRange})` : ''}${exp.description ? ` - ${exp.description}` : ''}`;
+        })
+      : (data.experience || '')
+          .split('\n')
+          .map(s => s.trim())
+          .filter(Boolean);
+    
+    const educationItems = data.educations && data.educations.length > 0
+      ? data.educations.map(edu => {
+          const startDate = edu.startDate ? new Date(edu.startDate).toLocaleDateString('ka-GE', { year: 'numeric', month: 'long' }) : '';
+          const endDate = edu.endDate ? new Date(edu.endDate).toLocaleDateString('ka-GE', { year: 'numeric', month: 'long' }) : '';
+          const dateRange = startDate && endDate ? `${startDate} - ${endDate}` : '';
+          return `${edu.degree} at ${edu.institution}${dateRange ? ` (${dateRange})` : ''}${edu.description ? ` - ${edu.description}` : ''}`;
+        })
+      : (data.education || '')
+          .split('\n')
+          .map(s => s.trim())
+          .filter(Boolean);
+
+    return `
+      <div style="font-family: Arial, sans-serif; font-size: 14px; line-height: 1.6; color: #000; max-width: 800px; margin: 0 auto; background: white; padding: 24px;">
+        <!-- Header -->
+        <div style="text-align: center; padding-bottom: 20px; border-bottom: 1px solid #ccc;">
+          ${data.picture ? `<div style="margin-bottom: 16px;"><img src="${data.picture}" alt="Profile Photo" style="width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 3px solid #ccc;"></div>` : ''}
+          <h1 style="margin: 0 0 8px 0; font-size: 34px; color: #000;">${data.fullName || 'თქვენი სრული სახელი'}</h1>
+          <div style="display: flex; justify-content: center; flex-wrap: wrap; gap: 16px; color: #666; font-size: 14px;">
+            <span>${data.email || 'ელ-ფოსტა'}</span>
+            <span>${data.phone || 'ტელეფონი'}</span>
+            <span>${data.address || 'მისამართი'}</span>
+            ${data.links && data.links.length > 0 ? data.links.map(link => `<span>${link.label}: ${link.url}</span>`).join('') : ''}
+          </div>
+        </div>
+
+        <!-- About -->
+        <div style="padding: 18px 0; border-bottom: 1px solid #ccc;">
+          <h2 style="margin: 0 0 10px 0; font-size: 14px; text-transform: uppercase; color: #666;">შენს შესახებ</h2>
+          ${data.summary ? `<p style="margin: 8px 0; color: #000;">${data.summary}</p>` : `<p style="margin: 8px 0; color: #999;">მოკლე შეჯამება თქვენი გამოცდილებისა და მიზნების შესახებ...</p>`}
+        </div>
+
+        <!-- Experience -->
+        <div style="padding: 18px 0; border-bottom: 1px solid #ccc;">
+          <h2 style="margin: 0 0 10px 0; font-size: 14px; text-transform: uppercase; color: #666;">გამოცდილება</h2>
+          ${experienceItems.length ? `<ul style="margin: 8px 0; padding-left: 18px;">${experienceItems.map(i => `<li style="margin: 6px 0;">${i}</li>`).join('')}</ul>` : `<p style="margin: 8px 0; color: #999;">დაამატეთ თქვენი სამუშაო გამოცდილება...</p>`}
+        </div>
+
+        <!-- Education -->
+        <div style="padding: 18px 0; border-bottom: 1px solid #ccc;">
+          <h2 style="margin: 0 0 10px 0; font-size: 14px; text-transform: uppercase; color: #666;">განათლება</h2>
+          ${educationItems.length ? `<ul style="margin: 8px 0; padding-left: 18px;">${educationItems.map(i => `<li style="margin: 6px 0;">${i}</li>`).join('')}</ul>` : `<p style="margin: 8px 0; color: #999;">დაამატეთ თქვენი განათლება...</p>`}
+        </div>
+
+        <!-- Skills -->
+        <div style="padding: 18px 0; border-bottom: 1px solid #ccc;">
+          <h2 style="margin: 0 0 10px 0; font-size: 14px; text-transform: uppercase; color: #666;">უნარები</h2>
+          ${skillItems.length ? `<div style="display: flex; flex-wrap: wrap; gap: 8px;">${skillItems.map(s => `<span style="display: inline-block; padding: 6px 10px; border-radius: 9999px; background: #f1f5f9; border: 1px solid #e2e8f0; font-size: 13px; color: #000;">${s}</span>`).join('')}</div>` : `<p style="margin: 8px 0; color: #999;">ჩამოთვალეთ თქვენი ძირითადი ტექნიკური და რბილი უნარები...</p>`}
+        </div>
+
+        <!-- Languages -->
+        <div style="padding: 18px 0;">
+          <h2 style="margin: 0 0 10px 0; font-size: 14px; text-transform: uppercase; color: #666;">ენები</h2>
+          ${data.languages && data.languages.length ? `
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
+              ${data.languages.map(lang => `
+                <div style="display: flex; flex-direction: column; gap: 8px;">
+                  <div style="font-weight: 600; color: #000; font-size: 14px;">${lang.name}</div>
+                  <div style="display: flex; align-items: center; gap: 12px;">
+                    <div style="display: flex; gap: 3px;">
+                      ${Array.from({length: 5}, (_, i) => {
+                        const levelMap = { 'Beginner': 1, 'Elementary': 2, 'Intermediate': 3, 'Advanced': 4, 'Native': 5, 'Fluent': 5 };
+                        const filled = i < levelMap[lang.level];
+                        return `<div style="width: 12px; height: 4px; border-radius: 2px; background: ${filled ? '#2563eb' : '#e2e8f0'};"></div>`;
+                      }).join('')}
+                    </div>
+                    <span style="font-size: 12px; color: #666; font-weight: 500;">${lang.level}</span>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          ` : `<p style="margin: 8px 0; color: #999;">დაამატეთ თქვენი ენის უნარები და მათი დონე...</p>`}
+        </div>
+      </div>
+    `;
+  };
+
+  const generatePDFFromHTML = async (htmlContent: string) => {
     
     console.log('Starting PDF generation...');
+    console.log('HTML content length:', htmlContent.length);
     
     try {
       // Dynamic imports for better compatibility
+      console.log('Loading PDF libraries...');
       const [{ default: jsPDF }, { default: html2canvas }] = await Promise.all([
         import('jspdf'),
         import('html2canvas')
@@ -985,21 +1787,35 @@ export default function CVGeneratorPage() {
       
       console.log('Libraries loaded successfully');
 
+      // Create a simplified HTML structure for better PDF generation
+      const simplifiedHTML = createSimplifiedHTMLForPDF(cvData);
+      console.log('Simplified HTML created, length:', simplifiedHTML.length);
+
       // Create a temporary container for the CV content
       const tempDiv = document.createElement('div');
-      tempDiv.innerHTML = generatedCV;
+      tempDiv.innerHTML = simplifiedHTML;
       tempDiv.style.position = 'absolute';
       tempDiv.style.left = '-9999px';
       tempDiv.style.top = '0';
       tempDiv.style.width = '794px'; // A4 width in pixels
       tempDiv.style.minHeight = '1123px'; // A4 height in pixels
       tempDiv.style.backgroundColor = 'white';
-      tempDiv.style.fontFamily = 'Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, Noto Sans, sans-serif';
+      tempDiv.style.fontFamily = 'Arial, sans-serif'; // Use simpler font
       tempDiv.style.lineHeight = '1.6';
-      tempDiv.style.color = '#0f172a';
+      tempDiv.style.color = '#000000'; // Use black for better contrast
       tempDiv.style.padding = '24px';
       tempDiv.style.boxSizing = 'border-box';
+      tempDiv.style.visibility = 'visible';
+      tempDiv.style.opacity = '1';
+      tempDiv.style.fontSize = '14px'; // Ensure font size is set
       document.body.appendChild(tempDiv);
+      
+      console.log('Temporary div created and added to DOM');
+      console.log('Div content length:', tempDiv.innerHTML.length);
+      console.log('Div has content:', (tempDiv.textContent?.length || 0) > 0);
+
+      // Wait a bit for the DOM to be fully rendered
+      await new Promise(resolve => setTimeout(resolve, 500));
 
       console.log('Created temporary div, converting to canvas...');
 
@@ -1011,11 +1827,12 @@ export default function CVGeneratorPage() {
         backgroundColor: '#ffffff',
         width: 794, // A4 width in pixels at 96 DPI
         height: 1123, // A4 height in pixels at 96 DPI
-        logging: false,
+        logging: true, // Enable logging to see what's happening
         foreignObjectRendering: true,
         removeContainer: false,
-        imageTimeout: 0,
+        imageTimeout: 10000, // Increase timeout
         onclone: (clonedDoc) => {
+          console.log('Cloning document for html2canvas');
           // Ensure styles are properly applied in the cloned document
           const clonedDiv = clonedDoc.querySelector('div');
           if (clonedDiv) {
@@ -1024,9 +1841,18 @@ export default function CVGeneratorPage() {
             clonedDiv.style.backgroundColor = 'white';
             clonedDiv.style.padding = '24px';
             clonedDiv.style.boxSizing = 'border-box';
+            clonedDiv.style.visibility = 'visible';
+            clonedDiv.style.opacity = '1';
+            clonedDiv.style.fontFamily = 'Arial, sans-serif';
+            clonedDiv.style.fontSize = '14px';
+            clonedDiv.style.color = '#000000';
+            console.log('Cloned div styled, content length:', clonedDiv.textContent?.length);
           }
         }
       });
+      
+      console.log('Canvas created successfully');
+      console.log('Canvas dimensions:', canvas.width, 'x', canvas.height);
 
       console.log('Canvas created, removing temp div...');
 
@@ -1075,7 +1901,7 @@ export default function CVGeneratorPage() {
       console.log('Falling back to HTML download...');
       
       // Fallback to HTML download
-      const blob = new Blob([generatedCV], { type: 'text/html' });
+      const blob = new Blob([htmlContent], { type: 'text/html' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
@@ -1084,6 +1910,20 @@ export default function CVGeneratorPage() {
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
+    }
+  };
+
+  const downloadCV = async () => {
+    if (!generatedCV) {
+      alert('CV არ არის გენერირებული. გთხოვთ ჯერ გენერირება დააჭიროთ.');
+      return;
+    }
+    try {
+      console.log('Generating PDF from generated CV via API...');
+      await downloadPDFViaAPI(generatedCV, cvData.fullName || 'CV');
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      alert('შეცდომა PDF-ის გენერაციისას. გთხოვთ სცადოთ კვლავ.');
     }
   };
 
@@ -1356,10 +2196,10 @@ export default function CVGeneratorPage() {
                 </div>
               </div>
 
-              {/* Professional Summary */}
+              {/* About You */}
               <div>
                 <label className="block text-sm font-semibold text-slate-700 mb-2">
-                  პროფესიონალური შეჯამება
+                  შენს შესახებ
                 </label>
                 <textarea
                   value={cvData.summary}
@@ -1375,12 +2215,11 @@ export default function CVGeneratorPage() {
                 <label className="block text-sm font-semibold text-slate-700 mb-2">
                   გამოცდილება
                 </label>
-                <textarea
-                  value={cvData.experience}
-                  onChange={(e) => handleInputChange('experience', e.target.value)}
-                  className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  rows={6}
-                  placeholder="შეიყვანეთ თქვენი სამუშაო გამოცდილება..."
+                <ExperienceInput 
+                  experiences={cvData.experiences}
+                  onAddExperience={addExperience}
+                  onUpdateExperience={updateExperience}
+                  onRemoveExperience={removeExperience}
                 />
               </div>
 
@@ -1389,12 +2228,11 @@ export default function CVGeneratorPage() {
                 <label className="block text-sm font-semibold text-slate-700 mb-2">
                   განათლება
                 </label>
-                <textarea
-                  value={cvData.education}
-                  onChange={(e) => handleInputChange('education', e.target.value)}
-                  className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  rows={4}
-                  placeholder="შეიყვანეთ თქვენი განათლება..."
+                <EducationInput 
+                  educations={cvData.educations}
+                  onAddEducation={addEducation}
+                  onUpdateEducation={updateEducation}
+                  onRemoveEducation={removeEducation}
                 />
               </div>
 
@@ -1476,13 +2314,31 @@ export default function CVGeneratorPage() {
                       </button>
                     </div>
                     <button
-                      onClick={downloadCV}
+                      onClick={downloadCVFromPreview}
                       className="flex items-center space-x-2 px-3 py-1 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm"
                     >
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                       </svg>
                       <span>Download PDF</span>
+                    </button>
+                    <button
+                      onClick={() => {
+                        const html = createSimplifiedHTMLForPDF(cvData);
+                        console.log('Simplified HTML for PDF:', html);
+                        const blob = new Blob([html], { type: 'text/html' });
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = 'cv-preview.html';
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
+                        URL.revokeObjectURL(url);
+                      }}
+                      className="flex items-center space-x-2 px-3 py-1 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm"
+                    >
+                      <span>Test HTML</span>
                     </button>
                   </div>
                 </div>
