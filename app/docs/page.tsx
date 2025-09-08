@@ -2,6 +2,8 @@
 
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+
+
 import { Brain } from 'lucide-react';
 
 export default function DocumentsPage() {
@@ -55,28 +57,28 @@ export default function DocumentsPage() {
 
         {/* Document Type Selection */}
         <div className="max-w-4xl mx-auto">
-          <div className="grid md:grid-cols-2 gap-8">
+          <div className="grid grid-cols-2 md:grid-cols-2 gap-4 md:gap-8">
             {/* CV Generator Box */}
             <div 
               onClick={() => router.push('/docs/cv')}
-              className="group cursor-pointer bg-white dark:bg-slate-800 rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-slate-200 dark:border-slate-700 hover:border-blue-500 dark:hover:border-blue-400"
+              className="group cursor-pointer bg-white dark:bg-slate-800 rounded-2xl p-4 md:p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-slate-200 dark:border-slate-700 hover:border-blue-500 dark:hover:border-blue-400"
             >
               <div className="text-center">
-                <div className="w-20 h-20 mx-auto mb-6 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                  <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div className="w-12 h-12 md:w-20 md:h-20 mx-auto mb-3 md:mb-6 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                  <svg className="w-6 h-6 md:w-10 md:h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                   </svg>
                 </div>
-                <h3 className="text-2xl font-bold text-slate-800 dark:text-slate-200 mb-4">
-                  დააგენერირე CV
+                <h3 className="text-lg md:text-2xl font-bold text-slate-800 dark:text-slate-200 mb-2 md:mb-4">
+                  შექმენი CV
                 </h3>
-                <p className="text-slate-600 dark:text-slate-400 mb-6 leading-relaxed">
+                <p className="hidden md:block text-slate-600 dark:text-slate-400 mb-6 leading-relaxed">
                   შექმენით პროფესიონალური CV სხვადასხვა ტემპლეიტებით. 
                   შეავსეთ თქვენი ინფორმაცია და მიიღეთ მზად CV რამდენიმე წუთში.
                 </p>
-                <div className="inline-flex items-center text-blue-600 dark:text-blue-400 font-semibold group-hover:text-blue-700 dark:group-hover:text-blue-300 transition-colors">
+                <div className="inline-flex items-center text-blue-600 dark:text-blue-400 font-semibold group-hover:text-blue-700 dark:group-hover:text-blue-300 transition-colors text-sm md:text-base">
                   <span>დაიწყეთ</span>
-                  <svg className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-4 h-4 md:w-5 md:h-5 ml-1 md:ml-2 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                   </svg>
                 </div>
@@ -86,24 +88,24 @@ export default function DocumentsPage() {
             {/* Invoice Generator Box */}
             <div 
               onClick={() => router.push('/docs/invoice')}
-              className="group cursor-pointer bg-white dark:bg-slate-800 rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-slate-200 dark:border-slate-700 hover:border-green-500 dark:hover:border-green-400"
+              className="group cursor-pointer bg-white dark:bg-slate-800 rounded-2xl p-4 md:p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-slate-200 dark:border-slate-700 hover:border-green-500 dark:hover:border-green-400"
             >
               <div className="text-center">
-                <div className="w-20 h-20 mx-auto mb-6 bg-gradient-to-br from-green-500 to-green-600 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                  <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div className="w-12 h-12 md:w-20 md:h-20 mx-auto mb-3 md:mb-6 bg-gradient-to-br from-green-500 to-green-600 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                  <svg className="w-6 h-6 md:w-10 md:h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
                   </svg>
                 </div>
-                <h3 className="text-2xl font-bold text-slate-800 dark:text-slate-200 mb-4">
-                  დააგენერირე Invoice
+                <h3 className="text-lg md:text-2xl font-bold text-slate-800 dark:text-slate-200 mb-2 md:mb-4">
+                  შექმენი Invoice
                 </h3>
-                <p className="text-slate-600 dark:text-slate-400 mb-6 leading-relaxed">
+                <p className="hidden md:block text-slate-600 dark:text-slate-400 mb-6 leading-relaxed">
                   შექმენით პროფესიონალური ინვოისები თქვენი ბიზნესისთვის. 
                   დაამატეთ ნივთები, გამოთვალეთ ჯამი და გამოაქვეყნეთ PDF-ად.
                 </p>
-                <div className="inline-flex items-center text-green-600 dark:text-green-400 font-semibold group-hover:text-green-700 dark:group-hover:text-green-300 transition-colors">
+                <div className="inline-flex items-center text-green-600 dark:text-green-400 font-semibold group-hover:text-green-700 dark:group-hover:text-green-300 transition-colors text-sm md:text-base">
                   <span>დაიწყეთ</span>
-                  <svg className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-4 h-4 md:w-5 md:h-5 ml-1 md:ml-2 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                   </svg>
                 </div>
@@ -111,41 +113,15 @@ export default function DocumentsPage() {
             </div>
           </div>
 
-          {/* Features Section */}
-          <div className="mt-16 text-center">
-            <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-200 mb-8">
-              რატომ აირჩიოთ ჩვენი გენერატორები?
-            </h2>
-            <div className="grid md:grid-cols-3 gap-6">
-              <div className="bg-white dark:bg-slate-800 rounded-xl p-6 shadow-md">
-                <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900 rounded-lg flex items-center justify-center mx-auto mb-4">
-                  <svg className="w-6 h-6 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                  </svg>
-                </div>
-                <h3 className="font-semibold text-slate-800 dark:text-slate-200 mb-2">სწრაფი გენერაცია</h3>
-                <p className="text-sm text-slate-600 dark:text-slate-400">მიიღეთ მზად დოკუმენტი რამდენიმე წუთში</p>
-              </div>
-              <div className="bg-white dark:bg-slate-800 rounded-xl p-6 shadow-md">
-                <div className="w-12 h-12 bg-green-100 dark:bg-green-900 rounded-lg flex items-center justify-center mx-auto mb-4">
-                  <svg className="w-6 h-6 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                </div>
-                <h3 className="font-semibold text-slate-800 dark:text-slate-200 mb-2">პროფესიონალური ტემპლეიტები</h3>
-                <p className="text-sm text-slate-600 dark:text-slate-400">მრავალი ლამაზი და თანამედროვე დიზაინი</p>
-              </div>
-              <div className="bg-white dark:bg-slate-800 rounded-xl p-6 shadow-md">
-                <div className="w-12 h-12 bg-purple-100 dark:bg-purple-900 rounded-lg flex items-center justify-center mx-auto mb-4">
-                  <svg className="w-6 h-6 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                  </svg>
-                </div>
-                <h3 className="font-semibold text-slate-800 dark:text-slate-200 mb-2">PDF ექსპორტი</h3>
-                <p className="text-sm text-slate-600 dark:text-slate-400">ჩამოტვირთეთ ან გაუზიარეთ PDF ფორმატში</p>
-              </div>
-            </div>
+          {/* Mobile Footer Text */}
+          <div className="mt-16 md:hidden text-center">
+            <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
+              AI-ის დახმარებით შექმენით პროფესიონალური დოკუმენტები. 
+              <br />
+              სწრაფი და მარტივი გამოყენება, მზად დოკუმენტები რამდენიმე წუთში.
+            </p>
           </div>
+
         </div>
       </div>
     </div>

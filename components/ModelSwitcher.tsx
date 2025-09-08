@@ -88,6 +88,7 @@ export default function ModelSwitcher() {
         onClick={() => setIsOpen(!isOpen)}
         className="group flex items-center gap-2 w-full px-3 py-2 rounded-xl border border-transparent bg-gray-100/70 dark:bg-white/5 hover:bg-gray-200/70 dark:hover:bg-white/10 text-gray-900 dark:text-white shadow-[inset_0_0_0_1px_rgba(0,0,0,0.04)] dark:shadow-[inset_0_0_0_1px_rgba(255,255,255,0.06)] transition-colors"
       >
+
         <span className="font-medium text-sm">{getModelDisplayName(model)}</span>
         <ChevronDown className={`ml-1 h-4 w-4 text-gray-500 dark:text-gray-400 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
       </button>

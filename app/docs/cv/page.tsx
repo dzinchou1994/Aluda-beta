@@ -13,6 +13,7 @@ interface CVData {
   experience: string;
   education: string;
   skills: string;
+  picture: string;
 }
 
 export default function CVGeneratorPage() {
@@ -26,7 +27,8 @@ export default function CVGeneratorPage() {
     summary: '',
     experience: '',
     education: '',
-    skills: ''
+    skills: '',
+    picture: ''
   });
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedCV, setGeneratedCV] = useState<string>('');
@@ -40,6 +42,22 @@ export default function CVGeneratorPage() {
 
   const handleInputChange = (field: keyof CVData, value: string) => {
     setCvData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handlePictureUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const result = e.target?.result as string;
+        setCvData(prev => ({ ...prev, picture: result }));
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const removePicture = () => {
+    setCvData(prev => ({ ...prev, picture: '' }));
   };
 
   const generateLivePreview = () => {
@@ -91,6 +109,8 @@ export default function CVGeneratorPage() {
           body { font-family: var(--font); margin: 0; padding: 24px; background: var(--bg); color: var(--text); line-height: 1.6; }
           .cv-page { max-width: 800px; margin: 0 auto; background: #fff; }
           .cv-header { padding-bottom: 20px; border-bottom: 1px solid var(--border); text-align: center; }
+          .cv-photo { margin-bottom: 16px; }
+          .cv-photo img { width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 3px solid var(--border); box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
           .cv-name { margin: 0 0 8px 0; font-size: 34px; letter-spacing: -0.02em; }
           .contact-info { display: flex; justify-content: center; flex-wrap: wrap; gap: 16px; color: var(--muted); font-size: 14px; }
           .cv-section { padding: 18px 0; border-bottom: 1px solid var(--border); }
@@ -116,6 +136,7 @@ export default function CVGeneratorPage() {
       <body class="t-${template}">
         <div class="cv-page">
           <div class="cv-header">
+            ${data.picture ? `<div class="cv-photo"><img src="${data.picture}" alt="Profile Photo"></div>` : ''}
             <h1 class="cv-name">${data.fullName || 'თქვენი სრული სახელი'}</h1>
             <div class="contact-info">
               <span>${data.email || '<span class="placeholder">ელ-ფოსტა</span>'}</span>
@@ -225,46 +246,57 @@ export default function CVGeneratorPage() {
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
-        <div className="flex items-center justify-between mb-8">
-          <button
-            onClick={() => router.push('/docs')}
-            className="flex items-center space-x-2 px-4 py-2 bg-slate-600 text-white rounded-lg hover:bg-slate-700 transition-colors"
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-            </svg>
-            <span>უკან</span>
-          </button>
-          <div className="flex items-center space-x-4">
-            <h1 className="text-3xl font-bold text-slate-800">CV გენერატორი</h1>
+        <div className="mb-8">
+          {/* Back Button */}
+          <div className="mb-4">
             <button
-              type="button"
-              onClick={() => setShowLivePreview(!showLivePreview)}
-              className={`px-4 py-2 rounded-lg transition-colors ${
-                showLivePreview 
-                  ? 'bg-blue-600 text-white' 
-                  : 'bg-slate-200 text-slate-700 hover:bg-slate-300'
-              }`}
+              onClick={() => router.push('/docs')}
+              className="flex items-center space-x-2 px-4 py-2 bg-slate-600 text-white rounded-lg hover:bg-slate-700 transition-colors"
             >
-              <span className="flex items-center space-x-2">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                </svg>
-                <span>Live Preview</span>
-              </span>
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+              </svg>
+              <span>უკან</span>
             </button>
-
-            <div className="hidden sm:flex items-center space-x-2">
-              <label className="text-sm text-slate-600">Template</label>
-              <select
-                value={cvTemplate}
-                onChange={(e) => setCvTemplate(e.target.value as 'minimal' | 'classic')}
-                className="px-3 py-2 rounded-lg border border-slate-300 bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          </div>
+          
+          {/* Title and Controls */}
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <h1 className="text-2xl sm:text-3xl font-bold text-slate-800">CV გენერატორი</h1>
+            
+            {/* Controls Row */}
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+              {/* Template Selector - Mobile Friendly */}
+              <div className="flex items-center space-x-2">
+                <label className="text-sm text-slate-600 whitespace-nowrap">Template:</label>
+                <select
+                  value={cvTemplate}
+                  onChange={(e) => setCvTemplate(e.target.value as 'minimal' | 'classic')}
+                  className="px-3 py-2 rounded-lg border border-slate-300 bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                >
+                  <option value="minimal">Minimalistic</option>
+                  <option value="classic">Classic</option>
+                </select>
+              </div>
+              
+              {/* Live Preview Button */}
+              <button
+                type="button"
+                onClick={() => setShowLivePreview(!showLivePreview)}
+                className={`px-4 py-2 rounded-lg transition-colors ${
+                  showLivePreview 
+                    ? 'bg-blue-600 text-white' 
+                    : 'bg-slate-200 text-slate-700 hover:bg-slate-300'
+                }`}
               >
-                <option value="minimal">Minimalistic</option>
-                <option value="classic">Classic</option>
-              </select>
+                <span className="flex items-center justify-center space-x-2">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                  </svg>
+                  <span className="text-sm sm:text-base">Live Preview</span>
+                </span>
+              </button>
             </div>
           </div>
         </div>
@@ -273,6 +305,57 @@ export default function CVGeneratorPage() {
           <div className={`${showLivePreview ? 'grid grid-cols-1 lg:grid-cols-2 gap-8 items-start' : ''}`}>
             <div className={`bg-white rounded-xl shadow-lg p-8 ${showLivePreview ? 'max-h-[800px] overflow-y-auto' : ''}`}>
             <form onSubmit={(e) => { e.preventDefault(); generateCV(); }} className="space-y-6">
+              {/* Picture Upload */}
+              <div className="mb-6">
+                <label className="block text-sm font-semibold text-slate-700 mb-2">
+                  პროფილის ფოტო
+                </label>
+                <div className="flex items-center space-x-4">
+                  <div className="relative">
+                    {cvData.picture ? (
+                      <div className="w-20 h-20 rounded-full overflow-hidden border-2 border-slate-300">
+                        <img
+                          src={cvData.picture}
+                          alt="Profile"
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                    ) : (
+                      <div className="w-20 h-20 rounded-full border-2 border-dashed border-slate-300 flex items-center justify-center bg-slate-50">
+                        <svg className="w-8 h-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                        </svg>
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex space-x-2">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handlePictureUpload}
+                      className="hidden"
+                      id="picture-upload"
+                    />
+                    <label
+                      htmlFor="picture-upload"
+                      className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors cursor-pointer text-sm"
+                    >
+                      ფოტოს არჩევა
+                    </label>
+                    {cvData.picture && (
+                      <button
+                        type="button"
+                        onClick={removePicture}
+                        className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm"
+                      >
+                        წაშლა
+                      </button>
+                    )}
+                  </div>
+                </div>
+                <p className="text-xs text-slate-500 mt-1">ატვირთეთ თქვენი პროფესიონალური ფოტო (არასავალდებულო)</p>
+              </div>
+
               {/* Personal Information */}
               <div className="grid md:grid-cols-2 gap-6">
                 <div>

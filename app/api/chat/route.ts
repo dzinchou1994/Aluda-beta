@@ -313,9 +313,11 @@ export async function POST(request: NextRequest) {
         ? (process.env.ALUDAAI_FLOWISE_CHATFLOW_ID_TEST || process.env.FLOWISE_CHATFLOW_ID_TEST || '286c3991-be03-47f3-aa47-56a6b65c5d00')
         : (process.env.ALUDAAI_FLOWISE_CHATFLOW_ID || process.env.FLOWISE_CHATFLOW_ID)
       // Flowise often ignores image-only requests if the 'question' is empty.
-      // Provide a concise default in ka-GE when an image is sent without text for Aluda 2.0.
+      // Provide a concise default in ka-GE when an image is sent without text for both models.
       const effectiveMessage = (uploadedFile && (!message || message.trim().length === 0))
         ? (selectedModel === 'aluda2' 
+            ? 'გაანალიზე ეს სურათი და განმიმარტე ქართულად რა არის მასზე ნაჩვენები.'
+            : selectedModel === 'test'
             ? 'გაანალიზე ეს სურათი და განმიმარტე ქართულად რა არის მასზე ნაჩვენები.'
             : '')
         : (message || '')
@@ -362,7 +364,7 @@ export async function POST(request: NextRequest) {
         history: flowiseHistory,
         sessionId: flowiseSessionId,
         chatflowIdOverride,
-        file: uploadedFile && selectedModel === 'aluda2' ? uploadedFile : undefined,
+        file: uploadedFile && (selectedModel === 'aluda2' || selectedModel === 'test') ? uploadedFile : undefined,
       })
     } catch (error: any) {
       console.error("Flowise API error:", error)

@@ -86,7 +86,8 @@ export default function ChatInput({
 
   const handleImageAttach = () => {
     if (isLoading) return;
-    if (model !== 'aluda2') {
+    // Allow photo uploads for both aluda2 and test (free) models
+    if (model !== 'aluda2' && model !== 'test') {
       // You might want to show an error message here
       return;
     }
@@ -97,7 +98,8 @@ export default function ChatInput({
     const file = e.target.files?.[0];
     if (!file) return;
     
-    if (model !== 'aluda2') {
+    // Allow photo uploads for both aluda2 and test (free) models
+    if (model !== 'aluda2' && model !== 'test') {
       // You might want to show an error message here
       e.currentTarget.value = '';
       return;
@@ -135,11 +137,11 @@ export default function ChatInput({
             <button
               type="button"
               onClick={handleImageAttach}
-              title={model !== 'aluda2' ? 'სურათის გაგზავნა ხელმისაწვდომია მხოლოდ Aluda 2.0-ში' : 'ატვირთე სურათი'}
+              title={model !== 'aluda2' && model !== 'test' ? 'სურათის გაგზავნა ხელმისაწვდომია მხოლოდ Aluda 2.0-ში' : 'ატვირთე სურათი'}
               className={`mr-2 sm:mr-3 w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center shadow-md transition-all ${
-                model === 'aluda2' ? 'bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700' : 'bg-gray-100 dark:bg-gray-800 opacity-60 cursor-not-allowed'
+                (model === 'aluda2' || model === 'test') ? 'bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700' : 'bg-gray-100 dark:bg-gray-800 opacity-60 cursor-not-allowed'
               }`}
-              disabled={model !== 'aluda2' || isLoading}
+              disabled={(model !== 'aluda2' && model !== 'test') || isLoading}
               aria-label="ატვირთე სურათი"
             >
               <ImageIcon className="h-5 w-5 text-gray-700 dark:text-gray-200" />
@@ -169,7 +171,7 @@ export default function ChatInput({
             
             <button
               type="submit"
-              disabled={!(message.trim().length > 0 || (model === 'aluda2' && attachedImage)) || isLoading}
+              disabled={!(message.trim().length > 0 || ((model === 'aluda2' || model === 'test') && attachedImage)) || isLoading}
               className="ml-2 sm:ml-3 w-10 h-10 sm:w-12 sm:h-12 send-button bg-blue-500 dark:bg-blue-600 text-white rounded-full hover:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-gray-800 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center shadow-lg hover:shadow-xl hover:scale-105"
             >
               {isLoading ? (

@@ -94,6 +94,7 @@ export default function Sidebar({
           <span className="text-sm">ახალი საუბარი</span>
         </button>
         {/* Quick actions separator */}
+
         <div className="my-3">
           <div className="border-t border-gray-200 dark:border-gray-800"></div>
         </div>
