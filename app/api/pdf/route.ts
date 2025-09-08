@@ -19,7 +19,6 @@ export async function POST(req: NextRequest) {
 
     await page.setContent(html, { waitUntil: 'networkidle0' });
 
-
     const pdfBuffer = await page.pdf({
       format: 'A4',
       printBackground: true,
@@ -29,8 +28,13 @@ export async function POST(req: NextRequest) {
 
     await browser.close();
 
-    // Return PDF buffer; client controls filename via anchor download attribute
-    return new Response(pdfBuffer, {
+    // Convert Buffer -> precise ArrayBuffer for Web Response
+    const pdfArrayBuffer = pdfBuffer.buffer.slice(
+      pdfBuffer.byteOffset,
+      pdfBuffer.byteOffset + pdfBuffer.byteLength
+    );
+
+    return new Response(pdfArrayBuffer, {
       status: 200,
       headers: {
         'Content-Type': 'application/pdf'

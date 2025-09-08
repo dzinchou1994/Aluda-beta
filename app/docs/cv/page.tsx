@@ -1,4 +1,4 @@
-'use client';
+'use client'; ძა
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
@@ -2029,15 +2029,15 @@ export default function CVGeneratorPage() {
             {/* Controls Row */}
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
               {/* Template Selector - Mobile Friendly */}
-              <div className="flex items-center space-x-2">
-                <label className="text-sm text-slate-600 whitespace-nowrap">Template:</label>
+              <div className="flex items-center space-x-2 px-3 py-2 bg-slate-50 rounded-lg border border-slate-200">
+                <label className="text-sm text-slate-700 whitespace-nowrap font-medium">შაბლონი:</label>
                 <select
                   value={cvTemplate}
                   onChange={(e) => setCvTemplate(e.target.value as 'minimal' | 'classic')}
-                  className="px-3 py-2 rounded-lg border border-slate-300 bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                  className="px-3 py-2 rounded-lg border border-slate-300 bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm shadow-sm"
                 >
-                  <option value="minimal">Minimalistic</option>
-                  <option value="classic">Classic</option>
+                  <option value="minimal">მინიმალისტური</option>
+                  <option value="classic">კლასიკური</option>
                 </select>
               </div>
               
@@ -2045,12 +2045,12 @@ export default function CVGeneratorPage() {
               <button
                 type="button"
                 onClick={resetForm}
-                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex items-center space-x-2"
+                className="px-4 py-2 bg-white text-red-600 border border-red-200 rounded-lg hover:bg-red-50 transition-colors flex items-center space-x-2"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                 </svg>
-                <span className="text-sm sm:text-base">Reset</span>
+                <span className="text-sm sm:text-base">გასუფთავება</span>
               </button>
               
               {/* Live Preview Button */}
