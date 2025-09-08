@@ -29,7 +29,9 @@ export async function POST(req: NextRequest) {
     await browser.close();
 
     // Convert Uint8Array to ArrayBuffer to satisfy TypeScript strict typing
-    const arrayBuffer = pdfBuffer.buffer.slice(pdfBuffer.byteOffset, pdfBuffer.byteOffset + pdfBuffer.byteLength);
+    const arrayBuffer = new ArrayBuffer(pdfBuffer.length);
+    const uint8View = new Uint8Array(arrayBuffer);
+    uint8View.set(pdfBuffer);
     
     return new Response(arrayBuffer, {
       status: 200,
