@@ -196,6 +196,7 @@ interface CVData {
 const STORAGE_KEY = 'cv-generator-data';
 
 const saveToLocalStorage = (data: CVData) => {
+  if (typeof window === 'undefined') return;
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
   } catch (error) {
@@ -204,6 +205,7 @@ const saveToLocalStorage = (data: CVData) => {
 };
 
 const loadFromLocalStorage = (): CVData | null => {
+  if (typeof window === 'undefined') return null;
   try {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved) {
@@ -216,6 +218,7 @@ const loadFromLocalStorage = (): CVData | null => {
 };
 
 const clearLocalStorage = () => {
+  if (typeof window === 'undefined') return;
   try {
     localStorage.removeItem(STORAGE_KEY);
   } catch (error) {
@@ -225,23 +228,21 @@ const clearLocalStorage = () => {
 
 export default function CVGeneratorPage() {
   const router = useRouter();
+  const [isClient, setIsClient] = useState(false);
   
   // Initialize state with data from localStorage or default values
-  const [cvData, setCvData] = useState<CVData>(() => {
-    const savedData = loadFromLocalStorage();
-    return savedData || {
-      fullName: '',
-      email: '',
-      phone: '',
-      address: '',
-      linkedin: '',
-      summary: '',
-      experience: '',
-      education: '',
-      skills: '',
-      languages: [],
-      picture: ''
-    };
+  const [cvData, setCvData] = useState<CVData>({
+    fullName: '',
+    email: '',
+    phone: '',
+    address: '',
+    linkedin: '',
+    summary: '',
+    experience: '',
+    education: '',
+    skills: '',
+    languages: [],
+    picture: ''
   });
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedCV, setGeneratedCV] = useState<string>('');
@@ -262,10 +263,21 @@ export default function CVGeneratorPage() {
   const a4WidthPx = 794; // 210mm @ ~96dpi
   const a4HeightPx = 1123; // 297mm @ ~96dpi
 
-  // Auto-save to localStorage whenever cvData changes
+  // Initialize client-side and load data from localStorage
   useEffect(() => {
-    saveToLocalStorage(cvData);
-  }, [cvData]);
+    setIsClient(true);
+    const savedData = loadFromLocalStorage();
+    if (savedData) {
+      setCvData(savedData);
+    }
+  }, []);
+
+  // Auto-save to localStorage whenever cvData changes (only on client)
+  useEffect(() => {
+    if (isClient) {
+      saveToLocalStorage(cvData);
+    }
+  }, [cvData, isClient]);
 
   const handleInputChange = (field: keyof CVData, value: string) => {
     setCvData(prev => ({ ...prev, [field]: value }));
@@ -633,7 +645,7 @@ export default function CVGeneratorPage() {
                 </label>
                 <div className="flex items-center space-x-4">
                   <div className="relative">
-                    {cvData.picture ? (
+                    {isClient && cvData.picture ? (
                       <div className="w-20 h-20 rounded-full overflow-hidden border-2 border-slate-300">
                         <img
                           src={cvData.picture}
@@ -663,7 +675,7 @@ export default function CVGeneratorPage() {
                     >
                       ფოტოს არჩევა
                     </label>
-                    {cvData.picture && (
+                    {isClient && cvData.picture && (
                       <button
                         type="button"
                         onClick={removePicture}
