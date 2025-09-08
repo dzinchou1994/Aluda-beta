@@ -4,6 +4,180 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Brain } from 'lucide-react';
 
+interface LanguageSkill {
+  name: string;
+  level: 'Beginner' | 'Elementary' | 'Intermediate' | 'Advanced' | 'Native' | 'Fluent';
+}
+
+interface LanguageSkillsInputProps {
+  languages: LanguageSkill[];
+  onAddLanguage: (name: string, level: LanguageSkill['level']) => void;
+  onRemoveLanguage: (index: number) => void;
+  onUpdateLanguageLevel: (index: number, level: LanguageSkill['level']) => void;
+  popularLanguages: string[];
+}
+
+const LanguageSkillsInput: React.FC<LanguageSkillsInputProps> = ({
+  languages,
+  onAddLanguage,
+  onRemoveLanguage,
+  onUpdateLanguageLevel,
+  popularLanguages
+}) => {
+  const [newLanguage, setNewLanguage] = useState('');
+  const [newLevel, setNewLevel] = useState<LanguageSkill['level']>('Intermediate');
+  const [showSuggestions, setShowSuggestions] = useState(false);
+
+  const filteredLanguages = popularLanguages.filter(lang =>
+    lang.toLowerCase().includes(newLanguage.toLowerCase()) &&
+    !languages.some(existing => existing.name.toLowerCase() === lang.toLowerCase())
+  );
+
+  const handleAddLanguage = () => {
+    if (newLanguage.trim()) {
+      onAddLanguage(newLanguage, newLevel);
+      setNewLanguage('');
+      setShowSuggestions(false);
+    }
+  };
+
+  const handleLanguageSelect = (language: string) => {
+    setNewLanguage(language);
+    setShowSuggestions(false);
+  };
+
+  const getLevelColor = (level: LanguageSkill['level']) => {
+    const colors = {
+      'Beginner': 'bg-red-100 text-red-800',
+      'Elementary': 'bg-orange-100 text-orange-800',
+      'Intermediate': 'bg-yellow-100 text-yellow-800',
+      'Advanced': 'bg-blue-100 text-blue-800',
+      'Native': 'bg-green-100 text-green-800',
+      'Fluent': 'bg-green-100 text-green-800'
+    };
+    return colors[level];
+  };
+
+  const getLevelBars = (level: LanguageSkill['level']) => {
+    const levelMap = { 'Beginner': 1, 'Elementary': 2, 'Intermediate': 3, 'Advanced': 4, 'Native': 5, 'Fluent': 5 };
+    const filled = levelMap[level];
+    return Array.from({length: 5}, (_, i) => (
+      <div
+        key={i}
+        className={`w-3 h-1.5 rounded-full transition-colors ${
+          i < filled ? 'bg-blue-500' : 'bg-slate-200'
+        }`}
+      />
+    ));
+  };
+
+  return (
+    <div className="space-y-4">
+      {/* Add new language */}
+      <div className="flex flex-col sm:flex-row gap-3">
+        <div className="flex-1 relative">
+          <input
+            type="text"
+            value={newLanguage}
+            onChange={(e) => {
+              setNewLanguage(e.target.value);
+              setShowSuggestions(e.target.value.length > 0);
+            }}
+            onFocus={() => setShowSuggestions(newLanguage.length > 0)}
+            onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
+            className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            placeholder="შეიყვანეთ ენის სახელი..."
+          />
+          {showSuggestions && filteredLanguages.length > 0 && (
+            <div className="absolute z-10 w-full mt-1 bg-white border border-slate-200 rounded-lg shadow-lg max-h-48 overflow-y-auto">
+              {filteredLanguages.slice(0, 8).map((language, index) => (
+                <button
+                  key={index}
+                  type="button"
+                  onClick={() => handleLanguageSelect(language)}
+                  className="w-full px-4 py-2 text-left hover:bg-slate-50 focus:bg-slate-50 focus:outline-none"
+                >
+                  {language}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+        <select
+          value={newLevel}
+          onChange={(e) => setNewLevel(e.target.value as LanguageSkill['level'])}
+          className="px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
+        >
+          <option value="Beginner">დამწყები</option>
+          <option value="Elementary">ელემენტარული</option>
+          <option value="Intermediate">საშუალო</option>
+          <option value="Advanced">მაღალი</option>
+          <option value="Fluent">თავისუფალი</option>
+          <option value="Native">მშობლიური</option>
+        </select>
+        <button
+          type="button"
+          onClick={handleAddLanguage}
+          disabled={!newLanguage.trim()}
+          className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center"
+        >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+          </svg>
+        </button>
+      </div>
+
+      {/* Language list */}
+      {languages.length > 0 && (
+        <div className="space-y-3">
+          {languages.map((language, index) => (
+            <div key={index} className="flex items-center justify-between p-4 bg-slate-50 rounded-lg border border-slate-200">
+              <div className="flex items-center space-x-4">
+                <div className="flex items-center space-x-2">
+                  <span className="font-medium text-slate-800">{language.name}</span>
+                  <div className="flex space-x-1">
+                    {getLevelBars(language.level)}
+                  </div>
+                </div>
+                <select
+                  value={language.level}
+                  onChange={(e) => onUpdateLanguageLevel(index, e.target.value as LanguageSkill['level'])}
+                  className="px-3 py-1 text-sm border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
+                >
+                  <option value="Beginner">დამწყები</option>
+                  <option value="Elementary">ელემენტარული</option>
+                  <option value="Intermediate">საშუალო</option>
+                  <option value="Advanced">მაღალი</option>
+                  <option value="Fluent">თავისუფალი</option>
+                  <option value="Native">მშობლიური</option>
+                </select>
+              </div>
+              <button
+                type="button"
+                onClick={() => onRemoveLanguage(index)}
+                className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {languages.length === 0 && (
+        <div className="text-center py-8 text-slate-500">
+          <svg className="w-12 h-12 mx-auto mb-3 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129" />
+          </svg>
+          <p className="text-sm">დაამატეთ ენის უნარები</p>
+        </div>
+      )}
+    </div>
+  );
+};
+
 interface CVData {
   fullName: string;
   email: string;
@@ -14,6 +188,7 @@ interface CVData {
   experience: string;
   education: string;
   skills: string;
+  languages: LanguageSkill[];
   picture: string;
 }
 
@@ -29,6 +204,7 @@ export default function CVGeneratorPage() {
     experience: '',
     education: '',
     skills: '',
+    languages: [],
     picture: ''
   });
   const [isGenerating, setIsGenerating] = useState(false);
@@ -36,6 +212,15 @@ export default function CVGeneratorPage() {
   const [showLivePreview, setShowLivePreview] = useState(true);
   const [previewZoom, setPreviewZoom] = useState(0.5);
   const [cvTemplate, setCvTemplate] = useState<'minimal' | 'classic'>('minimal');
+
+  // Popular languages for autocomplete
+  const popularLanguages = [
+    'English', 'Spanish', 'French', 'German', 'Italian', 'Portuguese', 'Russian', 'Chinese', 'Japanese', 'Korean',
+    'Arabic', 'Hindi', 'Bengali', 'Urdu', 'Turkish', 'Polish', 'Dutch', 'Swedish', 'Norwegian', 'Danish',
+    'Finnish', 'Greek', 'Hebrew', 'Thai', 'Vietnamese', 'Indonesian', 'Malay', 'Filipino', 'Georgian', 'Armenian',
+    'Azerbaijani', 'Ukrainian', 'Romanian', 'Bulgarian', 'Croatian', 'Serbian', 'Slovak', 'Czech', 'Hungarian',
+    'Lithuanian', 'Latvian', 'Estonian', 'Slovenian', 'Macedonian', 'Albanian', 'Moldovan', 'Belarusian'
+  ];
 
   // Approximate A4 size at 96 DPI
   const a4WidthPx = 794; // 210mm @ ~96dpi
@@ -59,6 +244,29 @@ export default function CVGeneratorPage() {
 
   const removePicture = () => {
     setCvData(prev => ({ ...prev, picture: '' }));
+  };
+
+  const addLanguage = (name: string, level: LanguageSkill['level']) => {
+    if (name.trim() && !cvData.languages.some(lang => lang.name.toLowerCase() === name.toLowerCase())) {
+      setCvData(prev => ({
+        ...prev,
+        languages: [...prev.languages, { name: name.trim(), level }]
+      }));
+    }
+  };
+
+  const removeLanguage = (index: number) => {
+    setCvData(prev => ({
+      ...prev,
+      languages: prev.languages.filter((_, i) => i !== index)
+    }));
+  };
+
+  const updateLanguageLevel = (index: number, level: LanguageSkill['level']) => {
+    setCvData(prev => ({
+      ...prev,
+      languages: prev.languages.map((lang, i) => i === index ? { ...lang, level } : lang)
+    }));
   };
 
   const generateLivePreview = () => {
@@ -124,6 +332,14 @@ export default function CVGeneratorPage() {
           .chip { display: inline-block; padding: 6px 10px; border-radius: 9999px; background: var(--subtle); border: 1px solid var(--border); font-size: 13px; color: var(--text); }
           .placeholder { color: #94a3b8; }
           .placeholder-block { background: #f1f5f9; border: 1px dashed #cbd5e1; border-radius: 8px; padding: 12px; }
+          .languages-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; }
+          .language-item { display: flex; flex-direction: column; gap: 8px; }
+          .language-name { font-weight: 600; color: var(--text); font-size: 14px; }
+          .language-level { display: flex; align-items: center; gap: 12px; }
+          .level-bars { display: flex; gap: 3px; }
+          .level-bar { width: 12px; height: 4px; border-radius: 2px; background: var(--border); transition: background-color 0.2s; }
+          .level-bar.filled { background: var(--accent); }
+          .level-text { font-size: 12px; color: var(--muted); font-weight: 500; }
           /* Classic tweaks */
           .t-classic .cv-header { text-align: left; padding-bottom: 12px; border-bottom: 2px solid var(--accent); }
           .t-classic .cv-name { font-size: 36px; letter-spacing: 0; }
@@ -165,6 +381,29 @@ export default function CVGeneratorPage() {
           <div class="cv-section cv-skills">
             <h2>უნარები</h2>
             ${skillItems.length ? `<div class="chips">${skillItems.map(s => `<span class="chip">${s}</span>`).join('')}</div>` : `<div class="placeholder-block"><p class="placeholder">ჩამოთვალეთ თქვენი ძირითადი ტექნიკური და რბილი უნარები...</p></div>`}
+          </div>
+
+          <div class="cv-section cv-languages">
+            <h2>ენები</h2>
+            ${data.languages && data.languages.length ? `
+              <div class="languages-grid">
+                ${data.languages.map(lang => `
+                  <div class="language-item">
+                    <div class="language-name">${lang.name}</div>
+                    <div class="language-level">
+                      <div class="level-bars">
+                        ${Array.from({length: 5}, (_, i) => {
+                          const levelMap = { 'Beginner': 1, 'Elementary': 2, 'Intermediate': 3, 'Advanced': 4, 'Native': 5, 'Fluent': 5 };
+                          const filled = i < levelMap[lang.level];
+                          return `<div class="level-bar ${filled ? 'filled' : ''}"></div>`;
+                        }).join('')}
+                      </div>
+                      <span class="level-text">${lang.level}</span>
+                    </div>
+                  </div>
+                `).join('')}
+              </div>
+            ` : `<div class="placeholder-block"><p class="placeholder">დაამატეთ თქვენი ენის უნარები და მათი დონე...</p></div>`}
           </div>
         </div>
       </body>
@@ -482,6 +721,20 @@ export default function CVGeneratorPage() {
                   className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   rows={3}
                   placeholder="შეიყვანეთ თქვენი უნარები..."
+                />
+              </div>
+
+              {/* Languages */}
+              <div>
+                <label className="block text-sm font-semibold text-slate-700 mb-2">
+                  ენები
+                </label>
+                <LanguageSkillsInput 
+                  languages={cvData.languages}
+                  onAddLanguage={addLanguage}
+                  onRemoveLanguage={removeLanguage}
+                  onUpdateLanguageLevel={updateLanguageLevel}
+                  popularLanguages={popularLanguages}
                 />
               </div>
 
