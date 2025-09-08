@@ -161,13 +161,13 @@ export default function ChatMessage({ message, index, shouldAnimate }: ChatMessa
       }`}>
         {message.role === 'user' ? (
           // User message with bubble
-          <div className="px-3 py-2 inline-block w-auto max-w-[85%] sm:max-w-[70ch] shadow-sm transition-all duration-200 hover:shadow-md chat-bubble chat-bubble-user text-left">
+          <div className="px-4 py-3 inline-block w-auto max-w-[90%] sm:max-w-[70ch] shadow-sm transition-all duration-200 hover:shadow-md chat-bubble chat-bubble-user text-left">
             <div className="space-y-2">
               {message.imageUrl && (
                 <img src={message.imageUrl} alt="attachment" className="rounded-md border border-gray-200 dark:border-gray-700 max-w-full" />
               )}
               {message.content && (
-                <span className="inline-block text-[0.9rem] leading-[1.5] whitespace-pre-wrap break-words text-left" style={{ wordBreak: 'normal' }}>{message.content}</span>
+                <span className="inline-block text-[0.9rem] leading-[1.5] whitespace-pre-wrap text-left" style={{ wordBreak: 'normal', overflowWrap: 'break-word' }}>{message.content}</span>
               )}
             </div>
           </div>
