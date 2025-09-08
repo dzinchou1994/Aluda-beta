@@ -2,7 +2,7 @@
 
 import { Message } from '@/hooks/useChats';
 import { useTypingEffect } from '@/hooks/useTypingEffect';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import remarkBreaks from 'remark-breaks';
@@ -20,8 +20,7 @@ const mdComponents = {
   img: (props: any) => (
     <img 
       {...props} 
-      className="rounded-md border border-gray-200 dark:border-gray-700 max-w-[200px] max-h-[200px] object-cover cursor-pointer hover:opacity-90 transition-opacity" 
-      onClick={() => window.open(props.src, '_blank')}
+      className="rounded-md border border-gray-200 dark:border-gray-700 max-w-[200px] max-h-[200px] object-cover" 
     />
   ),
   h1: ({ children }: any) => <h3 className="mt-3 mb-2 font-semibold">{children}</h3>,
@@ -117,6 +116,12 @@ export default function ChatMessage({ message, index, shouldAnimate }: ChatMessa
   // shouldAnimate should only be true for messages that are actually being created right now
   const shouldUseTypingEffect = message.role === 'assistant' && shouldAnimate && message.content;
   
+  // Track image loading errors for user attachments
+  const [imageError, setImageError] = useState(false);
+  useEffect(() => {
+    setImageError(false);
+  }, [message.imageUrl]);
+  
   const { displayedText, isTyping, startTyping, isComplete } = useTypingEffect({
     text: message.content || '',
     duration: 750, // 750ms total duration for typing effect (2x slower than before)
@@ -147,13 +152,6 @@ export default function ChatMessage({ message, index, shouldAnimate }: ChatMessa
         <div 
           className="flowise-html" 
           dangerouslySetInnerHTML={{ __html: normalized }}
-          onClick={(e) => {
-            const target = e.target as HTMLElement;
-            if (target.tagName === 'IMG') {
-              const img = target as HTMLImageElement;
-              window.open(img.src, '_blank');
-            }
-          }}
         />
       );
     }
@@ -181,12 +179,18 @@ export default function ChatMessage({ message, index, shouldAnimate }: ChatMessa
           <div className="px-4 py-3 inline-block w-auto max-w-[90%] sm:max-w-[70ch] shadow-sm transition-all duration-200 hover:shadow-md chat-bubble chat-bubble-user text-left">
             <div className="space-y-2">
               {message.imageUrl && (
-                <img 
-                  src={message.imageUrl} 
-                  alt="attachment" 
-                  className="rounded-md border border-gray-200 dark:border-gray-700 max-w-[200px] max-h-[200px] object-cover cursor-pointer hover:opacity-90 transition-opacity" 
-                  onClick={() => window.open(message.imageUrl, '_blank')}
-                />
+                imageError ? (
+                  <div className="flex items-center justify-center rounded-md border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-500 dark:text-gray-400 text-sm w-[200px] h-[120px]">
+                    Preview not available
+                  </div>
+                ) : (
+                  <img 
+                    src={message.imageUrl} 
+                    alt="attachment" 
+                    className="rounded-md border border-gray-200 dark:border-gray-700 max-w-[200px] max-h-[200px] object-cover" 
+                    onError={() => setImageError(true)}
+                  />
+                )
               )}
               {message.content && (
                 <span className="inline-block text-[0.9rem] leading-[1.5] whitespace-pre-wrap text-left" style={{ wordBreak: 'normal', overflowWrap: 'break-word' }}>{message.content}</span>
