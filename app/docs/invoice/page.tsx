@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Brain } from 'lucide-react';
+import DocsHeader from '@/components/DocsHeader';
 
 interface InvoiceItem {
   id: string;
@@ -249,6 +249,7 @@ export default function InvoiceGeneratorPage() {
   if (generatedInvoice) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
+        <DocsHeader backHref="/docs" backLabel="უკან" title="ინვოისის გენერატორი" showBeta />
         <div className="container mx-auto px-4 py-8">
           <div className="flex justify-between items-center mb-6">
             <button
@@ -298,28 +299,10 @@ export default function InvoiceGeneratorPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
+      <DocsHeader backHref="/docs" backLabel="უკან" title="ინვოისის გენერატორი" showBeta />
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-8">
-          {/* Back Button */}
-          <div className="mb-4">
-            <button
-              onClick={() => router.push('/docs')}
-              className="flex items-center space-x-2 px-4 py-2 bg-slate-600 text-white rounded-lg hover:bg-slate-700 transition-colors"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-              </svg>
-              <span>უკან</span>
-            </button>
-          </div>
-          
-          {/* Title */}
-          <div className="flex items-center gap-2 mb-6">
-            <h1 className="text-2xl sm:text-3xl font-bold text-slate-800">ინვოისის გენერატორი</h1>
-            <span className="text-[9px] font-medium bg-gradient-to-r from-orange-500 to-red-500 text-white px-1.5 py-0.5 rounded-full">BETA</span>
-          </div>
-          
           {/* Controls */}
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-end gap-4">
             
