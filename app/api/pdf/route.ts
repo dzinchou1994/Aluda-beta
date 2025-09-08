@@ -4,7 +4,7 @@ export const runtime = 'nodejs';
 
 export async function POST(req: NextRequest) {
   try {
-    const { html, fileName } = await req.json();
+    const { html } = await req.json();
     if (!html || typeof html !== 'string') {
       return new Response('Invalid html', { status: 400 });
     }
@@ -28,13 +28,10 @@ export async function POST(req: NextRequest) {
 
     await browser.close();
 
-    // Convert Buffer -> precise ArrayBuffer for Web Response
-    const pdfArrayBuffer = pdfBuffer.buffer.slice(
-      pdfBuffer.byteOffset,
-      pdfBuffer.byteOffset + pdfBuffer.byteLength
-    );
+    // Use Blob to satisfy BodyInit across environments
+    const blob = new Blob([pdfBuffer], { type: 'application/pdf' });
 
-    return new Response(pdfArrayBuffer, {
+    return new Response(blob, {
       status: 200,
       headers: {
         'Content-Type': 'application/pdf'
