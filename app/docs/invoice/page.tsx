@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { Brain } from 'lucide-react';
 
 interface InvoiceItem {
   id: string;
@@ -313,9 +314,14 @@ export default function InvoiceGeneratorPage() {
             </button>
           </div>
           
-          {/* Title and Controls */}
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          {/* Title */}
+          <div className="flex items-center gap-2 mb-6">
             <h1 className="text-2xl sm:text-3xl font-bold text-slate-800">ინვოისის გენერატორი</h1>
+            <span className="text-[9px] font-medium bg-gradient-to-r from-orange-500 to-red-500 text-white px-1.5 py-0.5 rounded-full">BETA</span>
+          </div>
+          
+          {/* Controls */}
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-end gap-4">
             
             {/* Live Preview Button */}
             <button

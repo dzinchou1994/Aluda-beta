@@ -81,7 +81,10 @@ export default function Sidebar({
             <div className="w-7 h-7 logo-gradient rounded-lg flex items-center justify-center mr-2">
               <Brain className="w-4 h-4 text-white" />
             </div>
-            <h2 className="text-sm font-semibold bg-gradient-to-r from-blue-600 to-purple-600 dark:from-white dark:to-gray-300 bg-clip-text text-transparent">AludaAI</h2>
+            <div className="flex items-center gap-1">
+              <h2 className="text-sm font-semibold bg-gradient-to-r from-blue-600 to-purple-600 dark:from-white dark:to-gray-300 bg-clip-text text-transparent">AludaAI</h2>
+              <span className="text-[10px] font-medium bg-gradient-to-r from-orange-500 to-red-500 text-white px-1 py-0.5 rounded-full">BETA</span>
+            </div>
           </a>
         </div>
         

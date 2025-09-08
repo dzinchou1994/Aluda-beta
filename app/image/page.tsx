@@ -370,7 +370,10 @@ export default function ImageGeneratorPage() {
                 <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-400 rounded-full animate-pulse"></div>
               </div>
               <div>
-                <span className="text-lg font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">AludaAI</span>
+                <div className="flex items-center gap-1">
+                  <span className="text-lg font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">AludaAI</span>
+                  <span className="text-[10px] font-medium bg-gradient-to-r from-orange-500 to-red-500 text-white px-1 py-0.5 rounded-full">BETA</span>
+                </div>
                 <div className="text-xs text-gray-500 dark:text-gray-300">AI Image Generator</div>
               </div>
             </a>
