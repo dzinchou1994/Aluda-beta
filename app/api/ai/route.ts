@@ -30,7 +30,7 @@ export async function POST(req: Request) {
     const data = await upstreamRes.json().catch(() => ({}));
     return NextResponse.json(data, { status: upstreamRes.status });
   } catch (e: any) {
-    return NextResponse.json({ error: e?.message || 'Flowise proxy error' }, { status: 500 });
+    return NextResponse.json({ error: e?.message || 'AI service error' }, { status: 500 });
   }
 }
 

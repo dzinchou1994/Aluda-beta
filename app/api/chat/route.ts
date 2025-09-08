@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { sendToFlowiseWithRetry, suggestTitleWithFlowise } from "@/lib/flowise"
+import { sendToFlowiseWithRetry, suggestTitleWithAI } from "@/lib/flowise"
 import { rateLimit } from "@/lib/rateLimit"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
@@ -417,7 +417,7 @@ export async function POST(request: NextRequest) {
       const isFirstUserMessage = (historyFromRequest?.length || 0) === 0 && Boolean(message?.trim())
       if (isFirstUserMessage && flowiseSessionId) {
         const titleResult = await Promise.race<Promise<string | null> | Promise<null>>([
-          suggestTitleWithFlowise({
+          suggestTitleWithAI({
             question: message,
             sessionId: flowiseSessionId,
             chatflowIdOverride: undefined,

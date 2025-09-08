@@ -98,14 +98,10 @@ export const authOptions: NextAuthOptions = {
               // Update token with correct user ID
               token.id = user.id as any
               (session.user as any).id = user.id
-              console.log('Session user ID auto-corrected:', {
-                oldId: token.id as string,
-                newId: user.id,
-                email: session.user.email
-              })
+              // Session user ID auto-corrected
             }
           } catch (error) {
-            console.error('Session auto-fix error:', error)
+            // Session auto-fix error
           }
         }
       }

@@ -8,7 +8,7 @@ export async function POST(req: Request) {
     const host = process.env.FLOWISE_HOST;
     const chatflowId = process.env.FLOWISE_CHATFLOW_ID;
     if (!host || !chatflowId) {
-      return new Response('FLOWISE_HOST or FLOWISE_CHATFLOW_ID is not set', { status: 500 });
+      return new Response('AI service configuration not set', { status: 500 });
     }
 
     // Try common streaming endpoints in order
@@ -72,7 +72,7 @@ export async function POST(req: Request) {
       },
     });
   } catch (e: any) {
-    return new Response(`Flowise stream proxy error: ${e?.message || 'unknown'}`, { status: 500 });
+    return new Response(`AI stream error: ${e?.message || 'unknown'}`, { status: 500 });
   }
 }
 

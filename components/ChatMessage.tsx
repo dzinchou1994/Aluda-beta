@@ -38,7 +38,7 @@ interface ChatMessageProps {
   shouldAnimate: boolean;
 }
 
-// Insert newlines before inline numbered items (e.g., "1. ... 2. ...") to mimic Flowise lists
+// Insert newlines before inline numbered items (e.g., "1. ... 2. ...") to format lists properly
 function preprocessForMarkdown(raw: string | undefined | null): string {
   if (!raw) return '';
   let text = String(raw).replace(/\r\n/g, '\n');
@@ -140,17 +140,17 @@ export default function ChatMessage({ message, index, shouldAnimate }: ChatMessa
   // No preprocessing: show text exactly as received
   const preprocessContent = (raw: string) => raw || '';
 
-  // Render assistant content using Markdown to mirror Flowise formatting
+  // Render assistant content using Markdown for proper formatting
   const renderAssistantContent = (content: string) => {
     if (content === undefined || content === null) return null;
-    // Prefer HTML if provided (Flowise can output HTML when renderHTML is true)
+    // Prefer HTML if provided (AI service can output HTML when renderHTML is true)
     if (looksLikeHtml(content)) {
       const clean = DOMPurify.sanitize(content, { USE_PROFILES: { html: true } });
       const enhanced = emphasizeListTitlesInHtml(clean);
       const normalized = normalizeHeadingHashesInHtml(enhanced);
       return (
         <div 
-          className="flowise-html" 
+          className="ai-html" 
           dangerouslySetInnerHTML={{ __html: normalized }}
         />
       );
@@ -180,9 +180,7 @@ export default function ChatMessage({ message, index, shouldAnimate }: ChatMessa
             <div className="space-y-2">
               {message.imageUrl && (
                 imageError ? (
-                  <div className="flex items-center justify-center rounded-md border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-500 dark:text-gray-400 text-sm w-[200px] h-[120px]">
-                    Preview not available
-                  </div>
+                  <span className="text-red-500 text-sm">სურათის ანალიზი ვერ მოხერხდა. გთხოვთ სცადოთ ხელახლა.</span>
                 ) : (
                   <img 
                     src={message.imageUrl} 

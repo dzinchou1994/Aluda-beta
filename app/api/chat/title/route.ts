@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { suggestTitleWithFlowise } from '@/lib/flowise'
+import { suggestTitleWithAI } from '@/lib/flowise'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -12,7 +12,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'question is required' }, { status: 400 })
     }
     const sid = sessionId || `title_${Date.now()}`
-    const title = await suggestTitleWithFlowise({
+    const title = await suggestTitleWithAI({
       question,
       sessionId: sid,
       chatflowIdOverride,

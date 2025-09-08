@@ -43,7 +43,7 @@ function cleanAIResponse(text: string): string {
 }
 
 /**
- * Send a message to Flowise via direct API
+ * Send a message to AI service via direct API
  */
 export async function sendToFlowise({
   message,
@@ -481,10 +481,10 @@ export async function sendToFlowiseWithRetry(
 }
 
 /**
- * Ask Flowise to suggest a very short chat title for a given question.
+ * Ask AI to suggest a very short chat title for a given question.
  * Best-effort: returns null on failure.
  */
-export async function suggestTitleWithFlowise({
+export async function suggestTitleWithAI({
   question,
   sessionId,
   chatflowIdOverride,

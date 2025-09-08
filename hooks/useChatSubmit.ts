@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Message } from '@/hooks/useChats';
 import { compressImageIfNeeded, fileToBase64 } from '@/lib/chatUtils';
-import { suggestTitleWithFlowise } from '@/lib/flowise';
+import { suggestTitleWithAI } from '@/lib/flowise';
 
 interface UseChatSubmitProps {
   model: string;
@@ -190,8 +190,8 @@ export function useChatSubmit({
         });
       } else {
         if (useFlowiseProxy) {
-          // Use non-stream proxy for now (Flowise stream endpoint returns HTML on this instance)
-          responsePromise = fetch('/api/flowise', {
+          // Use non-stream proxy for now
+          responsePromise = fetch('/api/ai', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ question: messageToSend, overrideConfig: { renderHTML: true } }),
@@ -207,10 +207,10 @@ export function useChatSubmit({
           
           console.log('Frontend: Sending history to API:', historyForAPI.length, 'messages');
 
-          // Decide if we should trigger Flowise title suggestion (only on very first user message with text)
+          // Decide if we should trigger title suggestion (only on very first user message with text)
           const shouldSuggestTitle = (createdNewChat || historyForAPI.length === 0) && messageToSend.length > 0;
           
-          // Request streaming SSE from our API to mirror Flowise behaviour
+          // Request streaming SSE from our API
           responsePromise = fetch("/api/chat", {
             method: "POST",
             headers: { 
@@ -226,11 +226,11 @@ export function useChatSubmit({
             }),
           });
 
-          // Fire-and-forget Flowise title suggestion so the UI does not wait
+          // Fire-and-forget title suggestion so the UI does not wait
           if (shouldSuggestTitle) {
             (async () => {
               try {
-                const aiTitle = await suggestTitleWithFlowise({
+                const aiTitle = await suggestTitleWithAI({
                   question: messageToSend,
                   sessionId: activeChatId!,
                 });
