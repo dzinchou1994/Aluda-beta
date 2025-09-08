@@ -1948,7 +1948,7 @@ export default function CVGeneratorPage() {
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
             </svg>
-            <span>Download PDF</span>
+            <span>PDF ჩამოტვირთვა</span>
           </button>
         </div>
         
@@ -2068,7 +2068,7 @@ export default function CVGeneratorPage() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                   </svg>
-                  <span className="text-sm sm:text-base">Live Preview</span>
+                  <span className="text-sm sm:text-base">ცოცხალი გადახედვა</span>
                 </span>
               </button>
             </div>
@@ -2292,7 +2292,7 @@ export default function CVGeneratorPage() {
             {showLivePreview && (
               <div className="bg-white rounded-xl shadow-lg p-8 max-h-[800px] flex flex-col lg:sticky lg:top-4">
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-xl font-semibold text-slate-800">Live Preview</h3>
+                  <h3 className="text-xl font-semibold text-slate-800">ცოცხალი გადახედვა</h3>
                   <div className="flex items-center space-x-2">
                     <div className="flex items-center rounded-lg border border-slate-200 overflow-hidden">
                       <button
@@ -2320,25 +2320,7 @@ export default function CVGeneratorPage() {
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                       </svg>
-                      <span>Download PDF</span>
-                    </button>
-                    <button
-                      onClick={() => {
-                        const html = createSimplifiedHTMLForPDF(cvData);
-                        console.log('Simplified HTML for PDF:', html);
-                        const blob = new Blob([html], { type: 'text/html' });
-                        const url = URL.createObjectURL(blob);
-                        const a = document.createElement('a');
-                        a.href = url;
-                        a.download = 'cv-preview.html';
-                        document.body.appendChild(a);
-                        a.click();
-                        document.body.removeChild(a);
-                        URL.revokeObjectURL(url);
-                      }}
-                      className="flex items-center space-x-2 px-3 py-1 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm"
-                    >
-                      <span>Test HTML</span>
+                      <span>PDF ჩამოტვირთვა</span>
                     </button>
                   </div>
                 </div>
