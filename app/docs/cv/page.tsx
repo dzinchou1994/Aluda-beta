@@ -3,6 +3,8 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Brain } from 'lucide-react';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 
 interface LanguageSkill {
   name: string;
@@ -971,16 +973,76 @@ export default function CVGeneratorPage() {
     `;
   };
 
-  const downloadCV = () => {
-    const blob = new Blob([generatedCV], { type: 'text/html' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `CV-${cvData.fullName || 'Document'}.html`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+  const downloadCV = async () => {
+    if (!generatedCV) return;
+    
+    try {
+      // Create a temporary container for the CV content
+      const tempDiv = document.createElement('div');
+      tempDiv.innerHTML = generatedCV;
+      tempDiv.style.position = 'absolute';
+      tempDiv.style.left = '-9999px';
+      tempDiv.style.top = '0';
+      tempDiv.style.width = '210mm'; // A4 width
+      tempDiv.style.backgroundColor = 'white';
+      document.body.appendChild(tempDiv);
+
+      // Convert to canvas
+      const canvas = await html2canvas(tempDiv, {
+        scale: 2,
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: '#ffffff',
+        width: 794, // A4 width in pixels at 96 DPI
+        height: 1123 // A4 height in pixels at 96 DPI
+      });
+
+      // Remove temporary element
+      document.body.removeChild(tempDiv);
+
+      // Create PDF
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4'
+      });
+
+      const imgWidth = 210; // A4 width in mm
+      const pageHeight = 295; // A4 height in mm
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      let heightLeft = imgHeight;
+
+      let position = 0;
+
+      // Add first page
+      pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+      heightLeft -= pageHeight;
+
+      // Add additional pages if needed
+      while (heightLeft >= 0) {
+        position = heightLeft - imgHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight;
+      }
+
+      // Download PDF
+      const fileName = `${cvData.fullName || 'CV'}.pdf`;
+      pdf.save(fileName);
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      // Fallback to HTML download
+      const blob = new Blob([generatedCV], { type: 'text/html' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `CV-${cvData.fullName || 'Document'}.html`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
   };
 
   const printCV = () => {
