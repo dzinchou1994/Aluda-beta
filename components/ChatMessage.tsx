@@ -17,6 +17,13 @@ function looksLikeHtml(text: string): boolean {
 // Render markdown headings as bold, and ensure <strong> is emphasized
 const mdComponents = {
   a: (props: any) => <a {...props} target="_blank" rel="noopener noreferrer" />,
+  img: (props: any) => (
+    <img 
+      {...props} 
+      className="rounded-md border border-gray-200 dark:border-gray-700 max-w-[200px] max-h-[200px] object-cover cursor-pointer hover:opacity-90 transition-opacity" 
+      onClick={() => window.open(props.src, '_blank')}
+    />
+  ),
   h1: ({ children }: any) => <h3 className="mt-3 mb-2 font-semibold">{children}</h3>,
   h2: ({ children }: any) => <h3 className="mt-3 mb-2 font-semibold">{children}</h3>,
   h3: ({ children }: any) => <h3 className="mt-3 mb-2 font-semibold">{children}</h3>,
@@ -137,7 +144,17 @@ export default function ChatMessage({ message, index, shouldAnimate }: ChatMessa
       const enhanced = emphasizeListTitlesInHtml(clean);
       const normalized = normalizeHeadingHashesInHtml(enhanced);
       return (
-        <div className="flowise-html" dangerouslySetInnerHTML={{ __html: normalized }} />
+        <div 
+          className="flowise-html" 
+          dangerouslySetInnerHTML={{ __html: normalized }}
+          onClick={(e) => {
+            const target = e.target as HTMLElement;
+            if (target.tagName === 'IMG') {
+              const img = target as HTMLImageElement;
+              window.open(img.src, '_blank');
+            }
+          }}
+        />
       );
     }
     const pre = preprocessForMarkdown(content);
@@ -164,7 +181,12 @@ export default function ChatMessage({ message, index, shouldAnimate }: ChatMessa
           <div className="px-4 py-3 inline-block w-auto max-w-[90%] sm:max-w-[70ch] shadow-sm transition-all duration-200 hover:shadow-md chat-bubble chat-bubble-user text-left">
             <div className="space-y-2">
               {message.imageUrl && (
-                <img src={message.imageUrl} alt="attachment" className="rounded-md border border-gray-200 dark:border-gray-700 max-w-full" />
+                <img 
+                  src={message.imageUrl} 
+                  alt="attachment" 
+                  className="rounded-md border border-gray-200 dark:border-gray-700 max-w-[200px] max-h-[200px] object-cover cursor-pointer hover:opacity-90 transition-opacity" 
+                  onClick={() => window.open(message.imageUrl, '_blank')}
+                />
               )}
               {message.content && (
                 <span className="inline-block text-[0.9rem] leading-[1.5] whitespace-pre-wrap text-left" style={{ wordBreak: 'normal', overflowWrap: 'break-word' }}>{message.content}</span>

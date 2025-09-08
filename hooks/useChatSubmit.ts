@@ -68,10 +68,10 @@ export function useChatSubmit({
       await new Promise((r) => setTimeout(r, 25)); // Reduced from 50ms to 25ms
     }
     
-    // Allow image-only request for Aluda 2.0, but not for test model
-    if (!(message.trim().length > 0 || (model === 'aluda2' && attachedImage))) return;
+    // Allow image-only request for both Aluda 2.0 and test model
+    if (!(message.trim().length > 0 || attachedImage)) return;
 
-    const isImageOnly = model === 'aluda2' && attachedImage && message.trim().length === 0;
+    const isImageOnly = attachedImage && message.trim().length === 0;
     const messageToSend = isImageOnly ? '' : message.trim();
 
     // Determine if foreign scripts should be allowed based on explicit user intent
@@ -152,7 +152,7 @@ export function useChatSubmit({
     setMessage("");
     
     try {
-      const useMultipart = model === 'aluda2' && attachedImage;
+      const useMultipart = attachedImage && (model === 'aluda2' || model === 'test');
       let responsePromise: Promise<Response>;
       
       if (useMultipart) {

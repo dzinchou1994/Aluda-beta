@@ -361,3 +361,18 @@ textarea {
   font-weight: 600;
   font-size: inherit;
 }
+.flowise-html img {
+  max-width: 200px !important;
+  max-height: 200px !important;
+  object-fit: cover;
+  border-radius: 0.375rem;
+  border: 1px solid rgb(229 231 235);
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+.flowise-html img:hover {
+  opacity: 0.9;
+}
+.dark .flowise-html img {
+  border-color: rgb(55 65 81);
+}
