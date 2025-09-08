@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Brain } from 'lucide-react';
 
@@ -192,20 +192,56 @@ interface CVData {
   picture: string;
 }
 
+// localStorage utility functions
+const STORAGE_KEY = 'cv-generator-data';
+
+const saveToLocalStorage = (data: CVData) => {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  } catch (error) {
+    console.warn('Failed to save CV data to localStorage:', error);
+  }
+};
+
+const loadFromLocalStorage = (): CVData | null => {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) {
+      return JSON.parse(saved);
+    }
+  } catch (error) {
+    console.warn('Failed to load CV data from localStorage:', error);
+  }
+  return null;
+};
+
+const clearLocalStorage = () => {
+  try {
+    localStorage.removeItem(STORAGE_KEY);
+  } catch (error) {
+    console.warn('Failed to clear CV data from localStorage:', error);
+  }
+};
+
 export default function CVGeneratorPage() {
   const router = useRouter();
-  const [cvData, setCvData] = useState<CVData>({
-    fullName: '',
-    email: '',
-    phone: '',
-    address: '',
-    linkedin: '',
-    summary: '',
-    experience: '',
-    education: '',
-    skills: '',
-    languages: [],
-    picture: ''
+  
+  // Initialize state with data from localStorage or default values
+  const [cvData, setCvData] = useState<CVData>(() => {
+    const savedData = loadFromLocalStorage();
+    return savedData || {
+      fullName: '',
+      email: '',
+      phone: '',
+      address: '',
+      linkedin: '',
+      summary: '',
+      experience: '',
+      education: '',
+      skills: '',
+      languages: [],
+      picture: ''
+    };
   });
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedCV, setGeneratedCV] = useState<string>('');
@@ -225,6 +261,11 @@ export default function CVGeneratorPage() {
   // Approximate A4 size at 96 DPI
   const a4WidthPx = 794; // 210mm @ ~96dpi
   const a4HeightPx = 1123; // 297mm @ ~96dpi
+
+  // Auto-save to localStorage whenever cvData changes
+  useEffect(() => {
+    saveToLocalStorage(cvData);
+  }, [cvData]);
 
   const handleInputChange = (field: keyof CVData, value: string) => {
     setCvData(prev => ({ ...prev, [field]: value }));
@@ -269,6 +310,27 @@ export default function CVGeneratorPage() {
     }));
   };
 
+  const resetForm = () => {
+    if (confirm('ნამდვილად გსურთ ყველა მონაცემის წაშლა? ეს მოქმედება შეუქცევადია.')) {
+      const defaultData: CVData = {
+        fullName: '',
+        email: '',
+        phone: '',
+        address: '',
+        linkedin: '',
+        summary: '',
+        experience: '',
+        education: '',
+        skills: '',
+        languages: [],
+        picture: ''
+      };
+      setCvData(defaultData);
+      clearLocalStorage();
+      setGeneratedCV('');
+    }
+  };
+
   const generateLivePreview = () => {
     return createCVHTML(cvData, cvTemplate);
   };
@@ -286,6 +348,8 @@ export default function CVGeneratorPage() {
       const cvHTML = createCVHTML(cvData, cvTemplate);
       setGeneratedCV(cvHTML);
       setIsGenerating(false);
+      // Clear localStorage after successful generation
+      clearLocalStorage();
     }, 2000);
   };
 
@@ -523,6 +587,18 @@ export default function CVGeneratorPage() {
                   <option value="classic">Classic</option>
                 </select>
               </div>
+              
+              {/* Reset Button */}
+              <button
+                type="button"
+                onClick={resetForm}
+                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex items-center space-x-2"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+                <span className="text-sm sm:text-base">Reset</span>
+              </button>
               
               {/* Live Preview Button */}
               <button
