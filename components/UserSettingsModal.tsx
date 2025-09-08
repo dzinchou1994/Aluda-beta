@@ -149,7 +149,7 @@ export default function UserSettingsModal({ open, onClose, userEmail }: Props) {
                 <div className="text-right">
                   <div className="text-xs text-gray-500 dark:text-gray-400">თვიური ლიმიტი</div>
                   <div className="text-xs text-gray-600 dark:text-gray-400">
-                    {actor?.plan === 'PREMIUM' ? 'Premium' : actor?.type === 'user' ? 'User' : 'Guest'}
+                    {actor?.plan === 'PREMIUM' ? 'Premium' : actor?.type === 'user' ? '' : 'Guest'}
                   </div>
                 </div>
               </div>
