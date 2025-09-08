@@ -1649,15 +1649,32 @@ export default function CVGeneratorPage() {
     if (!response.ok) {
       throw new Error('PDF API returned non-OK');
     }
-    const blob = await response.blob();
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${name}.pdf`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    
+    // The API now returns HTML with print instructions
+    const htmlContent = await response.text();
+    
+    // Open the HTML in a new window for printing
+    const printWindow = window.open('', '_blank');
+    if (printWindow) {
+      printWindow.document.write(htmlContent);
+      printWindow.document.close();
+      
+      // Auto-trigger print dialog after a short delay
+      setTimeout(() => {
+        printWindow.print();
+      }, 500);
+    } else {
+      // Fallback: create a blob and download as HTML
+      const blob = new Blob([htmlContent], { type: 'text/html' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${name}.html`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
   };
 
   const downloadCVFromPreview = async () => {
