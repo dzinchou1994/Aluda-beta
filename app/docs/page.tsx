@@ -16,13 +16,7 @@ export default function DocumentsPage() {
         <div className="container mx-auto px-4 py-3 flex items-center justify-between">
           <button
             type="button"
-            onClick={() => {
-              if (typeof window !== 'undefined' && window.history.length > 1) {
-                router.back();
-              } else {
-                router.push('/');
-              }
-            }}
+            onClick={() => router.push('/chat')}
             className="inline-flex items-center gap-2 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors"
             aria-label="Back"
           >
