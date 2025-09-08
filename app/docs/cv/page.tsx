@@ -1268,6 +1268,35 @@ export default function CVGeneratorPage() {
   const [previewZoom, setPreviewZoom] = useState(0.5);
   const [cvTemplate, setCvTemplate] = useState<'minimal' | 'classic'>('minimal');
 
+  // Step-by-step wizard state
+  const steps = [
+    { key: 'personal', label: 'პირადი' },
+    { key: 'summary', label: 'შესახებ' },
+    { key: 'experience', label: 'გამოცდილება' },
+    { key: 'education', label: 'განათლება' },
+    { key: 'skills', label: 'უნარები' },
+    { key: 'languages', label: 'ენები' },
+    { key: 'final', label: 'დასრულება' },
+  ] as const;
+  const [currentStep, setCurrentStep] = useState<number>(0);
+
+  const canProceedFromStep = (stepIndex: number) => {
+    if (stepIndex === 0) {
+      return Boolean(cvData.fullName && cvData.email && cvData.phone);
+    }
+    return true;
+  };
+
+  const goNext = () => {
+    if (canProceedFromStep(currentStep)) {
+      setCurrentStep(Math.min(currentStep + 1, steps.length - 1));
+    }
+  };
+
+  const goBack = () => {
+    setCurrentStep(Math.max(currentStep - 1, 0));
+  };
+
   // Popular languages for autocomplete
   const popularLanguages = [
     'English', 'Spanish', 'French', 'German', 'Italian', 'Portuguese', 'Russian', 'Chinese', 'Japanese', 'Korean',
@@ -2056,10 +2085,34 @@ export default function CVGeneratorPage() {
           </div>
         </div>
 
+        {/* Sticky Stepper (always visible, even with live preview) */}
+        <div className="sticky top-16 z-30 bg-white/80 dark:bg-slate-900/80 backdrop-blur border-b border-slate-200/60 dark:border-slate-800/60 mb-4">
+          <div className="px-4 py-2 overflow-x-auto">
+            <div className="flex items-center min-w-max">
+              {steps.map((s, idx) => (
+                <div key={s.key} className="flex items-center">
+                  {idx !== 0 && <div className={`h-0.5 w-10 sm:w-14 ${idx <= currentStep ? 'bg-blue-600' : 'bg-slate-200'}`} />}
+                  <button
+                    type="button"
+                    onClick={() => setCurrentStep(idx)}
+                    className={`ml-2 flex items-center gap-2 whitespace-nowrap select-none ${idx === currentStep ? 'text-slate-900' : 'text-slate-500'}`}
+                  >
+                    <span className={`flex items-center justify-center w-7 h-7 rounded-full text-xs font-semibold ${idx <= currentStep ? 'bg-blue-600 text-white' : 'bg-slate-200 text-slate-700'}`}>{idx + 1}</span>
+                    <span className="text-sm">{s.label}</span>
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
         <div className={`mx-auto ${showLivePreview ? 'max-w-7xl' : 'max-w-4xl'}`}>
           <div className={`${showLivePreview ? 'grid grid-cols-1 lg:grid-cols-2 gap-8 items-start' : ''}`}>
             <div className={`bg-white rounded-xl shadow-lg p-8 ${showLivePreview ? 'max-h-[800px] overflow-y-auto' : ''}`}>
             <form onSubmit={(e) => { e.preventDefault(); generateCV(); }} className="space-y-6">
+
+              {/* Step 0: Personal */}
+              <div className={currentStep === 0 ? '' : 'hidden'}>
               {/* Picture Upload */}
               <div className="mb-6">
                 <label className="block text-sm font-semibold text-slate-700 mb-2">
@@ -2176,11 +2229,12 @@ export default function CVGeneratorPage() {
                   />
                 </div>
               </div>
+              </div>
 
               {/* About You */}
-              <div>
+              <div className={currentStep === 1 ? '' : 'hidden'}>
                 <label className="block text-sm font-semibold text-slate-700 mb-2">
-                  შენს შესახებ
+                  შესახებ
                 </label>
                 <textarea
                   value={cvData.summary}
@@ -2192,7 +2246,7 @@ export default function CVGeneratorPage() {
               </div>
 
               {/* Experience */}
-              <div>
+              <div className={currentStep === 2 ? '' : 'hidden'}>
                 <label className="block text-sm font-semibold text-slate-700 mb-2">
                   გამოცდილება
                 </label>
@@ -2205,7 +2259,7 @@ export default function CVGeneratorPage() {
               </div>
 
               {/* Education */}
-              <div>
+              <div className={currentStep === 3 ? '' : 'hidden'}>
                 <label className="block text-sm font-semibold text-slate-700 mb-2">
                   განათლება
                 </label>
@@ -2218,7 +2272,7 @@ export default function CVGeneratorPage() {
               </div>
 
               {/* Skills */}
-              <div>
+              <div className={currentStep === 4 ? '' : 'hidden'}>
                 <label className="block text-sm font-semibold text-slate-700 mb-2">
                   უნარები
                 </label>
@@ -2231,7 +2285,7 @@ export default function CVGeneratorPage() {
               </div>
 
               {/* Languages */}
-              <div>
+              <div className={currentStep === 5 ? '' : 'hidden'}>
                 <label className="block text-sm font-semibold text-slate-700 mb-2">
                   ენები
                 </label>
@@ -2245,7 +2299,8 @@ export default function CVGeneratorPage() {
               </div>
 
               {/* Generate Button */}
-              <div className="flex justify-center pt-6">
+              {/* Final Step: Generate */}
+              <div className={`${currentStep === 6 ? 'flex' : 'hidden'} justify-center pt-6`}>
                 <button
                   type="submit"
                   disabled={isGenerating}
@@ -2265,6 +2320,28 @@ export default function CVGeneratorPage() {
                     </>
                   )}
                 </button>
+              </div>
+
+              {/* Navigation Controls */}
+              <div className="flex items-center justify-between pt-2">
+                <button
+                  type="button"
+                  onClick={goBack}
+                  disabled={currentStep === 0}
+                  className={`px-4 py-2 rounded-lg border ${currentStep === 0 ? 'opacity-50 cursor-not-allowed border-slate-200 text-slate-400' : 'border-slate-300 text-slate-700 hover:bg-slate-50'}`}
+                >
+                  უკან
+                </button>
+                {currentStep < steps.length - 1 && (
+                  <button
+                    type="button"
+                    onClick={goNext}
+                    disabled={!canProceedFromStep(currentStep)}
+                    className={`px-6 py-2 rounded-lg ${canProceedFromStep(currentStep) ? 'bg-blue-600 text-white hover:bg-blue-700' : 'bg-slate-200 text-slate-500 cursor-not-allowed'}`}
+                  >
+                    შემდეგი
+                  </button>
+                )}
               </div>
             </form>
             </div>
