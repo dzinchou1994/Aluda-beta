@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import DocsHeader from '@/components/DocsHeader';
 
@@ -30,6 +30,7 @@ interface InvoiceData {
   notes: string;
   bankName: string;
   bankAccount: string;
+  bankRecipientName: string;
 }
 
 // Georgian banks list
@@ -67,7 +68,8 @@ export default function InvoiceGeneratorPage() {
     taxRate: 0,
     notes: '',
     bankName: '',
-    bankAccount: ''
+    bankAccount: '',
+    bankRecipientName: ''
   });
   const [items, setItems] = useState<InvoiceItem[]>([
     { id: '1', description: '', quantity: 1, price: 0, total: 0 }
@@ -80,10 +82,75 @@ export default function InvoiceGeneratorPage() {
   const [templateStyle, setTemplateStyle] = useState<'modern' | 'classic'>('modern');
   const [useGeorgianVAT, setUseGeorgianVAT] = useState<boolean>(false);
   const [vatIncluded, setVatIncluded] = useState<boolean>(false);
+  const [isInitialLoad, setIsInitialLoad] = useState<boolean>(true);
 
   // Approximate A4 size at 96 DPI
   const a4WidthPx = 794; // 210mm @ ~96dpi
   const a4HeightPx = 1123; // 297mm @ ~96dpi
+
+  // Load saved data on component mount
+  useEffect(() => {
+    const savedData = localStorage.getItem('invoiceData');
+    const savedItems = localStorage.getItem('invoiceItems');
+    const savedSettings = localStorage.getItem('invoiceSettings');
+    
+    if (savedData) {
+      try {
+        const parsedData = JSON.parse(savedData);
+        setInvoiceData(parsedData);
+      } catch (error) {
+        console.error('Error loading saved invoice data:', error);
+      }
+    }
+    
+    if (savedItems) {
+      try {
+        const parsedItems = JSON.parse(savedItems);
+        setItems(parsedItems);
+      } catch (error) {
+        console.error('Error loading saved items:', error);
+      }
+    }
+    
+    if (savedSettings) {
+      try {
+        const parsedSettings = JSON.parse(savedSettings);
+        setUseGeorgianVAT(parsedSettings.useGeorgianVAT || false);
+        setVatIncluded(parsedSettings.vatIncluded || false);
+        setCustomBankName(parsedSettings.customBankName || '');
+        setTemplateStyle(parsedSettings.templateStyle || 'modern');
+      } catch (error) {
+        console.error('Error loading saved settings:', error);
+      }
+    }
+    
+    // Mark initial load as complete
+    setIsInitialLoad(false);
+  }, []);
+
+  // Save data whenever it changes (but not during initial load)
+  useEffect(() => {
+    if (!isInitialLoad) {
+      localStorage.setItem('invoiceData', JSON.stringify(invoiceData));
+    }
+  }, [invoiceData, isInitialLoad]);
+
+  useEffect(() => {
+    if (!isInitialLoad) {
+      localStorage.setItem('invoiceItems', JSON.stringify(items));
+    }
+  }, [items, isInitialLoad]);
+
+  useEffect(() => {
+    if (!isInitialLoad) {
+      localStorage.setItem('invoiceSettings', JSON.stringify({
+        useGeorgianVAT,
+        vatIncluded,
+        customBankName,
+        templateStyle
+      }));
+    }
+  }, [useGeorgianVAT, vatIncluded, customBankName, templateStyle, isInitialLoad]);
 
   const handleInputChange = (field: keyof InvoiceData, value: string | number) => {
     setInvoiceData(prev => ({ ...prev, [field]: value }));
@@ -308,20 +375,21 @@ export default function InvoiceGeneratorPage() {
               ${isVatIncluded && data.taxRate > 0 ? `
                 <div class="row"><span>ჯამი (დღგ-ს გარეშე)</span><span>₾${subtotal.toFixed(2)}</span></div>
                 <div class="row"><span>${isGeorgianVAT ? 'დღგ' : 'გადასახადი'} ${data.taxRate}%</span><span>₾${tax.toFixed(2)}</span></div>
-                <div class="row total"><span>სულ (დღგ-ს ჩათვლით)</span><span>₾${total.toFixed(2)}</span></div>
+                <div class="row total"><span>საბოლოო ჯამი (დღგ-თან)</span><span>₾${total.toFixed(2)}</span></div>
               ` : `
                 <div class="row"><span>ჯამი</span><span>₾${subtotal.toFixed(2)}</span></div>
                 ${data.taxRate > 0 ? `<div class="row"><span>${isGeorgianVAT ? 'დღგ' : 'გადასახადი'} ${data.taxRate}%</span><span>₾${tax.toFixed(2)}</span></div>` : ''}
-                <div class="row total"><span>სულ</span><span>₾${total.toFixed(2)}</span></div>
+                <div class="row total"><span>საბოლოო ჯამი</span><span>₾${total.toFixed(2)}</span></div>
               `}
             </div>
           </div>
 
-          ${displayBankName || data.bankAccount ? `
+          ${displayBankName || data.bankAccount || data.bankRecipientName ? `
           <div class="notes">
             <div class="badge">ბანკის ანგარიშის ინფორმაცია</div>
             ${displayBankName ? `<p><strong>ბანკი:</strong> ${displayBankName}</p>` : ''}
             ${data.bankAccount ? `<p><strong>ანგარიშის ნომერი:</strong> ${data.bankAccount}</p>` : ''}
+            ${data.bankRecipientName ? `<p><strong>მიმღების სახელი:</strong> ${data.bankRecipientName}</p>` : ''}
           </div>
           ` : ''}
 
@@ -433,20 +501,21 @@ export default function InvoiceGeneratorPage() {
               ${isVatIncluded && data.taxRate > 0 ? `
                 <div class="row"><span>ჯამი (დღგ-ს გარეშე)</span><span>₾${subtotal.toFixed(2)}</span></div>
                 <div class="row"><span>${isGeorgianVAT ? 'დღგ' : 'გადასახადი'} ${data.taxRate}%</span><span>₾${tax.toFixed(2)}</span></div>
-                <div class="row total"><span>სულ (დღგ-ს ჩათვლით)</span><span>₾${total.toFixed(2)}</span></div>
+                <div class="row total"><span>საბოლოო ჯამი (დღგ-თან)</span><span>₾${total.toFixed(2)}</span></div>
               ` : `
                 <div class="row"><span>ჯამი</span><span>₾${subtotal.toFixed(2)}</span></div>
                 ${data.taxRate > 0 ? `<div class="row"><span>${isGeorgianVAT ? 'დღგ' : 'გადასახადი'} ${data.taxRate}%</span><span>₾${tax.toFixed(2)}</span></div>` : ''}
-                <div class="row total"><span>სულ</span><span>₾${total.toFixed(2)}</span></div>
+                <div class="row total"><span>საბოლოო ჯამი</span><span>₾${total.toFixed(2)}</span></div>
               `}
             </div>
           </div>
 
-          ${displayBankName || data.bankAccount ? `
+          ${displayBankName || data.bankAccount || data.bankRecipientName ? `
           <div class="notes">
             <div class="badge">ბანკის ანგარიშის ინფორმაცია</div>
             ${displayBankName ? `<p><strong>ბანკი:</strong> ${displayBankName}</p>` : ''}
             ${data.bankAccount ? `<p><strong>ანგარიშის ნომერი:</strong> ${data.bankAccount}</p>` : ''}
+            ${data.bankRecipientName ? `<p><strong>მიმღების სახელი:</strong> ${data.bankRecipientName}</p>` : ''}
           </div>
           ` : ''}
 
@@ -841,7 +910,7 @@ export default function InvoiceGeneratorPage() {
                           value={item.description}
                           onChange={(e) => updateItem(item.id, 'description', e.target.value)}
                           className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                          placeholder="ნივთის აღწერა"
+                          placeholder="პროდუქტის დასახელება"
                         />
                       </div>
                       <div className="col-span-2">
@@ -851,9 +920,10 @@ export default function InvoiceGeneratorPage() {
                         <input
                           type="number"
                           min="1"
-                          value={item.quantity}
+                          value={item.quantity || ''}
                           onChange={(e) => updateItem(item.id, 'quantity', parseInt(e.target.value) || 1)}
                           className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                          placeholder="1"
                         />
                       </div>
                       <div className="col-span-2">
@@ -864,9 +934,10 @@ export default function InvoiceGeneratorPage() {
                           type="number"
                           min="0"
                           step="0.01"
-                          value={item.price}
+                          value={item.price || ''}
                           onChange={(e) => updateItem(item.id, 'price', parseFloat(e.target.value) || 0)}
                           className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                          placeholder="0.00"
                         />
                       </div>
                       <div className="col-span-2">
@@ -945,6 +1016,18 @@ export default function InvoiceGeneratorPage() {
                       placeholder="GE00TB0000000000000000"
                     />
                   </div>
+                  <div className="md:col-span-2">
+                    <label className="block text-sm font-semibold text-slate-700 mb-2">
+                      მიმღების სახელი
+                    </label>
+                    <input
+                      type="text"
+                      value={invoiceData.bankRecipientName}
+                      onChange={(e) => handleInputChange('bankRecipientName', e.target.value)}
+                      className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                      placeholder="კომპანიის სახელი ან ფიზიკური პირის სახელი"
+                    />
+                  </div>
                 </div>
               </div>
 
@@ -995,7 +1078,7 @@ export default function InvoiceGeneratorPage() {
                           className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 focus:ring-2"
                         />
                         <label htmlFor="vat-included" className="text-sm font-medium text-slate-700">
-                          ფასში შესულია დ.ღ.გ
+                          ფასში შეიყვანე დღგ
                         </label>
                       </div>
                     </div>
@@ -1036,8 +1119,51 @@ export default function InvoiceGeneratorPage() {
                 </div>
               </div>
 
-              {/* Generate Button */}
-              <div className="flex justify-center pt-6">
+              {/* Generate and Clear Buttons */}
+              <div className="flex justify-center gap-4 pt-6">
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (confirm('ნამდვილად გსურთ ყველა მონაცემის წაშლა?')) {
+                      // Reset all form data
+                      setInvoiceData({
+                        billerName: '',
+                        billerAddress: '',
+                        billerEmail: '',
+                        billerPhone: '',
+                        billerCompanyId: '',
+                        billerLogo: '',
+                        clientName: '',
+                        clientAddress: '',
+                        clientEmail: '',
+                        clientPhone: '',
+                        clientCompanyId: '',
+                        invoiceNumber: '',
+                        invoiceDate: new Date().toISOString().split('T')[0],
+                        taxRate: 0,
+                        notes: '',
+                        bankName: '',
+                        bankAccount: '',
+                        bankRecipientName: ''
+                      });
+                      setItems([{ id: '1', description: '', quantity: 1, price: 0, total: 0 }]);
+                      setUseGeorgianVAT(false);
+                      setVatIncluded(false);
+                      setCustomBankName('');
+                      // Clear saved data
+                      localStorage.removeItem('invoiceData');
+                      localStorage.removeItem('invoiceItems');
+                      localStorage.removeItem('invoiceSettings');
+                    }
+                  }}
+                  className="px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-all duration-200 shadow-lg hover:shadow-xl flex items-center space-x-2"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                  <span>გასუფთავება</span>
+                </button>
+                
                 <button
                   type="submit"
                   disabled={isGenerating}
