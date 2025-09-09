@@ -136,105 +136,33 @@ export async function sendToFlowise({
       const dataUrl = `data:${mime};base64,${base64}`
       const fname = (file as any)?.name || 'upload.jpg'
       
-      // Try internal-prediction endpoint first (most reliable for image uploads)
-      const internalBody = {
+      // Use prediction endpoint for image uploads (API key based)
+      const predictionBody = {
         question: requestBody.question || '',
-        chatId: requestBody.overrideConfig?.sessionId || '',
+        history: requestBody.history || [],
         uploads: [{ data: dataUrl, name: fname, mime, type: 'file' }],
         overrideConfig: requestBody.overrideConfig || {},
       }
 
-      try {
-        console.log('Trying internal-prediction endpoint for image upload:', {
-          url: internalPredictionUrl,
-          hasApiKey: Boolean(apiKey),
-          bodySize: JSON.stringify(internalBody).length
-        })
-        
-        response = await fetch(internalPredictionUrl, {
-          method: 'POST',
-          headers: { ...headers, 'Content-Type': 'application/json' },
-          body: JSON.stringify(internalBody),
-          signal: AbortSignal.timeout(timeoutMs),
-        })
-        endpointUsed = 'prediction'
-        
-        console.log('Internal-prediction response:', {
-          status: response.status,
-          ok: response.ok,
-          contentType: response.headers.get('content-type')
-        })
-        
-        // If internal-prediction fails, try chatflow chat endpoint
-        if (!response.ok) {
-          const chatflowBody = {
-            question: requestBody.question || '',
-            chatId: requestBody.overrideConfig?.sessionId || '',
-            uploads: [{ data: dataUrl, name: fname, mime, type: 'file' }],
-            overrideConfig: requestBody.overrideConfig || {},
-          }
-          
-          response = await fetch(chatflowChatUrl, {
-            method: 'POST',
-            headers: { ...headers, 'Content-Type': 'application/json' },
-            body: JSON.stringify(chatflowBody),
-            signal: AbortSignal.timeout(timeoutMs),
-          })
-          endpointUsed = 'chatflow'
-        }
-        
-        // If both fail, try chatbot endpoint
-        if (!response.ok) {
-          const chatbotBody = {
-            question: requestBody.question || '',
-            chatId: requestBody.overrideConfig?.sessionId || '',
-            uploads: [{ data: dataUrl, name: fname, mime, type: 'file' }],
-            overrideConfig: requestBody.overrideConfig || {},
-          }
-          
-          response = await fetch(chatbotUrl, {
-            method: 'POST',
-            headers: { ...headers, 'Content-Type': 'application/json' },
-            body: JSON.stringify(chatbotBody),
-            signal: AbortSignal.timeout(timeoutMs),
-          })
-          endpointUsed = 'chatbot'
-        }
-        
-        // Final fallback: prediction endpoint
-        if (!response.ok) {
-          const predictionBody = {
-            question: requestBody.question || '',
-            chatId: requestBody.overrideConfig?.sessionId || '',
-            uploads: [{ data: dataUrl, name: fname, mime, type: 'file' }],
-            overrideConfig: requestBody.overrideConfig || {},
-          }
-          
-          response = await fetch(predictionUrl, {
-            method: 'POST',
-            headers: { ...headers, 'Content-Type': 'application/json' },
-            body: JSON.stringify(predictionBody),
-            signal: AbortSignal.timeout(timeoutMs),
-          })
-          endpointUsed = 'prediction'
-        }
-      } catch (error) {
-        // Fallback to prediction endpoint
-        const predictionBody = {
-          question: requestBody.question || '',
-          chatId: requestBody.overrideConfig?.sessionId || '',
-          uploads: [{ data: dataUrl, name: fname, mime, type: 'file' }],
-          overrideConfig: requestBody.overrideConfig || {},
-        }
-        
-        response = await fetch(predictionUrl, {
-          method: 'POST',
-          headers: { ...headers, 'Content-Type': 'application/json' },
-          body: JSON.stringify(predictionBody),
-          signal: AbortSignal.timeout(timeoutMs),
-        })
-        endpointUsed = 'prediction'
-      }
+      console.log('Trying prediction endpoint for image upload:', {
+        url: predictionUrl,
+        hasApiKey: Boolean(apiKey),
+        bodySize: JSON.stringify(predictionBody).length
+      })
+      
+      response = await fetch(predictionUrl, {
+        method: 'POST',
+        headers: { ...headers, 'Content-Type': 'application/json' },
+        body: JSON.stringify(predictionBody),
+        signal: AbortSignal.timeout(timeoutMs),
+      })
+      endpointUsed = 'prediction'
+      
+      console.log('Prediction response:', {
+        status: response.status,
+        ok: response.ok,
+        contentType: response.headers.get('content-type')
+      })
     } else {
       // JSON mode: use prediction endpoint directly since internal-prediction requires auth
       response = await fetch(predictionUrl, {

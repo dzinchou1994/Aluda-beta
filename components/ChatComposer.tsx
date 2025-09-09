@@ -141,6 +141,20 @@ export default function ChatComposer({ currentChatId: propCurrentChatId, session
   const currentChatMessages = currentChat?.messages || [];
   const hasScrollableContent = currentChatMessages.length > 0;
 
+  // Get chatflowId based on current model
+  const getChatflowId = () => {
+    switch (model) {
+      case 'aluda2':
+        return process.env.NEXT_PUBLIC_ALUDAAI_FLOWISE_CHATFLOW_ID_ALUDAA2 || 'ed45f6f4-88bd-4f11-9fa5-019103b542d2';
+      case 'test':
+        return process.env.NEXT_PUBLIC_ALUDAAI_FLOWISE_CHATFLOW_ID_FREE || '286c3991-be03-47f3-aa47-56a6b65c5d00';
+      case 'aluda_test':
+        return process.env.NEXT_PUBLIC_ALUDAAI_FLOWISE_CHATFLOW_ID_TEST || 'c8e5dba7-3b90-4025-9432-7cb08b8027b8';
+      default:
+        return process.env.NEXT_PUBLIC_ALUDAAI_FLOWISE_CHATFLOW_ID_FREE || '286c3991-be03-47f3-aa47-56a6b65c5d00';
+    }
+  };
+
   // Debug logging
   console.log('ChatComposer render:', {
     currentChatId,
@@ -217,6 +231,8 @@ export default function ChatComposer({ currentChatId: propCurrentChatId, session
                   message={msg}
                   index={index}
                   shouldAnimate={shouldAnimate}
+                  chatId={currentChatId}
+                  chatflowId={getChatflowId()}
                 />
               );
             })}

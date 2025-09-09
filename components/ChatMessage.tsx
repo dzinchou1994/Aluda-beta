@@ -8,6 +8,7 @@ import remarkGfm from 'remark-gfm';
 import remarkBreaks from 'remark-breaks';
 import rehypeRaw from 'rehype-raw';
 import DOMPurify from 'dompurify';
+import FeedbackButtons from './FeedbackButtons';
 
 // Simple check: contains typical HTML tags
 function looksLikeHtml(text: string): boolean {
@@ -36,6 +37,8 @@ interface ChatMessageProps {
   message: Message;
   index: number;
   shouldAnimate: boolean;
+  chatId?: string;
+  chatflowId?: string;
 }
 
 // Insert newlines before inline numbered items (e.g., "1. ... 2. ...") to format lists properly
@@ -110,7 +113,7 @@ function emphasizeListTitlesInHtml(html: string): string {
   });
 }
 
-export default function ChatMessage({ message, index, shouldAnimate }: ChatMessageProps) {
+export default function ChatMessage({ message, index, shouldAnimate, chatId, chatflowId }: ChatMessageProps) {
   // FIXED: Only use typing effect for truly new AI messages
   // Old messages should show content directly without typing effect
   // shouldAnimate should only be true for messages that are actually being created right now
@@ -199,6 +202,15 @@ export default function ChatMessage({ message, index, shouldAnimate }: ChatMessa
           // AI message - show markdown/HTML content
           <div className="w-full text-gray-900 dark:text-white text-base leading-relaxed max-w-[92%] sm:max-w-[70ch]">
             {shouldUseTypingEffect && isTyping ? renderAssistantContent(displayedText) : renderAssistantContent(message.content)}
+            {/* Feedback buttons for AI messages */}
+            {message.role === 'assistant' && chatId && chatflowId && !shouldUseTypingEffect && (
+              <FeedbackButtons
+                messageId={message.id}
+                chatflowId={chatflowId}
+                chatId={chatId}
+                messageContent={message.content}
+              />
+            )}
           </div>
         )}
         {/* Timestamp - Hidden for cleaner interface */}

@@ -176,13 +176,13 @@ export async function POST(request: NextRequest) {
           }
           const hostWithProtocol = /^(http|https):\/\//i.test(flowiseHost) ? flowiseHost : `https://${flowiseHost}`
           const normalizedHost = hostWithProtocol.replace(/\/+$/, '')
-          const internalUrl = `${normalizedHost}/api/v1/internal-prediction/${chatflowIdOverride}`
+          const predictionUrl = `${normalizedHost}/api/v1/prediction/${chatflowIdOverride}`
           const apiKey = process.env.ALUDAAI_FLOWISE_API_KEY || process.env.FLOWISE_API_KEY
 
           // Use the provided chatId as session for Flowise memory
           const flowiseSessionId = chatId || `${actor.type}_${actor.id}_${selectedModel}_${Date.now()}`
 
-          const upstream = await fetch(internalUrl, {
+          const upstream = await fetch(predictionUrl, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -191,8 +191,10 @@ export async function POST(request: NextRequest) {
             },
             body: JSON.stringify({
               question: message,
-              chatId: flowiseSessionId,
-              streaming: true,
+              history: historyFromRequest.map((msg: any) => ({
+                role: (msg.role === 'user' ? 'user' : 'assistant') as 'user' | 'assistant',
+                content: msg.content || ''
+              })).slice(-10), // Keep only last 10 messages for performance
               overrideConfig: { renderHTML: true, sessionId: flowiseSessionId },
             }),
           })
