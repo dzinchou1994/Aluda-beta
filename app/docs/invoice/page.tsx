@@ -428,9 +428,9 @@ export default function InvoiceGeneratorPage() {
     }
 
     try {
-      setIsGenerating(true);
+    setIsGenerating(true);
       console.log('Generating PDF directly from form data...');
-      
+    
       const invoiceHTML = createInvoiceHTML(invoiceData, validItems, templateStyle, useGeorgianVAT, vatIncluded);
       await downloadPDFViaAPI(invoiceHTML, `Invoice-${invoiceData.invoiceNumber || 'Document'}`);
       setIsGenerating(false);
@@ -516,9 +516,9 @@ export default function InvoiceGeneratorPage() {
           <div class="invoice-header">
             <div class="brand-section">
               ${data.billerLogo ? `<img src="${data.billerLogo}" alt="Company Logo" class="company-logo" />` : ''}
-              <div>
-                <div class="brand">${data.billerName || 'კომპანია'}</div>
-                <div class="badge">ინვოისი</div>
+            <div>
+              <div class="brand">${data.billerName || 'კომპანია'}</div>
+              <div class="badge">ინვოისი</div>
               </div>
             </div>
             <div class="meta">
@@ -776,14 +776,14 @@ export default function InvoiceGeneratorPage() {
     } else {
       // Fallback: create a blob and download as HTML
       const blob = new Blob([htmlContent], { type: 'text/html' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
       a.download = `${name}.html`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
     }
   };
 
@@ -1113,8 +1113,8 @@ export default function InvoiceGeneratorPage() {
                       placeholder="თბილისი, საქართველო"
                     />
                   </div>
+                  </div>
                 </div>
-              </div>
               </div>
 
               {/* Step 2: Client Information */}
@@ -1184,8 +1184,8 @@ export default function InvoiceGeneratorPage() {
                       placeholder="მისამართი"
                     />
                   </div>
+                  </div>
                 </div>
-              </div>
               </div>
 
               {/* Step 3: Items and Tax */}
@@ -1208,8 +1208,8 @@ export default function InvoiceGeneratorPage() {
                 
                 <div className="space-y-4">
                   {items.map((item, index) => (
-                    <div key={item.id} className="grid grid-cols-12 gap-4 items-end p-4 bg-slate-50 rounded-lg">
-                      <div className="col-span-5">
+                    <div key={item.id} className="grid grid-cols-12 gap-2 items-end p-4 bg-slate-50 rounded-lg">
+                      <div className="col-span-3">
                         <label className="block text-sm font-semibold text-slate-700 mb-2">
                           აღწერა
                         </label>
@@ -1240,10 +1240,15 @@ export default function InvoiceGeneratorPage() {
                           რაოდენობა
                         </label>
                         <input
-                          type="number"
-                          min="1"
-                          value={item.quantity || ''}
-                          onChange={(e) => updateItem(item.id, 'quantity', parseInt(e.target.value) || 1)}
+                          type="text"
+                          inputMode="numeric"
+                          pattern="[0-9]*"
+                          value={item.quantity ? String(item.quantity) : ''}
+                          onChange={(e) => {
+                            const raw = e.target.value.replace(/[^0-9]/g, '');
+                            const next = raw === '' ? 0 : parseInt(raw, 10);
+                            updateItem(item.id, 'quantity', next);
+                          }}
                           className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                           placeholder="1"
                         />
@@ -1273,8 +1278,8 @@ export default function InvoiceGeneratorPage() {
                           className="w-full px-3 py-2 border border-slate-300 rounded-lg bg-slate-100"
                         />
                       </div>
-                      <div className="col-span-1">
                         {items.length > 1 && (
+                        <div className="col-span-1">
                           <button
                             type="button"
                             onClick={() => removeItem(item.id)}
@@ -1284,8 +1289,8 @@ export default function InvoiceGeneratorPage() {
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                             </svg>
                           </button>
+                        </div>
                         )}
-                      </div>
                     </div>
                   ))}
                 </div>
@@ -1430,8 +1435,8 @@ export default function InvoiceGeneratorPage() {
                       placeholder="კომპანიის სახელი ან ფიზიკური პირის სახელი"
                     />
                   </div>
+                  </div>
                 </div>
-              </div>
               </div>
 
               {/* Step 5: Signature and Notes */}
@@ -1439,12 +1444,12 @@ export default function InvoiceGeneratorPage() {
               {/* Signature and Stamp */}
               <div>
                 <h3 className="text-xl font-semibold text-slate-800 mb-4">ხელმოწერა და ბეჭედი</h3>
-                <div className="grid md:grid-cols-2 gap-6">
+              <div className="grid md:grid-cols-2 gap-6">
                   {/* Signature */}
-                  <div>
-                    <label className="block text-sm font-semibold text-slate-700 mb-2">
+                <div>
+                  <label className="block text-sm font-semibold text-slate-700 mb-2">
                       ხელმოწერა
-                    </label>
+                  </label>
                     <div className="flex items-center space-x-4">
                       {invoiceData.signature ? (
                         <div className="relative">
@@ -1462,7 +1467,7 @@ export default function InvoiceGeneratorPage() {
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                             </svg>
                           </button>
-                        </div>
+                </div>
                       ) : (
                         <div className="w-32 h-16 border-2 border-dashed border-slate-300 rounded-lg flex items-center justify-center">
                           <svg className="w-8 h-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1484,7 +1489,7 @@ export default function InvoiceGeneratorPage() {
                   </div>
 
                   {/* Company Stamp */}
-                  <div>
+                <div>
                     <label className="block text-sm font-semibold text-slate-700 mb-2">
                       კომპანიის ბეჭედი
                     </label>
@@ -1548,7 +1553,7 @@ export default function InvoiceGeneratorPage() {
                     placeholder="დამატებითი ინფორმაცია..."
                   />
                 </div>
-              </div>
+                </div>
               </div>
 
               {/* Navigation Buttons */}
@@ -1574,26 +1579,26 @@ export default function InvoiceGeneratorPage() {
                   <button
                     type="button"
                     onClick={generateInvoice}
-                    disabled={isGenerating}
+                  disabled={isGenerating}
                     className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-all duration-200 shadow-lg hover:shadow-xl flex items-center space-x-2"
-                  >
-                    {isGenerating ? (
-                      <>
+                >
+                  {isGenerating ? (
+                    <>
                         <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
                           <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                           <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                         </svg>
                         <span>მომზადება...</span>
-                      </>
-                    ) : (
-                      <>
+                    </>
+                  ) : (
+                    <>
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                        </svg>
-                        <span>ინვოისის გენერირება</span>
-                      </>
-                    )}
-                  </button>
+                      </svg>
+                      <span>ინვოისის გენერირება</span>
+                    </>
+                  )}
+                </button>
                 )}
               </div>
 
