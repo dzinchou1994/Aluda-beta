@@ -1,12 +1,13 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import DocsHeader from '@/components/DocsHeader';
 
 interface InvoiceItem {
   id: string;
   description: string;
+  unit?: string;
   quantity: number;
   price: number;
   total: number;
@@ -31,6 +32,8 @@ interface InvoiceData {
   bankName: string;
   bankAccount: string;
   bankRecipientName: string;
+  signature: string;
+  companyStamp: string;
 }
 
 // Georgian banks list
@@ -48,6 +51,128 @@ const georgianBanks = [
   'საქართველოს ბანკი (საქართველოს ბანკი)',
   'სხვა'
 ];
+
+// Signature Capture Component
+const SignatureCapture = ({ onSave, onCancel }: { onSave: (data: string) => void; onCancel: () => void }) => {
+  const canvasRef = React.useRef<HTMLCanvasElement>(null);
+  const [isDrawing, setIsDrawing] = React.useState(false);
+
+  const startDrawing = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
+    setIsDrawing(true);
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    
+    const rect = canvas.getBoundingClientRect();
+    const x = 'touches' in e ? e.touches[0].clientX - rect.left : e.clientX - rect.left;
+    const y = 'touches' in e ? e.touches[0].clientY - rect.top : e.clientY - rect.top;
+    
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+  };
+
+  const draw = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
+    if (!isDrawing) return;
+    
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    
+    const rect = canvas.getBoundingClientRect();
+    const x = 'touches' in e ? e.touches[0].clientX - rect.left : e.clientX - rect.left;
+    const y = 'touches' in e ? e.touches[0].clientY - rect.top : e.clientY - rect.top;
+    
+    ctx.lineTo(x, y);
+    ctx.stroke();
+  };
+
+  const stopDrawing = () => {
+    setIsDrawing(false);
+  };
+
+  const clearCanvas = () => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+  };
+
+  const saveSignature = () => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    
+    const dataURL = canvas.toDataURL('image/png');
+    onSave(dataURL);
+  };
+
+  React.useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    
+    ctx.strokeStyle = '#000000';
+    ctx.lineWidth = 2;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+  }, []);
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-lg p-6 w-full max-w-md">
+        <h3 className="text-lg font-semibold mb-4">ხელმოწერის დამატება</h3>
+        
+        <div className="border-2 border-dashed border-gray-300 rounded-lg mb-4">
+          <canvas
+            ref={canvasRef}
+            width={400}
+            height={200}
+            className="w-full h-48 cursor-crosshair"
+            onMouseDown={startDrawing}
+            onMouseMove={draw}
+            onMouseUp={stopDrawing}
+            onMouseLeave={stopDrawing}
+            onTouchStart={startDrawing}
+            onTouchMove={draw}
+            onTouchEnd={stopDrawing}
+          />
+        </div>
+        
+        <div className="flex gap-2 mb-4">
+          <button
+            onClick={clearCanvas}
+            className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600"
+          >
+            გასუფთავება
+          </button>
+        </div>
+        
+        <div className="flex gap-2">
+          <button
+            onClick={onCancel}
+            className="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400"
+          >
+            გაუქმება
+          </button>
+          <button
+            onClick={saveSignature}
+            className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+          >
+            შენახვა
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 export default function InvoiceGeneratorPage() {
   const router = useRouter();
@@ -69,10 +194,12 @@ export default function InvoiceGeneratorPage() {
     notes: '',
     bankName: '',
     bankAccount: '',
-    bankRecipientName: ''
+    bankRecipientName: '',
+    signature: '',
+    companyStamp: ''
   });
   const [items, setItems] = useState<InvoiceItem[]>([
-    { id: '1', description: '', quantity: 1, price: 0, total: 0 }
+    { id: '1', description: '', unit: 'ცალი', quantity: 1, price: 0, total: 0 }
   ]);
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedInvoice, setGeneratedInvoice] = useState<string>('');
@@ -83,6 +210,46 @@ export default function InvoiceGeneratorPage() {
   const [useGeorgianVAT, setUseGeorgianVAT] = useState<boolean>(false);
   const [vatIncluded, setVatIncluded] = useState<boolean>(false);
   const [isInitialLoad, setIsInitialLoad] = useState<boolean>(true);
+  const [isDrawing, setIsDrawing] = useState<boolean>(false);
+  const [showSignatureModal, setShowSignatureModal] = useState<boolean>(false);
+  const [showStampModal, setShowStampModal] = useState<boolean>(false);
+
+  // Step-by-step wizard state
+  const steps = [
+    { key: 'header', label: 'ინვოისი' },
+    { key: 'biller', label: 'გამყიდველი' },
+    { key: 'client', label: 'მყიდველი' },
+    { key: 'items', label: 'ნივთები & გადასახადი' },
+    { key: 'bank', label: 'ბანკი' },
+    { key: 'signature', label: 'ხელმოწერა & შენიშვნები' },
+  ] as const;
+  const [currentStep, setCurrentStep] = useState<number>(0);
+
+  const canProceedFromStep = (stepIndex: number) => {
+    if (stepIndex === 0) {
+      return Boolean(invoiceData.invoiceNumber && invoiceData.invoiceDate);
+    }
+    if (stepIndex === 1) {
+      return Boolean(invoiceData.billerName && invoiceData.billerEmail && invoiceData.billerPhone);
+    }
+    if (stepIndex === 2) {
+      return Boolean(invoiceData.clientName && invoiceData.clientEmail);
+    }
+    if (stepIndex === 3) {
+      return items.some(item => item.description && item.quantity > 0 && item.price > 0);
+    }
+    return true;
+  };
+
+  const goNext = () => {
+    if (canProceedFromStep(currentStep)) {
+      setCurrentStep(Math.min(currentStep + 1, steps.length - 1));
+    }
+  };
+
+  const goBack = () => {
+    setCurrentStep(Math.max(currentStep - 1, 0));
+  };
 
   // Approximate A4 size at 96 DPI
   const a4WidthPx = 794; // 210mm @ ~96dpi
@@ -172,6 +339,31 @@ export default function InvoiceGeneratorPage() {
     setInvoiceData(prev => ({ ...prev, billerLogo: '' }));
   };
 
+  const handleSignatureCapture = (signatureData: string) => {
+    setInvoiceData(prev => ({ ...prev, signature: signatureData }));
+    setShowSignatureModal(false);
+  };
+
+  const handleStampUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const result = e.target?.result as string;
+        setInvoiceData(prev => ({ ...prev, companyStamp: result }));
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const removeSignature = () => {
+    setInvoiceData(prev => ({ ...prev, signature: '' }));
+  };
+
+  const removeStamp = () => {
+    setInvoiceData(prev => ({ ...prev, companyStamp: '' }));
+  };
+
   const handleVatOptionChange = (option: 'none' | 'add' | 'included') => {
     if (option === 'none') {
       setUseGeorgianVAT(false);
@@ -192,6 +384,7 @@ export default function InvoiceGeneratorPage() {
     const newItem: InvoiceItem = {
       id: Date.now().toString(),
       description: '',
+      unit: 'ცალი',
       quantity: 1,
       price: 0,
       total: 0
@@ -331,7 +524,7 @@ export default function InvoiceGeneratorPage() {
 
           <div class="parties">
             <div class="card">
-              <h3>გადამხდელი</h3>
+              <h3>გამყიდველი</h3>
               <p><strong>${data.billerName || ''}</strong></p>
               ${data.billerCompanyId ? `<p><strong>საიდენტიფიკაციო კოდი:</strong> ${data.billerCompanyId}</p>` : ''}
               ${data.billerAddress ? `<p>${data.billerAddress}</p>` : ''}
@@ -339,7 +532,7 @@ export default function InvoiceGeneratorPage() {
               ${data.billerPhone ? `<p>${data.billerPhone}</p>` : ''}
             </div>
             <div class="card">
-              <h3>მიმღები</h3>
+              <h3>მყიდველი</h3>
               <p><strong>${data.clientName || ''}</strong></p>
               ${data.clientCompanyId ? `<p><strong>საიდენტიფიკაციო კოდი:</strong> ${data.clientCompanyId}</p>` : ''}
               ${data.clientAddress ? `<p>${data.clientAddress}</p>` : ''}
@@ -360,7 +553,7 @@ export default function InvoiceGeneratorPage() {
             <tbody>
               ${items.map(item => `
                 <tr>
-                  <td>${item.description}</td>
+                  <td>${item.description}${item.unit ? ` (${item.unit})` : ''}</td>
                   <td class="right">${item.quantity}</td>
                   <td class="right">₾${item.price.toFixed(2)}</td>
                   <td class="right">₾${item.total.toFixed(2)}</td>
@@ -375,7 +568,7 @@ export default function InvoiceGeneratorPage() {
               ${isVatIncluded && data.taxRate > 0 ? `
                 <div class="row"><span>ჯამი (დღგ-ს გარეშე)</span><span>₾${subtotal.toFixed(2)}</span></div>
                 <div class="row"><span>${isGeorgianVAT ? 'დღგ' : 'გადასახადი'} ${data.taxRate}%</span><span>₾${tax.toFixed(2)}</span></div>
-                <div class="row total"><span>საბოლოო ჯამი (დღგ-თან)</span><span>₾${total.toFixed(2)}</span></div>
+                <div class="row total"><span>საბოლოო ჯამი (დღგ ჩათვლით)</span><span>₾${total.toFixed(2)}</span></div>
               ` : `
                 <div class="row"><span>ჯამი</span><span>₾${subtotal.toFixed(2)}</span></div>
                 ${data.taxRate > 0 ? `<div class="row"><span>${isGeorgianVAT ? 'დღგ' : 'გადასახადი'} ${data.taxRate}%</span><span>₾${tax.toFixed(2)}</span></div>` : ''}
@@ -397,6 +590,16 @@ export default function InvoiceGeneratorPage() {
           <div class="notes">
             <div class="badge">შენიშვნები</div>
             <p>${data.notes}</p>
+          </div>
+          ` : ''}
+
+          ${data.signature || data.companyStamp ? `
+          <div class="notes" style="margin-top: 20px;">
+            <div class="badge">ხელმოწერა და ბეჭედი</div>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px;">
+              ${data.signature ? `<div><img src="${data.signature}" alt="Signature" style="max-width: 150px; max-height: 60px; border: 1px solid #ccc;" /></div>` : '<div></div>'}
+              ${data.companyStamp ? `<div><img src="${data.companyStamp}" alt="Company Stamp" style="max-width: 100px; max-height: 100px; border: 1px solid #ccc;" /></div>` : '<div></div>'}
+            </div>
           </div>
           ` : ''}
         </div>
@@ -457,7 +660,7 @@ export default function InvoiceGeneratorPage() {
 
           <div class="parties">
             <div class="card">
-              <h3>გადამხდელი</h3>
+              <h3>გამყიდველი</h3>
               <p><strong>${data.billerName || ''}</strong></p>
               ${data.billerCompanyId ? `<p><strong>საიდენტიფიკაციო კოდი:</strong> ${data.billerCompanyId}</p>` : ''}
               ${data.billerAddress ? `<p>${data.billerAddress}</p>` : ''}
@@ -465,7 +668,7 @@ export default function InvoiceGeneratorPage() {
               ${data.billerPhone ? `<p>${data.billerPhone}</p>` : ''}
             </div>
             <div class="card">
-              <h3>მიმღები</h3>
+              <h3>მყიდველი</h3>
               <p><strong>${data.clientName || ''}</strong></p>
               ${data.clientCompanyId ? `<p><strong>საიდენტიფიკაციო კოდი:</strong> ${data.clientCompanyId}</p>` : ''}
               ${data.clientAddress ? `<p>${data.clientAddress}</p>` : ''}
@@ -486,7 +689,7 @@ export default function InvoiceGeneratorPage() {
             <tbody>
               ${items.map(item => `
                 <tr>
-                  <td>${item.description}</td>
+                  <td>${item.description}${item.unit ? ` (${item.unit})` : ''}</td>
                   <td class="right">${item.quantity}</td>
                   <td class="right">₾${item.price.toFixed(2)}</td>
                   <td class="right">₾${item.total.toFixed(2)}</td>
@@ -501,7 +704,7 @@ export default function InvoiceGeneratorPage() {
               ${isVatIncluded && data.taxRate > 0 ? `
                 <div class="row"><span>ჯამი (დღგ-ს გარეშე)</span><span>₾${subtotal.toFixed(2)}</span></div>
                 <div class="row"><span>${isGeorgianVAT ? 'დღგ' : 'გადასახადი'} ${data.taxRate}%</span><span>₾${tax.toFixed(2)}</span></div>
-                <div class="row total"><span>საბოლოო ჯამი (დღგ-თან)</span><span>₾${total.toFixed(2)}</span></div>
+                <div class="row total"><span>საბოლოო ჯამი (დღგ ჩათვლით)</span><span>₾${total.toFixed(2)}</span></div>
               ` : `
                 <div class="row"><span>ჯამი</span><span>₾${subtotal.toFixed(2)}</span></div>
                 ${data.taxRate > 0 ? `<div class="row"><span>${isGeorgianVAT ? 'დღგ' : 'გადასახადი'} ${data.taxRate}%</span><span>₾${tax.toFixed(2)}</span></div>` : ''}
@@ -523,6 +726,16 @@ export default function InvoiceGeneratorPage() {
           <div class="notes">
             <div class="badge">შენიშვნები</div>
             <p>${data.notes}</p>
+          </div>
+          ` : ''}
+
+          ${data.signature || data.companyStamp ? `
+          <div class="notes" style="margin-top: 20px;">
+            <div class="badge">ხელმოწერა და ბეჭედი</div>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px;">
+              ${data.signature ? `<div><img src="${data.signature}" alt="Signature" style="max-width: 150px; max-height: 60px; border: 1px solid #ccc;" /></div>` : '<div></div>'}
+              ${data.companyStamp ? `<div><img src="${data.companyStamp}" alt="Company Stamp" style="max-width: 100px; max-height: 100px; border: 1px solid #ccc;" /></div>` : '<div></div>'}
+            </div>
           </div>
           ` : ''}
         </div>
@@ -662,9 +875,34 @@ export default function InvoiceGeneratorPage() {
         </div>
 
         <div className={`mx-auto ${showLivePreview ? 'max-w-7xl' : 'max-w-6xl'}`}>
-          <div className={`${showLivePreview ? 'grid grid-cols-1 lg:grid-cols-2 gap-8 items-start' : ''}`}>
-            <div className={`bg-white rounded-xl shadow-lg p-8 ${showLivePreview ? 'max-h-[800px] overflow-y-auto' : ''}`}>
+          <div className={`${showLivePreview ? 'grid grid-cols-1 lg:grid-cols-5 gap-8 items-start' : ''}`}>
+            
+            {/* Sticky Stepper - Outside form block */}
+            <div className={`${showLivePreview ? 'lg:col-span-5' : ''} sticky top-16 z-30 bg-white/80 backdrop-blur border-b border-slate-200/60 mb-6`}>
+              <div className="overflow-x-auto">
+                <div className="flex items-center min-w-max">
+                  {steps.map((s, idx) => (
+                    <div key={s.key} className="flex items-center">
+                      {idx !== 0 && <div className={`h-0.5 w-10 sm:w-14 ${idx <= currentStep ? 'bg-blue-600' : 'bg-slate-200'}`} />}
+                      <button
+                        type="button"
+                        onClick={() => setCurrentStep(idx)}
+                        className={`ml-2 flex items-center gap-2 whitespace-nowrap select-none ${idx === currentStep ? 'text-slate-900' : 'text-slate-500'}`}
+                      >
+                        <span className={`flex items-center justify-center w-7 h-7 rounded-full text-xs font-semibold ${idx <= currentStep ? 'bg-blue-600 text-white' : 'bg-slate-200 text-slate-700'}`}>{idx + 1}</span>
+                        <span className="text-sm">{s.label}</span>
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div className={`bg-white rounded-xl shadow-lg p-8 ${showLivePreview ? 'lg:col-span-3 max-h-[800px] overflow-y-auto' : ''}`}>
               <form onSubmit={(e) => { e.preventDefault(); generateInvoice(); }} className="space-y-8">
+              
+              {/* Step 0: Invoice Header */}
+              <div className={currentStep === 0 ? '' : 'hidden'}>
               {/* Invoice Header */}
               <div className="grid md:grid-cols-2 gap-6">
                 <div>
@@ -693,62 +931,62 @@ export default function InvoiceGeneratorPage() {
                 </div>
               </div>
 
-              {/* Biller Information */}
+              {/* Company Logo Upload */}
               <div>
-                <h3 className="text-xl font-semibold text-slate-800 mb-4">გადამხდელის ინფორმაცია</h3>
-                
-                {/* Company Logo Upload */}
-                <div className="mb-6">
-                  <label className="block text-sm font-semibold text-slate-700 mb-2">
-                    კომპანიის ლოგო
-                  </label>
-                  <div className="flex items-center space-x-4">
-                    {invoiceData.billerLogo ? (
-                      <div className="relative">
-                        <img 
-                          src={invoiceData.billerLogo} 
-                          alt="Company Logo" 
-                          className="w-20 h-20 object-cover rounded-lg border border-slate-300"
-                        />
-                        <button
-                          type="button"
-                          onClick={removeLogo}
-                          className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 transition-colors"
-                        >
-                          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                          </svg>
-                        </button>
-                      </div>
-                    ) : (
-                      <div className="w-20 h-20 border-2 border-dashed border-slate-300 rounded-lg flex items-center justify-center">
-                        <svg className="w-8 h-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                        </svg>
-                      </div>
-                    )}
-                    <div>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={handleImageUpload}
-                        className="hidden"
-                        id="logo-upload"
+                <h3 className="text-xl font-semibold text-slate-800 mb-4">კომპანიის ლოგო</h3>
+                <div className="flex items-center space-x-4">
+                  {invoiceData.billerLogo ? (
+                    <div className="relative">
+                      <img 
+                        src={invoiceData.billerLogo} 
+                        alt="Company Logo" 
+                        className="w-20 h-20 object-cover rounded-lg border border-slate-300"
                       />
-                      <label
-                        htmlFor="logo-upload"
-                        className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors cursor-pointer inline-flex items-center space-x-2"
+                      <button
+                        type="button"
+                        onClick={removeLogo}
+                        className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 transition-colors"
                       >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                         </svg>
-                        <span>ლოგოს ატვირთვა</span>
-                      </label>
-                      <p className="text-xs text-slate-500 mt-1">PNG, JPG, GIF (მაქს. 5MB)</p>
+                      </button>
                     </div>
+                  ) : (
+                    <div className="w-20 h-20 border-2 border-dashed border-slate-300 rounded-lg flex items-center justify-center">
+                      <svg className="w-8 h-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                      </svg>
+                    </div>
+                  )}
+                  <div>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageUpload}
+                      className="hidden"
+                      id="logo-upload"
+                    />
+                    <label
+                      htmlFor="logo-upload"
+                      className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors cursor-pointer inline-flex items-center space-x-2"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                      </svg>
+                      <span>ლოგოს ატვირთვა</span>
+                    </label>
+                    <p className="text-xs text-slate-500 mt-1">PNG, JPG, GIF (მაქს. 5MB)</p>
                   </div>
                 </div>
+              </div>
+              </div>
 
+              {/* Step 1: Biller Information */}
+              <div className={currentStep === 1 ? '' : 'hidden'}>
+              {/* Biller Information */}
+              <div>
+                <h3 className="text-xl font-semibold text-slate-800 mb-4">გამყიდველის ინფორმაცია</h3>
                 <div className="grid md:grid-cols-2 gap-6">
                   <div>
                     <label className="block text-sm font-semibold text-slate-700 mb-2">
@@ -813,10 +1051,13 @@ export default function InvoiceGeneratorPage() {
                   </div>
                 </div>
               </div>
+              </div>
 
+              {/* Step 2: Client Information */}
+              <div className={currentStep === 2 ? '' : 'hidden'}>
               {/* Client Information */}
               <div>
-                <h3 className="text-xl font-semibold text-slate-800 mb-4">მიმღების ინფორმაცია</h3>
+                <h3 className="text-xl font-semibold text-slate-800 mb-4">მყიდველის ინფორმაცია</h3>
                 <div className="grid md:grid-cols-2 gap-6">
                   <div>
                     <label className="block text-sm font-semibold text-slate-700 mb-2">
@@ -881,7 +1122,10 @@ export default function InvoiceGeneratorPage() {
                   </div>
                 </div>
               </div>
+              </div>
 
+              {/* Step 3: Items and Tax */}
+              <div className={currentStep === 3 ? '' : 'hidden'}>
               {/* Items */}
               <div>
                 <div className="flex justify-between items-center mb-4">
@@ -912,6 +1156,20 @@ export default function InvoiceGeneratorPage() {
                           className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                           placeholder="პროდუქტის დასახელება"
                         />
+                      </div>
+                      <div className="col-span-2">
+                        <label className="block text-sm font-semibold text-slate-700 mb-2">
+                          ერთეული
+                        </label>
+                        <select
+                          value={item.unit || 'ცალი'}
+                          onChange={(e) => updateItem(item.id, 'unit', e.target.value)}
+                          className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                        >
+                          {['ცალი','კგ','გრ','ტ','ლ','მლ','მ','სმ','მმ','მ²','მ³','წუთი','საათი','დღე','თვე','წელი','სერვისი','პაკეტი','ჯამი','კვ','კვტს'].map(u => (
+                            <option key={u} value={u}>{u}</option>
+                          ))}
+                        </select>
                       </div>
                       <div className="col-span-2">
                         <label className="block text-sm font-semibold text-slate-700 mb-2">
@@ -969,71 +1227,10 @@ export default function InvoiceGeneratorPage() {
                 </div>
               </div>
 
-              {/* Bank Account Information */}
+              {/* Tax Settings */}
               <div>
-                <h3 className="text-xl font-semibold text-slate-800 mb-4">ბანკის ანგარიშის ინფორმაცია</h3>
-                <div className="grid md:grid-cols-2 gap-6">
-                  <div>
-                    <label className="block text-sm font-semibold text-slate-700 mb-2">
-                      ბანკის სახელი
-                    </label>
-                    <select
-                      value={invoiceData.bankName}
-                      onChange={(e) => {
-                        handleInputChange('bankName', e.target.value);
-                        if (e.target.value !== 'სხვა') {
-                          setCustomBankName('');
-                        }
-                      }}
-                      className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                    >
-                      <option value="">აირჩიეთ ბანკი</option>
-                      {georgianBanks.map((bank) => (
-                        <option key={bank} value={bank}>
-                          {bank}
-                        </option>
-                      ))}
-                    </select>
-                    {invoiceData.bankName === 'სხვა' && (
-                      <input
-                        type="text"
-                        value={customBankName}
-                        onChange={(e) => setCustomBankName(e.target.value)}
-                        className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent mt-2"
-                        placeholder="შეიყვანეთ ბანკის სახელი"
-                      />
-                    )}
-                  </div>
-                  <div>
-                    <label className="block text-sm font-semibold text-slate-700 mb-2">
-                      ანგარიშის ნომერი
-                    </label>
-                    <input
-                      type="text"
-                      value={invoiceData.bankAccount}
-                      onChange={(e) => handleInputChange('bankAccount', e.target.value)}
-                      className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                      placeholder="GE00TB0000000000000000"
-                    />
-                  </div>
-                  <div className="md:col-span-2">
-                    <label className="block text-sm font-semibold text-slate-700 mb-2">
-                      მიმღების სახელი
-                    </label>
-                    <input
-                      type="text"
-                      value={invoiceData.bankRecipientName}
-                      onChange={(e) => handleInputChange('bankRecipientName', e.target.value)}
-                      className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                      placeholder="კომპანიის სახელი ან ფიზიკური პირის სახელი"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Tax and Notes */}
-              <div className="grid md:grid-cols-2 gap-6">
-                <div>
+                <h3 className="text-xl font-semibold text-slate-800 mb-4">გადასახადის პარამეტრები</h3>
+                <div className="bg-slate-50 p-6 rounded-lg">
                   <label className="block text-sm font-semibold text-slate-700 mb-2">
                     გადასახადი (%)
                   </label>
@@ -1105,7 +1302,177 @@ export default function InvoiceGeneratorPage() {
                     />
                   </div>
                 </div>
-                <div>
+              </div>
+              </div>
+
+              {/* Step 4: Bank Account Information */}
+              <div className={currentStep === 4 ? '' : 'hidden'}>
+              {/* Bank Account Information */}
+              <div>
+                <h3 className="text-xl font-semibold text-slate-800 mb-4">ბანკის ანგარიშის ინფორმაცია</h3>
+                <div className="grid md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-sm font-semibold text-slate-700 mb-2">
+                      ბანკის სახელი
+                    </label>
+                    <select
+                      value={invoiceData.bankName}
+                      onChange={(e) => {
+                        handleInputChange('bankName', e.target.value);
+                        if (e.target.value !== 'სხვა') {
+                          setCustomBankName('');
+                        }
+                      }}
+                      className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                    >
+                      <option value="">აირჩიეთ ბანკი</option>
+                      {georgianBanks.map((bank) => (
+                        <option key={bank} value={bank}>
+                          {bank}
+                        </option>
+                      ))}
+                    </select>
+                    {invoiceData.bankName === 'სხვა' && (
+                      <input
+                        type="text"
+                        value={customBankName}
+                        onChange={(e) => setCustomBankName(e.target.value)}
+                        className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent mt-2"
+                        placeholder="შეიყვანეთ ბანკის სახელი"
+                      />
+                    )}
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-slate-700 mb-2">
+                      ანგარიშის ნომერი
+                    </label>
+                    <input
+                      type="text"
+                      value={invoiceData.bankAccount}
+                      onChange={(e) => handleInputChange('bankAccount', e.target.value)}
+                      className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                      placeholder="GE00TB0000000000000000"
+                    />
+                  </div>
+                  <div className="md:col-span-2">
+                    <label className="block text-sm font-semibold text-slate-700 mb-2">
+                      მიმღების სახელი
+                    </label>
+                    <input
+                      type="text"
+                      value={invoiceData.bankRecipientName}
+                      onChange={(e) => handleInputChange('bankRecipientName', e.target.value)}
+                      className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                      placeholder="კომპანიის სახელი ან ფიზიკური პირის სახელი"
+                    />
+                  </div>
+                </div>
+              </div>
+              </div>
+
+              {/* Step 5: Signature and Notes */}
+              <div className={currentStep === 5 ? '' : 'hidden'}>
+              {/* Signature and Stamp */}
+              <div>
+                <h3 className="text-xl font-semibold text-slate-800 mb-4">ხელმოწერა და ბეჭედი</h3>
+                <div className="grid md:grid-cols-2 gap-6">
+                  {/* Signature */}
+                  <div>
+                    <label className="block text-sm font-semibold text-slate-700 mb-2">
+                      ხელმოწერა
+                    </label>
+                    <div className="flex items-center space-x-4">
+                      {invoiceData.signature ? (
+                        <div className="relative">
+                          <img 
+                            src={invoiceData.signature} 
+                            alt="Signature" 
+                            className="w-32 h-16 object-contain border border-slate-300 rounded-lg bg-white"
+                          />
+                          <button
+                            type="button"
+                            onClick={removeSignature}
+                            className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 transition-colors"
+                          >
+                            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="w-32 h-16 border-2 border-dashed border-slate-300 rounded-lg flex items-center justify-center">
+                          <svg className="w-8 h-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                          </svg>
+                        </div>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => setShowSignatureModal(true)}
+                        className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                        </svg>
+                        <span>ხელმოწერის დამატება</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Company Stamp */}
+                  <div>
+                    <label className="block text-sm font-semibold text-slate-700 mb-2">
+                      კომპანიის ბეჭედი
+                    </label>
+                    <div className="flex items-center space-x-4">
+                      {invoiceData.companyStamp ? (
+                        <div className="relative">
+                          <img 
+                            src={invoiceData.companyStamp} 
+                            alt="Company Stamp" 
+                            className="w-32 h-32 object-contain border border-slate-300 rounded-lg bg-white"
+                          />
+                          <button
+                            type="button"
+                            onClick={removeStamp}
+                            className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 transition-colors"
+                          >
+                            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="w-32 h-32 border-2 border-dashed border-slate-300 rounded-lg flex items-center justify-center">
+                          <svg className="w-8 h-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 4V2a1 1 0 011-1h8a1 1 0 011 1v2m-9 0h10m-10 0a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V6a2 2 0 00-2-2M9 8h6m-6 4h6m-6 4h6" />
+                          </svg>
+                        </div>
+                      )}
+                      <div>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handleStampUpload}
+                          className="hidden"
+                          id="stamp-upload"
+                        />
+                        <label
+                          htmlFor="stamp-upload"
+                          className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors cursor-pointer inline-flex items-center space-x-2"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                          </svg>
+                          <span>ბეჭდის ატვირთვა</span>
+                        </label>
+                        <p className="text-xs text-slate-500 mt-1">PNG, JPG, GIF</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                {/* Notes inside step 5 */}
+                <div className="mt-2">
                   <label className="block text-sm font-semibold text-slate-700 mb-2">
                     შენიშვნები
                   </label>
@@ -1118,77 +1485,58 @@ export default function InvoiceGeneratorPage() {
                   />
                 </div>
               </div>
+              </div>
 
-              {/* Generate and Clear Buttons */}
-              <div className="flex justify-center gap-4 pt-6">
+              {/* Navigation Buttons */}
+              <div className="flex justify-between items-center pt-6">
                 <button
                   type="button"
-                  onClick={() => {
-                    if (confirm('ნამდვილად გსურთ ყველა მონაცემის წაშლა?')) {
-                      // Reset all form data
-                      setInvoiceData({
-                        billerName: '',
-                        billerAddress: '',
-                        billerEmail: '',
-                        billerPhone: '',
-                        billerCompanyId: '',
-                        billerLogo: '',
-                        clientName: '',
-                        clientAddress: '',
-                        clientEmail: '',
-                        clientPhone: '',
-                        clientCompanyId: '',
-                        invoiceNumber: '',
-                        invoiceDate: new Date().toISOString().split('T')[0],
-                        taxRate: 0,
-                        notes: '',
-                        bankName: '',
-                        bankAccount: '',
-                        bankRecipientName: ''
-                      });
-                      setItems([{ id: '1', description: '', quantity: 1, price: 0, total: 0 }]);
-                      setUseGeorgianVAT(false);
-                      setVatIncluded(false);
-                      setCustomBankName('');
-                      // Clear saved data
-                      localStorage.removeItem('invoiceData');
-                      localStorage.removeItem('invoiceItems');
-                      localStorage.removeItem('invoiceSettings');
-                    }
-                  }}
-                  className="px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-all duration-200 shadow-lg hover:shadow-xl flex items-center space-x-2"
+                  onClick={goBack}
+                  disabled={currentStep === 0}
+                  className={`px-4 py-2 rounded-lg border ${currentStep === 0 ? 'opacity-50 cursor-not-allowed border-slate-200 text-slate-400' : 'border-slate-300 text-slate-700 hover:bg-slate-50'}`}
                 >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                  </svg>
-                  <span>გასუფთავება</span>
+                  უკან
                 </button>
-                
-                <button
-                  type="submit"
-                  disabled={isGenerating}
-                  className="px-8 py-4 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-lg hover:from-green-700 hover:to-emerald-700 transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-3"
-                >
-                  {isGenerating ? (
-                    <>
-                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                      <span>გენერირება...</span>
-                    </>
-                  ) : (
-                    <>
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-                      </svg>
-                      <span>ინვოისის გენერირება</span>
-                    </>
-                  )}
-                </button>
+                {currentStep < steps.length - 1 ? (
+                  <button
+                    type="button"
+                    onClick={goNext}
+                    disabled={!canProceedFromStep(currentStep)}
+                    className={`px-6 py-2 rounded-lg ${canProceedFromStep(currentStep) ? 'bg-blue-600 text-white hover:bg-blue-700' : 'bg-slate-200 text-slate-500 cursor-not-allowed'}`}
+                  >
+                    შემდეგი
+                  </button>
+                ) : (
+                  <button
+                    type="submit"
+                    disabled={isGenerating}
+                    className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-all duration-200 shadow-lg hover:shadow-xl flex items-center space-x-2"
+                  >
+                    {isGenerating ? (
+                      <>
+                        <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        <span>მომზადება...</span>
+                      </>
+                    ) : (
+                      <>
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                        <span>ინვოისის გენერირება</span>
+                      </>
+                    )}
+                  </button>
+                )}
               </div>
+
               </form>
             </div>
 
           {showLivePreview && (
-            <div className="bg-white rounded-xl shadow-lg p-8 max-h-[800px] flex flex-col lg:sticky lg:top-4">
+            <div className={`bg-white rounded-xl shadow-lg p-8 max-h-[800px] flex flex-col lg:sticky lg:top-4 ${showLivePreview ? 'lg:col-span-2' : ''}`}>
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-xl font-semibold text-slate-800">ცოცხალი გადახედვა</h3>
                 <div className="flex items-center space-x-2">
@@ -1241,6 +1589,14 @@ export default function InvoiceGeneratorPage() {
           </div>
         </div>
       </div>
+
+      {/* Signature Modal */}
+      {showSignatureModal && (
+        <SignatureCapture
+          onSave={handleSignatureCapture}
+          onCancel={() => setShowSignatureModal(false)}
+        />
+      )}
     </div>
   );
 }
