@@ -17,15 +17,35 @@ interface InvoiceData {
   billerAddress: string;
   billerEmail: string;
   billerPhone: string;
+  billerCompanyId: string;
   clientName: string;
   clientAddress: string;
   clientEmail: string;
   clientPhone: string;
+  clientCompanyId: string;
   invoiceNumber: string;
   invoiceDate: string;
   taxRate: number;
   notes: string;
+  bankName: string;
+  bankAccount: string;
 }
+
+// Georgian banks list
+const georgianBanks = [
+  'TBC ბანკი',
+  'საქართველოს ბანკი',
+  'ბანკი ტბილისი',
+  'პროკრედიტ ბანკი',
+  'ვითიბი ბანკი',
+  'ჰალიკ ბანკი',
+  'ზირათ ბანკი',
+  'ფრიდომ ბანკი',
+  'ბაზის ბანკი',
+  'პაშა ბანკი',
+  'საქართველოს ბანკი (საქართველოს ბანკი)',
+  'სხვა'
+];
 
 export default function InvoiceGeneratorPage() {
   const router = useRouter();
@@ -34,14 +54,18 @@ export default function InvoiceGeneratorPage() {
     billerAddress: '',
     billerEmail: '',
     billerPhone: '',
+    billerCompanyId: '',
     clientName: '',
     clientAddress: '',
     clientEmail: '',
     clientPhone: '',
+    clientCompanyId: '',
     invoiceNumber: '',
     invoiceDate: new Date().toISOString().split('T')[0],
     taxRate: 0,
-    notes: ''
+    notes: '',
+    bankName: '',
+    bankAccount: ''
   });
   const [items, setItems] = useState<InvoiceItem[]>([
     { id: '1', description: '', quantity: 1, price: 0, total: 0 }
@@ -50,6 +74,7 @@ export default function InvoiceGeneratorPage() {
   const [generatedInvoice, setGeneratedInvoice] = useState<string>('');
   const [showLivePreview, setShowLivePreview] = useState(true);
   const [previewZoom, setPreviewZoom] = useState(0.5);
+  const [customBankName, setCustomBankName] = useState<string>('');
 
   // Approximate A4 size at 96 DPI
   const a4WidthPx = 794; // 210mm @ ~96dpi
@@ -118,13 +143,16 @@ export default function InvoiceGeneratorPage() {
     const subtotal = items.reduce((sum, item) => sum + item.total, 0);
     const tax = subtotal * (data.taxRate / 100);
     const total = subtotal + tax;
+    
+    // Use custom bank name if "სხვა" is selected
+    const displayBankName = data.bankName === 'სხვა' ? customBankName : data.bankName;
 
     return `
       <!DOCTYPE html>
       <html>
       <head>
         <meta charset="UTF-8">
-        <title>Invoice - ${data.invoiceNumber}</title>
+        <title>ინვოისი - ${data.invoiceNumber}</title>
         <style>
           :root { --text:#0f172a; --muted:#475569; --border:#e2e8f0; --bg:#ffffff; --subtle:#f8fafc; --accent:#16a34a; }
           * { box-sizing: border-box; }
@@ -157,8 +185,8 @@ export default function InvoiceGeneratorPage() {
         <div class="invoice-page">
           <div class="invoice-header">
             <div>
-              <div class="brand">${data.billerName || 'Company'}</div>
-              <div class="badge">Invoice</div>
+              <div class="brand">${data.billerName || 'კომპანია'}</div>
+              <div class="badge">ინვოისი</div>
             </div>
             <div class="meta">
               <div class="number">#${data.invoiceNumber}</div>
@@ -168,15 +196,17 @@ export default function InvoiceGeneratorPage() {
 
           <div class="parties">
             <div class="card">
-              <h3>From</h3>
+              <h3>გადამხდელი</h3>
               <p><strong>${data.billerName || ''}</strong></p>
+              ${data.billerCompanyId ? `<p><strong>საიდენტიფიკაციო კოდი:</strong> ${data.billerCompanyId}</p>` : ''}
               ${data.billerAddress ? `<p>${data.billerAddress}</p>` : ''}
               ${data.billerEmail ? `<p>${data.billerEmail}</p>` : ''}
               ${data.billerPhone ? `<p>${data.billerPhone}</p>` : ''}
             </div>
             <div class="card">
-              <h3>To</h3>
+              <h3>მიმღები</h3>
               <p><strong>${data.clientName || ''}</strong></p>
+              ${data.clientCompanyId ? `<p><strong>საიდენტიფიკაციო კოდი:</strong> ${data.clientCompanyId}</p>` : ''}
               ${data.clientAddress ? `<p>${data.clientAddress}</p>` : ''}
               ${data.clientEmail ? `<p>${data.clientEmail}</p>` : ''}
               ${data.clientPhone ? `<p>${data.clientPhone}</p>` : ''}
@@ -186,10 +216,10 @@ export default function InvoiceGeneratorPage() {
           <table>
             <thead>
               <tr>
-                <th>Description</th>
-                <th class="right">Qty</th>
-                <th class="right">Price</th>
-                <th class="right">Total</th>
+                <th>აღწერა</th>
+                <th class="right">რაოდენობა</th>
+                <th class="right">ფასი</th>
+                <th class="right">ჯამი</th>
               </tr>
             </thead>
             <tbody>
@@ -207,15 +237,23 @@ export default function InvoiceGeneratorPage() {
           <div class="totals">
             <div></div>
             <div class="summary">
-              <div class="row"><span>Subtotal</span><span>₾${subtotal.toFixed(2)}</span></div>
-              ${data.taxRate > 0 ? `<div class="row"><span>Tax (${data.taxRate}%)</span><span>₾${tax.toFixed(2)}</span></div>` : ''}
-              <div class="row total"><span>Total</span><span>₾${total.toFixed(2)}</span></div>
+              <div class="row"><span>ქვეჯამი</span><span>₾${subtotal.toFixed(2)}</span></div>
+              ${data.taxRate > 0 ? `<div class="row"><span>გადასახადი (${data.taxRate}%)</span><span>₾${tax.toFixed(2)}</span></div>` : ''}
+              <div class="row total"><span>სულ</span><span>₾${total.toFixed(2)}</span></div>
             </div>
           </div>
 
+          ${displayBankName || data.bankAccount ? `
+          <div class="notes">
+            <div class="badge">ბანკის ანგარიშის ინფორმაცია</div>
+            ${displayBankName ? `<p><strong>ბანკი:</strong> ${displayBankName}</p>` : ''}
+            ${data.bankAccount ? `<p><strong>ანგარიშის ნომერი:</strong> ${data.bankAccount}</p>` : ''}
+          </div>
+          ` : ''}
+
           ${data.notes ? `
           <div class="notes">
-            <div class="badge">Notes</div>
+            <div class="badge">შენიშვნები</div>
             <p>${data.notes}</p>
           </div>
           ` : ''}
@@ -289,7 +327,7 @@ export default function InvoiceGeneratorPage() {
             <iframe
               srcDoc={generatedInvoice}
               className="w-full h-screen border-0"
-              title="Generated Invoice"
+              title="გენერირებული ინვოისი"
             />
           </div>
         </div>
@@ -321,7 +359,7 @@ export default function InvoiceGeneratorPage() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                 </svg>
-                <span className="text-sm sm:text-base">Live Preview</span>
+                <span className="text-sm sm:text-base">ცოცხალი გადახედვა</span>
               </span>
             </button>
           </div>
@@ -361,7 +399,7 @@ export default function InvoiceGeneratorPage() {
 
               {/* Biller Information */}
               <div>
-                <h3 className="text-xl font-semibold text-slate-800 mb-4">გადამხდელი ინფორმაცია</h3>
+                <h3 className="text-xl font-semibold text-slate-800 mb-4">გადამხდელის ინფორმაცია</h3>
                 <div className="grid md:grid-cols-2 gap-6">
                   <div>
                     <label className="block text-sm font-semibold text-slate-700 mb-2">
@@ -372,8 +410,20 @@ export default function InvoiceGeneratorPage() {
                       value={invoiceData.billerName}
                       onChange={(e) => handleInputChange('billerName', e.target.value)}
                       className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                      placeholder="თქვენი კომპანია"
+                      placeholder="კომპანიის სახელი"
                       required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-slate-700 mb-2">
+                      კომპანიის საიდენტიფიკაციო კოდი
+                    </label>
+                    <input
+                      type="text"
+                      value={invoiceData.billerCompanyId}
+                      onChange={(e) => handleInputChange('billerCompanyId', e.target.value)}
+                      className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                      placeholder="123456789"
                     />
                   </div>
                   <div>
@@ -390,18 +440,6 @@ export default function InvoiceGeneratorPage() {
                   </div>
                   <div>
                     <label className="block text-sm font-semibold text-slate-700 mb-2">
-                      მისამართი
-                    </label>
-                    <input
-                      type="text"
-                      value={invoiceData.billerAddress}
-                      onChange={(e) => handleInputChange('billerAddress', e.target.value)}
-                      className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                      placeholder="თბილისი, საქართველო"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-semibold text-slate-700 mb-2">
                       ტელეფონი
                     </label>
                     <input
@@ -412,24 +450,48 @@ export default function InvoiceGeneratorPage() {
                       placeholder="+995 555 123 456"
                     />
                   </div>
+                  <div className="md:col-span-2">
+                    <label className="block text-sm font-semibold text-slate-700 mb-2">
+                      მისამართი
+                    </label>
+                    <input
+                      type="text"
+                      value={invoiceData.billerAddress}
+                      onChange={(e) => handleInputChange('billerAddress', e.target.value)}
+                      className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                      placeholder="თბილისი, საქართველო"
+                    />
+                  </div>
                 </div>
               </div>
 
               {/* Client Information */}
               <div>
-                <h3 className="text-xl font-semibold text-slate-800 mb-4">მომხმარებლის ინფორმაცია</h3>
+                <h3 className="text-xl font-semibold text-slate-800 mb-4">მიმღების ინფორმაცია</h3>
                 <div className="grid md:grid-cols-2 gap-6">
                   <div>
                     <label className="block text-sm font-semibold text-slate-700 mb-2">
-                      კლიენტის სახელი *
+                      კომპანიის სახელი *
                     </label>
                     <input
                       type="text"
                       value={invoiceData.clientName}
                       onChange={(e) => handleInputChange('clientName', e.target.value)}
                       className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                      placeholder="კლიენტის სახელი"
+                      placeholder="კომპანიის სახელი"
                       required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-slate-700 mb-2">
+                      კომპანიის საიდენტიფიკაციო კოდი
+                    </label>
+                    <input
+                      type="text"
+                      value={invoiceData.clientCompanyId}
+                      onChange={(e) => handleInputChange('clientCompanyId', e.target.value)}
+                      className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                      placeholder="123456789"
                     />
                   </div>
                   <div>
@@ -446,18 +508,6 @@ export default function InvoiceGeneratorPage() {
                   </div>
                   <div>
                     <label className="block text-sm font-semibold text-slate-700 mb-2">
-                      მისამართი
-                    </label>
-                    <input
-                      type="text"
-                      value={invoiceData.clientAddress}
-                      onChange={(e) => handleInputChange('clientAddress', e.target.value)}
-                      className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                      placeholder="კლიენტის მისამართი"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-semibold text-slate-700 mb-2">
                       ტელეფონი
                     </label>
                     <input
@@ -466,6 +516,18 @@ export default function InvoiceGeneratorPage() {
                       onChange={(e) => handleInputChange('clientPhone', e.target.value)}
                       className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                       placeholder="+995 555 123 456"
+                    />
+                  </div>
+                  <div className="md:col-span-2">
+                    <label className="block text-sm font-semibold text-slate-700 mb-2">
+                      მისამართი
+                    </label>
+                    <input
+                      type="text"
+                      value={invoiceData.clientAddress}
+                      onChange={(e) => handleInputChange('clientAddress', e.target.value)}
+                      className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                      placeholder="მისამართი"
                     />
                   </div>
                 </div>
@@ -556,6 +618,56 @@ export default function InvoiceGeneratorPage() {
                 </div>
               </div>
 
+              {/* Bank Account Information */}
+              <div>
+                <h3 className="text-xl font-semibold text-slate-800 mb-4">ბანკის ანგარიშის ინფორმაცია</h3>
+                <div className="grid md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-sm font-semibold text-slate-700 mb-2">
+                      ბანკის სახელი
+                    </label>
+                    <select
+                      value={invoiceData.bankName}
+                      onChange={(e) => {
+                        handleInputChange('bankName', e.target.value);
+                        if (e.target.value !== 'სხვა') {
+                          setCustomBankName('');
+                        }
+                      }}
+                      className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                    >
+                      <option value="">აირჩიეთ ბანკი</option>
+                      {georgianBanks.map((bank) => (
+                        <option key={bank} value={bank}>
+                          {bank}
+                        </option>
+                      ))}
+                    </select>
+                    {invoiceData.bankName === 'სხვა' && (
+                      <input
+                        type="text"
+                        value={customBankName}
+                        onChange={(e) => setCustomBankName(e.target.value)}
+                        className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent mt-2"
+                        placeholder="შეიყვანეთ ბანკის სახელი"
+                      />
+                    )}
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-slate-700 mb-2">
+                      ანგარიშის ნომერი
+                    </label>
+                    <input
+                      type="text"
+                      value={invoiceData.bankAccount}
+                      onChange={(e) => handleInputChange('bankAccount', e.target.value)}
+                      className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                      placeholder="GE00TB0000000000000000"
+                    />
+                  </div>
+                </div>
+              </div>
+
               {/* Tax and Notes */}
               <div className="grid md:grid-cols-2 gap-6">
                 <div>
@@ -615,7 +727,7 @@ export default function InvoiceGeneratorPage() {
           {showLivePreview && (
             <div className="bg-white rounded-xl shadow-lg p-8 max-h-[800px] flex flex-col lg:sticky lg:top-4">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-xl font-semibold text-slate-800">Live Preview</h3>
+                <h3 className="text-xl font-semibold text-slate-800">ცოცხალი გადახედვა</h3>
                 <div className="flex items-center space-x-2">
                   <div className="flex items-center rounded-lg border border-slate-200 overflow-hidden">
                     <button type="button" onClick={() => setPreviewZoom(z => Math.max(0.5, Math.round((z - 0.1) * 10) / 10))} className="px-2 py-1 text-slate-700 hover:bg-slate-100" aria-label="Zoom out">−</button>
@@ -640,7 +752,7 @@ export default function InvoiceGeneratorPage() {
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                     </svg>
-                    <span>Download</span>
+                    <span>ჩამოტვირთვა</span>
                   </button>
                 </div>
               </div>
@@ -648,7 +760,7 @@ export default function InvoiceGeneratorPage() {
                 <div className="mx-auto my-4" style={{ width: `${Math.round(a4WidthPx * previewZoom)}px`, height: `${Math.round(a4HeightPx * previewZoom)}px` }}>
                   <iframe
                     srcDoc={generateLivePreview()}
-                    title="Live Invoice Preview"
+                    title="ინვოისის ცოცხალი გადახედვა"
                     style={{
                       width: `${a4WidthPx}px`,
                       height: `${a4HeightPx}px`,
@@ -669,3 +781,4 @@ export default function InvoiceGeneratorPage() {
     </div>
   );
 }
+
