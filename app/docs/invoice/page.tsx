@@ -18,6 +18,7 @@ interface InvoiceData {
   billerEmail: string;
   billerPhone: string;
   billerCompanyId: string;
+  billerLogo: string;
   clientName: string;
   clientAddress: string;
   clientEmail: string;
@@ -55,6 +56,7 @@ export default function InvoiceGeneratorPage() {
     billerEmail: '',
     billerPhone: '',
     billerCompanyId: '',
+    billerLogo: '',
     clientName: '',
     clientAddress: '',
     clientEmail: '',
@@ -75,6 +77,7 @@ export default function InvoiceGeneratorPage() {
   const [showLivePreview, setShowLivePreview] = useState(true);
   const [previewZoom, setPreviewZoom] = useState(0.5);
   const [customBankName, setCustomBankName] = useState<string>('');
+  const [templateStyle, setTemplateStyle] = useState<'modern' | 'classic'>('modern');
 
   // Approximate A4 size at 96 DPI
   const a4WidthPx = 794; // 210mm @ ~96dpi
@@ -82,6 +85,22 @@ export default function InvoiceGeneratorPage() {
 
   const handleInputChange = (field: keyof InvoiceData, value: string | number) => {
     setInvoiceData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const result = e.target?.result as string;
+        setInvoiceData(prev => ({ ...prev, billerLogo: result }));
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const removeLogo = () => {
+    setInvoiceData(prev => ({ ...prev, billerLogo: '' }));
   };
 
   const addItem = () => {
@@ -115,7 +134,7 @@ export default function InvoiceGeneratorPage() {
   };
 
   const generateLivePreview = () => {
-    return createInvoiceHTML(invoiceData, items);
+    return createInvoiceHTML(invoiceData, items, templateStyle);
   };
 
   const generateInvoice = async () => {
@@ -133,19 +152,28 @@ export default function InvoiceGeneratorPage() {
     setIsGenerating(true);
     
     setTimeout(() => {
-      const invoiceHTML = createInvoiceHTML(invoiceData, validItems);
+      const invoiceHTML = createInvoiceHTML(invoiceData, validItems, templateStyle);
       setGeneratedInvoice(invoiceHTML);
       setIsGenerating(false);
     }, 2000);
   };
 
-  const createInvoiceHTML = (data: InvoiceData, items: InvoiceItem[]) => {
+  const createInvoiceHTML = (data: InvoiceData, items: InvoiceItem[], style: 'modern' | 'classic' = 'modern') => {
     const subtotal = items.reduce((sum, item) => sum + item.total, 0);
     const tax = subtotal * (data.taxRate / 100);
     const total = subtotal + tax;
     
     // Use custom bank name if "სხვა" is selected
     const displayBankName = data.bankName === 'სხვა' ? customBankName : data.bankName;
+
+    if (style === 'classic') {
+      return createClassicInvoiceHTML(data, items, subtotal, tax, total, displayBankName);
+    }
+    
+    return createModernInvoiceHTML(data, items, subtotal, tax, total, displayBankName);
+  };
+
+  const createModernInvoiceHTML = (data: InvoiceData, items: InvoiceItem[], subtotal: number, tax: number, total: number, displayBankName: string) => {
 
     return `
       <!DOCTYPE html>
@@ -159,6 +187,8 @@ export default function InvoiceGeneratorPage() {
           body { font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial; margin:0; padding:24px; background:var(--bg); color:var(--text); line-height:1.6; }
           .invoice-page { max-width: 900px; margin:0 auto; background:#fff; }
           .invoice-header { display:flex; justify-content:space-between; align-items:flex-start; padding-bottom:16px; border-bottom:1px solid var(--border); }
+          .brand-section { display:flex; align-items:center; gap:16px; }
+          .company-logo { width:60px; height:60px; object-fit:contain; border-radius:8px; }
           .brand { font-size:28px; font-weight:700; letter-spacing:-0.02em; color:var(--text); }
           .meta { text-align:right; color:var(--muted); font-size:14px; }
           .meta .number { font-size:16px; color:var(--text); font-weight:600; }
@@ -184,9 +214,131 @@ export default function InvoiceGeneratorPage() {
       <body>
         <div class="invoice-page">
           <div class="invoice-header">
-            <div>
-              <div class="brand">${data.billerName || 'კომპანია'}</div>
-              <div class="badge">ინვოისი</div>
+            <div class="brand-section">
+              ${data.billerLogo ? `<img src="${data.billerLogo}" alt="Company Logo" class="company-logo" />` : ''}
+              <div>
+                <div class="brand">${data.billerName || 'კომპანია'}</div>
+                <div class="badge">ინვოისი</div>
+              </div>
+            </div>
+            <div class="meta">
+              <div class="number">#${data.invoiceNumber}</div>
+              <div>${new Date(data.invoiceDate).toLocaleDateString('ka-GE')}</div>
+            </div>
+          </div>
+
+          <div class="parties">
+            <div class="card">
+              <h3>გადამხდელი</h3>
+              <p><strong>${data.billerName || ''}</strong></p>
+              ${data.billerCompanyId ? `<p><strong>საიდენტიფიკაციო კოდი:</strong> ${data.billerCompanyId}</p>` : ''}
+              ${data.billerAddress ? `<p>${data.billerAddress}</p>` : ''}
+              ${data.billerEmail ? `<p>${data.billerEmail}</p>` : ''}
+              ${data.billerPhone ? `<p>${data.billerPhone}</p>` : ''}
+            </div>
+            <div class="card">
+              <h3>მიმღები</h3>
+              <p><strong>${data.clientName || ''}</strong></p>
+              ${data.clientCompanyId ? `<p><strong>საიდენტიფიკაციო კოდი:</strong> ${data.clientCompanyId}</p>` : ''}
+              ${data.clientAddress ? `<p>${data.clientAddress}</p>` : ''}
+              ${data.clientEmail ? `<p>${data.clientEmail}</p>` : ''}
+              ${data.clientPhone ? `<p>${data.clientPhone}</p>` : ''}
+            </div>
+          </div>
+
+          <table>
+            <thead>
+              <tr>
+                <th>აღწერა</th>
+                <th class="right">რაოდენობა</th>
+                <th class="right">ფასი</th>
+                <th class="right">ჯამი</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${items.map(item => `
+                <tr>
+                  <td>${item.description}</td>
+                  <td class="right">${item.quantity}</td>
+                  <td class="right">₾${item.price.toFixed(2)}</td>
+                  <td class="right">₾${item.total.toFixed(2)}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+
+          <div class="totals">
+            <div></div>
+            <div class="summary">
+              <div class="row"><span>ქვეჯამი</span><span>₾${subtotal.toFixed(2)}</span></div>
+              ${data.taxRate > 0 ? `<div class="row"><span>გადასახადი (${data.taxRate}%)</span><span>₾${tax.toFixed(2)}</span></div>` : ''}
+              <div class="row total"><span>სულ</span><span>₾${total.toFixed(2)}</span></div>
+            </div>
+          </div>
+
+          ${displayBankName || data.bankAccount ? `
+          <div class="notes">
+            <div class="badge">ბანკის ანგარიშის ინფორმაცია</div>
+            ${displayBankName ? `<p><strong>ბანკი:</strong> ${displayBankName}</p>` : ''}
+            ${data.bankAccount ? `<p><strong>ანგარიშის ნომერი:</strong> ${data.bankAccount}</p>` : ''}
+          </div>
+          ` : ''}
+
+          ${data.notes ? `
+          <div class="notes">
+            <div class="badge">შენიშვნები</div>
+            <p>${data.notes}</p>
+          </div>
+          ` : ''}
+        </div>
+      </body>
+      </html>
+    `;
+  };
+
+  const createClassicInvoiceHTML = (data: InvoiceData, items: InvoiceItem[], subtotal: number, tax: number, total: number, displayBankName: string) => {
+    return `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="UTF-8">
+        <title>ინვოისი - ${data.invoiceNumber}</title>
+        <style>
+          * { box-sizing: border-box; }
+          body { font-family: 'Times New Roman', serif; margin:0; padding:20px; background:#fff; color:#000; line-height:1.4; }
+          .invoice-page { max-width: 800px; margin:0 auto; background:#fff; }
+          .invoice-header { display:flex; justify-content:space-between; align-items:flex-start; padding-bottom:20px; border-bottom:2px solid #000; }
+          .brand-section { display:flex; align-items:center; gap:20px; }
+          .company-logo { width:80px; height:80px; object-fit:contain; border:1px solid #ccc; }
+          .brand { font-size:24px; font-weight:bold; color:#000; text-transform:uppercase; }
+          .meta { text-align:right; color:#000; font-size:14px; }
+          .meta .number { font-size:18px; color:#000; font-weight:bold; }
+          .parties { display:grid; grid-template-columns:1fr 1fr; gap:30px; padding:20px 0; border-bottom:1px solid #000; }
+          .card { border:1px solid #000; padding:15px; }
+          .card h3 { margin:0 0 10px 0; font-size:14px; font-weight:bold; color:#000; text-transform:uppercase; }
+          .card p { margin:5px 0; }
+          table { width:100%; border-collapse: collapse; margin-top:20px; border:1px solid #000; }
+          thead th { font-size:12px; font-weight:bold; text-align:left; padding:10px; background:#f0f0f0; color:#000; border:1px solid #000; }
+          tbody td { padding:10px; border:1px solid #000; }
+          .right { text-align:right; }
+          .totals { display:grid; grid-template-columns: 1fr 300px; gap:30px; align-items:start; margin-top:20px; }
+          .totals .summary { border:1px solid #000; padding:15px; }
+          .row { display:flex; justify-content:space-between; padding:5px 0; }
+          .row.total { border-top:2px solid #000; margin-top:10px; padding-top:10px; font-weight:bold; font-size:16px; }
+          .notes { border:1px solid #000; padding:15px; margin-top:20px; }
+          .badge { display:inline-block; font-size:10px; padding:3px 6px; border:1px solid #000; background:#fff; color:#000; font-weight:bold; }
+          @media print { @page { size:A4; margin: 15mm; } body { padding:0; } }
+        </style>
+      </head>
+      <body>
+        <div class="invoice-page">
+          <div class="invoice-header">
+            <div class="brand-section">
+              ${data.billerLogo ? `<img src="${data.billerLogo}" alt="Company Logo" class="company-logo" />` : ''}
+              <div>
+                <div class="brand">${data.billerName || 'კომპანია'}</div>
+                <div class="badge">ინვოისი</div>
+              </div>
             </div>
             <div class="meta">
               <div class="number">#${data.invoiceNumber}</div>
@@ -342,7 +494,35 @@ export default function InvoiceGeneratorPage() {
         {/* Header */}
         <div className="mb-8">
           {/* Controls */}
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-end gap-4">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            {/* Template Style Switcher */}
+            <div className="flex items-center space-x-2">
+              <span className="text-sm font-medium text-slate-700">შაბლონი:</span>
+              <div className="flex rounded-lg border border-slate-200 overflow-hidden">
+                <button
+                  type="button"
+                  onClick={() => setTemplateStyle('modern')}
+                  className={`px-3 py-2 text-sm transition-colors ${
+                    templateStyle === 'modern'
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-white text-slate-700 hover:bg-slate-50'
+                  }`}
+                >
+                  თანამედროვე
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setTemplateStyle('classic')}
+                  className={`px-3 py-2 text-sm transition-colors ${
+                    templateStyle === 'classic'
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-white text-slate-700 hover:bg-slate-50'
+                  }`}
+                >
+                  კლასიკური
+                </button>
+              </div>
+            </div>
             
             {/* Live Preview Button */}
             <button
@@ -400,6 +580,59 @@ export default function InvoiceGeneratorPage() {
               {/* Biller Information */}
               <div>
                 <h3 className="text-xl font-semibold text-slate-800 mb-4">გადამხდელის ინფორმაცია</h3>
+                
+                {/* Company Logo Upload */}
+                <div className="mb-6">
+                  <label className="block text-sm font-semibold text-slate-700 mb-2">
+                    კომპანიის ლოგო
+                  </label>
+                  <div className="flex items-center space-x-4">
+                    {invoiceData.billerLogo ? (
+                      <div className="relative">
+                        <img 
+                          src={invoiceData.billerLogo} 
+                          alt="Company Logo" 
+                          className="w-20 h-20 object-cover rounded-lg border border-slate-300"
+                        />
+                        <button
+                          type="button"
+                          onClick={removeLogo}
+                          className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 transition-colors"
+                        >
+                          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                          </svg>
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="w-20 h-20 border-2 border-dashed border-slate-300 rounded-lg flex items-center justify-center">
+                        <svg className="w-8 h-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                      </div>
+                    )}
+                    <div>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleImageUpload}
+                        className="hidden"
+                        id="logo-upload"
+                      />
+                      <label
+                        htmlFor="logo-upload"
+                        className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors cursor-pointer inline-flex items-center space-x-2"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                        </svg>
+                        <span>ლოგოს ატვირთვა</span>
+                      </label>
+                      <p className="text-xs text-slate-500 mt-1">PNG, JPG, GIF (მაქს. 5MB)</p>
+                    </div>
+                  </div>
+                </div>
+
                 <div className="grid md:grid-cols-2 gap-6">
                   <div>
                     <label className="block text-sm font-semibold text-slate-700 mb-2">
