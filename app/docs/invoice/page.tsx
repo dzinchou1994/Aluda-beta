@@ -898,7 +898,7 @@ export default function InvoiceGeneratorPage() {
               </div>
             </div>
 
-            <div className={`bg-white rounded-xl shadow-lg p-8 ${showLivePreview ? 'lg:col-span-3 max-h-[800px] overflow-y-auto' : ''}`}>page
+            <div className={`bg-white rounded-xl shadow-lg p-8 ${showLivePreview ? 'lg:col-span-3 max-h-[800px] overflow-y-auto' : ''}`}>
               <form onSubmit={(e) => { e.preventDefault(); generateInvoice(); }} className="space-y-8">
               
               {/* Step 0: Invoice Header */}
