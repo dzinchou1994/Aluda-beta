@@ -744,16 +744,75 @@ export default function InvoiceGeneratorPage() {
     `;
   };
 
-  const downloadInvoice = () => {
-    const blob = new Blob([generatedInvoice], { type: 'text/html' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `Invoice-${invoiceData.invoiceNumber || 'Document'}.html`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+  const downloadPDFViaAPI = async (html: string, suggestedName: string) => {
+    const name = (suggestedName && suggestedName.trim()) || 'Invoice';
+    const response = await fetch('/api/pdf', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ html, fileName: name })
+    });
+    if (!response.ok) {
+      throw new Error('PDF API returned non-OK');
+    }
+    
+    // The API now returns HTML with print instructions
+    const htmlContent = await response.text();
+    
+    // Open the HTML in a new window for printing
+    const printWindow = window.open('', '_blank');
+    if (printWindow) {
+      printWindow.document.write(htmlContent);
+      printWindow.document.close();
+      
+      // Auto-trigger print dialog after a short delay
+      setTimeout(() => {
+        printWindow.print();
+      }, 500);
+    } else {
+      // Fallback: create a blob and download as HTML
+      const blob = new Blob([htmlContent], { type: 'text/html' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${name}.html`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+  };
+
+  const downloadInvoiceFromPreview = async () => {
+    try {
+      console.log('Generating PDF from Live Preview via API...');
+      
+      // Check if there's any meaningful content
+      if (!invoiceData.billerName && !invoiceData.clientName && !invoiceData.invoiceNumber) {
+        alert('გთხოვთ შეავსოთ მინიმუმ გამყიდველის სახელი, მყიდველის სახელი და ინვოისის ნომერი PDF-ის ჩამოტვირთვისთვის.');
+        return;
+      }
+      
+      const invoiceHTML = generateLivePreview();
+      console.log('Generated HTML length:', invoiceHTML.length);
+      await downloadPDFViaAPI(invoiceHTML, `Invoice-${invoiceData.invoiceNumber || 'Document'}`);
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      alert('შეცდომა PDF-ის გენერაციისას. გთხოვთ სცადოთ კვლავ.');
+    }
+  };
+
+  const downloadInvoice = async () => {
+    if (!generatedInvoice) {
+      alert('ინვოისი არ არის გენერირებული. გთხოვთ ჯერ გენერირება დააჭიროთ.');
+      return;
+    }
+    try {
+      console.log('Generating PDF from generated invoice via API...');
+      await downloadPDFViaAPI(generatedInvoice, `Invoice-${invoiceData.invoiceNumber || 'Document'}`);
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      alert('შეცდომა PDF-ის გენერაციისას. გთხოვთ სცადოთ კვლავ.');
+    }
   };
 
   const printInvoice = () => {
@@ -1546,18 +1605,7 @@ export default function InvoiceGeneratorPage() {
                     <button type="button" onClick={() => setPreviewZoom(z => Math.min(2, Math.round((z + 0.1) * 10) / 10))} className="px-1.5 py-0.5 text-slate-700 hover:bg-slate-100" aria-label="Zoom in">+</button>
                   </div>
                   <button
-                    onClick={() => {
-                      const previewHTML = generateLivePreview();
-                      const blob = new Blob([previewHTML], { type: 'text/html' });
-                      const url = URL.createObjectURL(blob);
-                      const a = document.createElement('a');
-                      a.href = url;
-                      a.download = `Invoice-Preview-${invoiceData.invoiceNumber || 'Document'}.html`;
-                      document.body.appendChild(a);
-                      a.click();
-                      document.body.removeChild(a);
-                      URL.revokeObjectURL(url);
-                    }}
+                    onClick={downloadInvoiceFromPreview}
                     className="flex items-center space-x-1.5 px-2.5 py-1 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors text-xs"
                   >
                     <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
