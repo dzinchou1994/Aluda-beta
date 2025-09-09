@@ -2108,7 +2108,7 @@ export default function CVGeneratorPage() {
 
         <div className={`mx-auto ${showLivePreview ? 'max-w-7xl' : 'max-w-4xl'}`}>
           <div className={`${showLivePreview ? 'grid grid-cols-1 lg:grid-cols-2 gap-8 items-start' : ''}`}>
-            <div className={`bg-white rounded-xl shadow-lg p-8 ${showLivePreview ? 'max-h-[800px] overflow-y-auto' : ''}`}>
+            <div className={`bg-white rounded-xl shadow-lg p-8 pt-16 sm:pt-20 ${showLivePreview ? 'max-h-[800px] overflow-y-auto' : ''}`}>
             <form onSubmit={(e) => { e.preventDefault(); generateCV(); }} className="space-y-6">
 
               {/* Step 0: Personal */}

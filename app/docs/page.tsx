@@ -56,7 +56,7 @@ export default function DocumentsPage() {
         <div className="max-w-4xl mx-auto">
           <div className="grid grid-cols-2 md:grid-cols-2 gap-4 md:gap-8">
             
-            {/* CV Generator Box */}
+,[;]            {/* CV Generator Box */}
             <div 
               onClick={() => router.push('/docs/cv')}
               className="group cursor-pointer bg-white dark:bg-slate-800 rounded-2xl p-4 md:p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-slate-200 dark:border-slate-700 hover:border-blue-500 dark:hover:border-blue-400"
