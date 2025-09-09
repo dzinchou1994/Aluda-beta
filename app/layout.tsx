@@ -22,8 +22,8 @@ const pacifico = Pacifico({
 })
 
 export const metadata: Metadata = {
-  title: "AludaAI - AI ასისტენტი ქართულ ენაზე",
-  description: "თქვენი AI ასისტენტი ქართულ ენაზე - ინტელექტუალური საუბარი და დახმარება",
+  title: "Aluda - პირველი ქართული AI პლატფორმა",
+  description: "AI ასისტენტი ქართულ ენაზე დახმარება, სურათების,ვიდეოების და დოკუმენტების შექმნა",
   icons: {
     icon: [
       { url: '/brain-icon.svg', type: 'image/svg+xml' },
