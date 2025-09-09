@@ -78,6 +78,8 @@ export default function InvoiceGeneratorPage() {
   const [previewZoom, setPreviewZoom] = useState(0.5);
   const [customBankName, setCustomBankName] = useState<string>('');
   const [templateStyle, setTemplateStyle] = useState<'modern' | 'classic'>('modern');
+  const [useGeorgianVAT, setUseGeorgianVAT] = useState<boolean>(false);
+  const [vatIncluded, setVatIncluded] = useState<boolean>(false);
 
   // Approximate A4 size at 96 DPI
   const a4WidthPx = 794; // 210mm @ ~96dpi
@@ -101,6 +103,22 @@ export default function InvoiceGeneratorPage() {
 
   const removeLogo = () => {
     setInvoiceData(prev => ({ ...prev, billerLogo: '' }));
+  };
+
+  const handleVatOptionChange = (option: 'none' | 'add' | 'included') => {
+    if (option === 'none') {
+      setUseGeorgianVAT(false);
+      setVatIncluded(false);
+      setInvoiceData(prev => ({ ...prev, taxRate: 0 }));
+    } else if (option === 'add') {
+      setUseGeorgianVAT(true);
+      setVatIncluded(false);
+      setInvoiceData(prev => ({ ...prev, taxRate: 18 }));
+    } else if (option === 'included') {
+      setUseGeorgianVAT(false);
+      setVatIncluded(true);
+      setInvoiceData(prev => ({ ...prev, taxRate: 18 }));
+    }
   };
 
   const addItem = () => {
@@ -134,7 +152,7 @@ export default function InvoiceGeneratorPage() {
   };
 
   const generateLivePreview = () => {
-    return createInvoiceHTML(invoiceData, items, templateStyle);
+    return createInvoiceHTML(invoiceData, items, templateStyle, useGeorgianVAT, vatIncluded);
   };
 
   const generateInvoice = async () => {
@@ -152,28 +170,45 @@ export default function InvoiceGeneratorPage() {
     setIsGenerating(true);
     
     setTimeout(() => {
-      const invoiceHTML = createInvoiceHTML(invoiceData, validItems, templateStyle);
+      const invoiceHTML = createInvoiceHTML(invoiceData, validItems, templateStyle, useGeorgianVAT, vatIncluded);
       setGeneratedInvoice(invoiceHTML);
       setIsGenerating(false);
     }, 2000);
   };
 
-  const createInvoiceHTML = (data: InvoiceData, items: InvoiceItem[], style: 'modern' | 'classic' = 'modern') => {
+  const createInvoiceHTML = (data: InvoiceData, items: InvoiceItem[], style: 'modern' | 'classic' = 'modern', isGeorgianVAT: boolean = false, isVatIncluded: boolean = false) => {
     const subtotal = items.reduce((sum, item) => sum + item.total, 0);
-    const tax = subtotal * (data.taxRate / 100);
-    const total = subtotal + tax;
+    
+    let tax, total, subtotalWithoutVat;
+    
+    if (isVatIncluded && data.taxRate > 0) {
+      // VAT is included in the price, so we need to calculate the VAT amount from the total
+      total = subtotal; // Total is what user entered
+      tax = total * (data.taxRate / (100 + data.taxRate)); // Calculate VAT from total
+      subtotalWithoutVat = total - tax; // Subtotal without VAT
+    } else if (isGeorgianVAT && data.taxRate > 0) {
+      // VAT is added to the price
+      tax = subtotal * (data.taxRate / 100);
+      total = subtotal + tax;
+      subtotalWithoutVat = subtotal;
+    } else {
+      // No VAT
+      tax = 0;
+      total = subtotal;
+      subtotalWithoutVat = subtotal;
+    }
     
     // Use custom bank name if "სხვა" is selected
     const displayBankName = data.bankName === 'სხვა' ? customBankName : data.bankName;
 
     if (style === 'classic') {
-      return createClassicInvoiceHTML(data, items, subtotal, tax, total, displayBankName);
+      return createClassicInvoiceHTML(data, items, subtotalWithoutVat, tax, total, displayBankName, isGeorgianVAT, isVatIncluded);
     }
     
-    return createModernInvoiceHTML(data, items, subtotal, tax, total, displayBankName);
+    return createModernInvoiceHTML(data, items, subtotalWithoutVat, tax, total, displayBankName, isGeorgianVAT, isVatIncluded);
   };
 
-  const createModernInvoiceHTML = (data: InvoiceData, items: InvoiceItem[], subtotal: number, tax: number, total: number, displayBankName: string) => {
+  const createModernInvoiceHTML = (data: InvoiceData, items: InvoiceItem[], subtotal: number, tax: number, total: number, displayBankName: string, isGeorgianVAT: boolean = false, isVatIncluded: boolean = false) => {
 
     return `
       <!DOCTYPE html>
@@ -202,10 +237,10 @@ export default function InvoiceGeneratorPage() {
           tbody tr:nth-child(odd) { background:#fff; }
           tbody tr:nth-child(even) { background:#fcfdff; }
           .right { text-align:right; }
-          .totals { display:grid; grid-template-columns: 1fr 280px; gap:24px; align-items:start; margin-top:18px; }
-          .totals .summary { background:var(--subtle); border:1px solid var(--border); border-radius:10px; padding:16px; }
-          .row { display:flex; justify-content:space-between; padding:6px 0; }
-          .row.total { border-top:1px dashed var(--border); margin-top:8px; padding-top:10px; font-weight:700; font-size:18px; }
+          .totals { display:grid; grid-template-columns: 1fr 280px; gap:20px; align-items:start; margin-top:16px; }
+          .totals .summary { background:var(--subtle); border:1px solid var(--border); border-radius:8px; padding:12px; }
+          .row { display:flex; justify-content:space-between; padding:4px 0; font-size:14px; }
+          .row.total { border-top:1px dashed var(--border); margin-top:6px; padding-top:8px; font-weight:700; font-size:16px; }
           .notes { background:var(--subtle); border:1px solid var(--border); border-radius:10px; padding:16px; margin-top:18px; }
           .badge { display:inline-block; font-size:12px; padding:4px 8px; border-radius:9999px; border:1px solid var(--border); background:#fff; color:var(--muted); }
           @media print { @page { size:A4; margin: 12mm; } body { padding:0; } }
@@ -270,9 +305,15 @@ export default function InvoiceGeneratorPage() {
           <div class="totals">
             <div></div>
             <div class="summary">
-              <div class="row"><span>ქვეჯამი</span><span>₾${subtotal.toFixed(2)}</span></div>
-              ${data.taxRate > 0 ? `<div class="row"><span>გადასახადი (${data.taxRate}%)</span><span>₾${tax.toFixed(2)}</span></div>` : ''}
-              <div class="row total"><span>სულ</span><span>₾${total.toFixed(2)}</span></div>
+              ${isVatIncluded && data.taxRate > 0 ? `
+                <div class="row"><span>ჯამი (დღგ-ს გარეშე)</span><span>₾${subtotal.toFixed(2)}</span></div>
+                <div class="row"><span>${isGeorgianVAT ? 'დღგ' : 'გადასახადი'} ${data.taxRate}%</span><span>₾${tax.toFixed(2)}</span></div>
+                <div class="row total"><span>სულ (დღგ-ს ჩათვლით)</span><span>₾${total.toFixed(2)}</span></div>
+              ` : `
+                <div class="row"><span>ჯამი</span><span>₾${subtotal.toFixed(2)}</span></div>
+                ${data.taxRate > 0 ? `<div class="row"><span>${isGeorgianVAT ? 'დღგ' : 'გადასახადი'} ${data.taxRate}%</span><span>₾${tax.toFixed(2)}</span></div>` : ''}
+                <div class="row total"><span>სულ</span><span>₾${total.toFixed(2)}</span></div>
+              `}
             </div>
           </div>
 
@@ -296,7 +337,7 @@ export default function InvoiceGeneratorPage() {
     `;
   };
 
-  const createClassicInvoiceHTML = (data: InvoiceData, items: InvoiceItem[], subtotal: number, tax: number, total: number, displayBankName: string) => {
+  const createClassicInvoiceHTML = (data: InvoiceData, items: InvoiceItem[], subtotal: number, tax: number, total: number, displayBankName: string, isGeorgianVAT: boolean = false, isVatIncluded: boolean = false) => {
     return `
       <!DOCTYPE html>
       <html>
@@ -321,10 +362,10 @@ export default function InvoiceGeneratorPage() {
           thead th { font-size:12px; font-weight:bold; text-align:left; padding:10px; background:#f0f0f0; color:#000; border:1px solid #000; }
           tbody td { padding:10px; border:1px solid #000; }
           .right { text-align:right; }
-          .totals { display:grid; grid-template-columns: 1fr 300px; gap:30px; align-items:start; margin-top:20px; }
-          .totals .summary { border:1px solid #000; padding:15px; }
-          .row { display:flex; justify-content:space-between; padding:5px 0; }
-          .row.total { border-top:2px solid #000; margin-top:10px; padding-top:10px; font-weight:bold; font-size:16px; }
+          .totals { display:grid; grid-template-columns: 1fr 300px; gap:24px; align-items:start; margin-top:18px; }
+          .totals .summary { border:1px solid #000; padding:12px; }
+          .row { display:flex; justify-content:space-between; padding:3px 0; font-size:13px; }
+          .row.total { border-top:2px solid #000; margin-top:8px; padding-top:8px; font-weight:bold; font-size:15px; }
           .notes { border:1px solid #000; padding:15px; margin-top:20px; }
           .badge { display:inline-block; font-size:10px; padding:3px 6px; border:1px solid #000; background:#fff; color:#000; font-weight:bold; }
           @media print { @page { size:A4; margin: 15mm; } body { padding:0; } }
@@ -389,9 +430,15 @@ export default function InvoiceGeneratorPage() {
           <div class="totals">
             <div></div>
             <div class="summary">
-              <div class="row"><span>ქვეჯამი</span><span>₾${subtotal.toFixed(2)}</span></div>
-              ${data.taxRate > 0 ? `<div class="row"><span>გადასახადი (${data.taxRate}%)</span><span>₾${tax.toFixed(2)}</span></div>` : ''}
-              <div class="row total"><span>სულ</span><span>₾${total.toFixed(2)}</span></div>
+              ${isVatIncluded && data.taxRate > 0 ? `
+                <div class="row"><span>ჯამი (დღგ-ს გარეშე)</span><span>₾${subtotal.toFixed(2)}</span></div>
+                <div class="row"><span>${isGeorgianVAT ? 'დღგ' : 'გადასახადი'} ${data.taxRate}%</span><span>₾${tax.toFixed(2)}</span></div>
+                <div class="row total"><span>სულ (დღგ-ს ჩათვლით)</span><span>₾${total.toFixed(2)}</span></div>
+              ` : `
+                <div class="row"><span>ჯამი</span><span>₾${subtotal.toFixed(2)}</span></div>
+                ${data.taxRate > 0 ? `<div class="row"><span>${isGeorgianVAT ? 'დღგ' : 'გადასახადი'} ${data.taxRate}%</span><span>₾${tax.toFixed(2)}</span></div>` : ''}
+                <div class="row total"><span>სულ</span><span>₾${total.toFixed(2)}</span></div>
+              `}
             </div>
           </div>
 
@@ -907,16 +954,73 @@ export default function InvoiceGeneratorPage() {
                   <label className="block text-sm font-semibold text-slate-700 mb-2">
                     გადასახადი (%)
                   </label>
-                  <input
-                    type="number"
-                    min="0"
-                    max="100"
-                    step="0.01"
-                    value={invoiceData.taxRate}
-                    onChange={(e) => handleInputChange('taxRate', parseFloat(e.target.value) || 0)}
-                    className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                    placeholder="0"
-                  />
+                  <div className="space-y-3">
+                    {/* VAT Options - Radio Buttons */}
+                    <div className="space-y-2">
+                      <div className="flex items-center space-x-3">
+                        <input
+                          type="radio"
+                          id="vat-none"
+                          name="vat-option"
+                          checked={!useGeorgianVAT && !vatIncluded}
+                          onChange={() => handleVatOptionChange('none')}
+                          className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 focus:ring-2"
+                        />
+                        <label htmlFor="vat-none" className="text-sm font-medium text-slate-700">
+                          გადასახადი არ არის
+                        </label>
+                      </div>
+                      
+                      <div className="flex items-center space-x-3">
+                        <input
+                          type="radio"
+                          id="vat-add"
+                          name="vat-option"
+                          checked={useGeorgianVAT && !vatIncluded}
+                          onChange={() => handleVatOptionChange('add')}
+                          className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 focus:ring-2"
+                        />
+                        <label htmlFor="vat-add" className="text-sm font-medium text-slate-700">
+                          დაარიცხე დ.ღ.გ (18%)
+                        </label>
+                      </div>
+                      
+                      <div className="flex items-center space-x-3">
+                        <input
+                          type="radio"
+                          id="vat-included"
+                          name="vat-option"
+                          checked={vatIncluded && !useGeorgianVAT}
+                          onChange={() => handleVatOptionChange('included')}
+                          className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 focus:ring-2"
+                        />
+                        <label htmlFor="vat-included" className="text-sm font-medium text-slate-700">
+                          ფასში შესულია დ.ღ.გ
+                        </label>
+                      </div>
+                    </div>
+                    
+                    {/* Manual Tax Rate Input */}
+                    <input
+                      type="number"
+                      min="0"
+                      max="100"
+                      step="0.01"
+                      value={invoiceData.taxRate}
+                      onChange={(e) => {
+                        const value = parseFloat(e.target.value) || 0;
+                        handleInputChange('taxRate', value);
+                        if (value === 18) {
+                          handleVatOptionChange('add');
+                        } else if (value === 0) {
+                          handleVatOptionChange('none');
+                        }
+                      }}
+                      className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                      placeholder="0"
+                      disabled={useGeorgianVAT || vatIncluded}
+                    />
+                  </div>
                 </div>
                 <div>
                   <label className="block text-sm font-semibold text-slate-700 mb-2">
