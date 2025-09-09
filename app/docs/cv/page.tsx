@@ -1986,18 +1986,6 @@ export default function CVGeneratorPage() {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
         <DocsHeader backHref="/docs" backLabel="უკან" title="CV გენერატორი" showBeta />
-        {/* Sticky Download Button */}
-        <div className="fixed top-4 right-4 z-50">
-          <button
-            onClick={downloadCV}
-            className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors shadow-lg"
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-            </svg>
-            <span>PDF ჩამოტვირთვა</span>
-          </button>
-        </div>
         
         <div className="container mx-auto px-4 py-8">
           <div className="flex justify-end items-center mb-6">
@@ -2009,8 +1997,8 @@ export default function CVGeneratorPage() {
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
                 </svg>
-                <span className="hidden sm:inline">ბეჭდვა</span>
-                <span className="sm:hidden">Print</span>
+                <span className="hidden sm:inline">გადმოწერა</span>
+                <span className="sm:hidden">Download</span>
               </button>
             </div>
           </div>
