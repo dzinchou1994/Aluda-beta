@@ -47,6 +47,7 @@ interface SmartSkillsInputProps {
   onAddSkill: (skill: string) => void;
   onRemoveSkill: (index: number) => void;
   skillCategories: Record<string, string[]>;
+  defaultCategoriesOpen?: boolean;
 }
 
 interface LinksInputProps {
@@ -232,15 +233,16 @@ const LanguageSkillsInput: React.FC<LanguageSkillsInputProps> = ({
 };
 
 const SmartSkillsInput: React.FC<SmartSkillsInputProps> = ({
-  skills,
+  skills = [],
   onAddSkill,
   onRemoveSkill,
-  skillCategories
+  skillCategories,
+  defaultCategoriesOpen = false
 }) => {
   const [newSkill, setNewSkill] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('Technical');
   const [showSuggestions, setShowSuggestions] = useState(false);
-  const [showCategories, setShowCategories] = useState(false);
+  const [showCategories, setShowCategories] = useState(defaultCategoriesOpen);
 
   // Get all skills from all categories
   const allSkills = Object.values(skillCategories).flat();
@@ -352,7 +354,7 @@ const SmartSkillsInput: React.FC<SmartSkillsInputProps> = ({
                   {category}
                 </h5>
                 <div className="flex flex-wrap gap-2">
-                  {categorySkills.slice(0, 8).map((skill) => (
+                  {categorySkills.slice(0, 20).map((skill) => (
                     <button
                       key={skill}
                       type="button"
@@ -375,7 +377,7 @@ const SmartSkillsInput: React.FC<SmartSkillsInputProps> = ({
       </div>
 
       {/* Skills list */}
-      {skills.length > 0 && (
+      {Array.isArray(skills) && skills.length > 0 && (
         <div className="space-y-3">
           <h4 className="text-sm font-medium text-slate-700">თქვენი უნარები</h4>
           <div className="flex flex-wrap gap-2">
@@ -400,7 +402,7 @@ const SmartSkillsInput: React.FC<SmartSkillsInputProps> = ({
         </div>
       )}
 
-      {skills.length === 0 && (
+      {(!Array.isArray(skills) || skills.length === 0) && (
         <div className="text-center py-8 text-slate-500">
           <svg className="w-12 h-12 mx-auto mb-3 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
@@ -1175,6 +1177,7 @@ interface CVData {
   experiences: ExperienceItem[]; // New structured data
   educations: EducationItem[]; // New structured data
   skills: string[];
+  traits: string[];
   languages: LanguageSkill[];
   picture: string;
 }
@@ -1224,6 +1227,9 @@ const loadFromLocalStorage = (): CVData | null => {
       if (!data.educations) {
         data.educations = [];
       }
+      if (!data.traits) {
+        data.traits = [];
+      }
       
       return data;
     }
@@ -1259,6 +1265,7 @@ export default function CVGeneratorPage() {
     experiences: [],
     educations: [],
     skills: [],
+    traits: [],
     languages: [],
     picture: ''
   });
@@ -1271,10 +1278,10 @@ export default function CVGeneratorPage() {
   // Step-by-step wizard state
   const steps = [
     { key: 'personal', label: 'პირადი' },
-    { key: 'summary', label: 'შესახებ' },
     { key: 'experience', label: 'გამოცდილება' },
     { key: 'education', label: 'განათლება' },
     { key: 'skills', label: 'უნარები' },
+    { key: 'traits', label: 'პიროვნული თვისებები' },
     { key: 'languages', label: 'ენები' },
     { key: 'final', label: 'დასრულება' },
   ] as const;
@@ -1312,27 +1319,40 @@ export default function CVGeneratorPage() {
       'JavaScript', 'Python', 'Java', 'C++', 'C#', 'PHP', 'Ruby', 'Go', 'Rust', 'Swift',
       'React', 'Vue.js', 'Angular', 'Node.js', 'Express.js', 'Django', 'Flask', 'Laravel',
       'HTML', 'CSS', 'SASS', 'TypeScript', 'jQuery', 'Bootstrap', 'Tailwind CSS',
-      'MySQL', 'PostgreSQL', 'MongoDB', 'Redis', 'SQLite', 'Oracle',
-      'Git', 'Docker', 'Kubernetes', 'AWS', 'Azure', 'Google Cloud', 'Linux', 'Windows'
+      'MySQL', 'PostgreSQL', 'MongoDB', 'Redis', 'SQLite', 'Oracle', 'Firebase',
+      'Git', 'Docker', 'Kubernetes', 'AWS', 'Azure', 'Google Cloud', 'Linux', 'Windows',
+      'Machine Learning', 'AI', 'Data Science', 'TensorFlow', 'PyTorch', 'Pandas', 'NumPy',
+      'REST API', 'GraphQL', 'Microservices', 'DevOps', 'CI/CD', 'Jenkins', 'GitHub Actions',
+      'Blockchain', 'Solidity', 'Web3', 'Cybersecurity', 'Penetration Testing', 'Network Security'
     ],
     'Design': [
       'Photoshop', 'Illustrator', 'Figma', 'Sketch', 'Adobe XD', 'InDesign', 'Canva',
       'UI/UX Design', 'Web Design', 'Graphic Design', 'Logo Design', 'Branding',
-      'Wireframing', 'Prototyping', 'User Research', 'Design Systems'
+      'Wireframing', 'Prototyping', 'User Research', 'Design Systems', 'After Effects',
+      'Premiere Pro', 'Cinema 4D', 'Blender', '3D Modeling', 'Animation', 'Motion Graphics',
+      'Print Design', 'Package Design', 'Typography', 'Color Theory', 'Visual Identity'
     ],
     'Soft Skills': [
       'Leadership', 'Teamwork', 'Communication', 'Problem Solving', 'Critical Thinking',
       'Time Management', 'Project Management', 'Negotiation', 'Presentation Skills',
-      'Customer Service', 'Adaptability', 'Creativity', 'Analytical Skills'
+      'Customer Service', 'Adaptability', 'Creativity', 'Analytical Skills',
+      'Emotional Intelligence', 'Conflict Resolution', 'Public Speaking', 'Mentoring',
+      'Decision Making', 'Strategic Thinking', 'Innovation', 'Collaboration'
     ],
     'Business': [
       'Marketing', 'Sales', 'Business Development', 'Strategic Planning', 'Financial Analysis',
       'Data Analysis', 'Market Research', 'Digital Marketing', 'SEO', 'SEM',
-      'Social Media Marketing', 'Content Marketing', 'Email Marketing', 'CRM'
+      'Social Media Marketing', 'Content Marketing', 'Email Marketing', 'CRM',
+      'Business Intelligence', 'KPI Analysis', 'Budget Management', 'Risk Management',
+      'Supply Chain', 'Operations', 'Quality Assurance', 'Compliance', 'Auditing',
+      'E-commerce', 'Product Management', 'Agile', 'Scrum', 'Lean Management'
     ],
-    'Other': [
+    'Languages & Tools': [
       'Microsoft Office', 'Excel', 'PowerPoint', 'Word', 'Google Workspace',
-      'Slack', 'Trello', 'Asana', 'Jira', 'Confluence', 'Notion'
+      'Slack', 'Trello', 'Asana', 'Jira', 'Confluence', 'Notion', 'Monday.com',
+      'Salesforce', 'HubSpot', 'Mailchimp', 'WordPress', 'Shopify', 'Zoom',
+      'Adobe Creative Suite', 'AutoCAD', 'SolidWorks', 'MATLAB', 'R', 'SPSS',
+      'Tableau', 'Power BI', 'Looker', 'Google Analytics', 'Facebook Ads', 'Google Ads'
     ]
   };
 
@@ -1496,6 +1516,7 @@ export default function CVGeneratorPage() {
         experiences: [],
         educations: [],
         skills: [],
+        traits: [],
         languages: [],
         picture: ''
       };
@@ -1529,6 +1550,7 @@ export default function CVGeneratorPage() {
 
   const createCVHTML = (data: CVData, template: 'minimal' | 'classic') => {
     const skillItems = data.skills || [];
+    const traitItems = data.traits || [];
     
     // Use structured data if available, otherwise fall back to text data
     const experienceItems = data.experiences && data.experiences.length > 0 
@@ -1621,7 +1643,7 @@ export default function CVGeneratorPage() {
           </div>
 
           <div class="cv-section cv-summary">
-            <h2>შენს შესახებ</h2>
+            <h2>ჩემს შესახებ</h2>
             ${data.summary ? `<p>${data.summary}</p>` : `<div class="placeholder-block"><p class="placeholder">მოკლე შეჯამება თქვენი გამოცდილებისა და მიზნების შესახებ...</p></div>`}
           </div>
 
@@ -1639,6 +1661,13 @@ export default function CVGeneratorPage() {
             <h2>უნარები</h2>
             ${skillItems.length ? `<div class="chips">${skillItems.map(s => `<span class="chip">${s}</span>`).join('')}</div>` : `<div class="placeholder-block"><p class="placeholder">ჩამოთვალეთ თქვენი ძირითადი ტექნიკური და რბილი უნარები...</p></div>`}
           </div>
+
+          ${traitItems.length ? `
+          <div class="cv-section cv-traits">
+            <h2>პიროვნული თვისებები</h2>
+            <div class="chips">${traitItems.map(s => `<span class="chip">${s}</span>`).join('')}</div>
+          </div>
+          ` : ''}
 
           <div class="cv-section cv-languages">
             <h2>ენები</h2>
@@ -1769,7 +1798,7 @@ export default function CVGeneratorPage() {
 
         <!-- About -->
         <div style="padding: 18px 0; border-bottom: 1px solid #ccc;">
-          <h2 style="margin: 0 0 10px 0; font-size: 14px; text-transform: uppercase; color: #666;">შენს შესახებ</h2>
+          <h2 style="margin: 0 0 10px 0; font-size: 14px; text-transform: uppercase; color: #666;">ჩემს შესახებ</h2>
           ${data.summary ? `<p style="margin: 8px 0; color: #000;">${data.summary}</p>` : `<p style="margin: 8px 0; color: #999;">მოკლე შეჯამება თქვენი გამოცდილებისა და მიზნების შესახებ...</p>`}
         </div>
 
@@ -2216,25 +2245,25 @@ export default function CVGeneratorPage() {
                     onUpdateLink={updateLink}
                   />
                 </div>
-              </div>
-              </div>
+                </div>
 
-              {/* About You */}
-              <div className={currentStep === 1 ? '' : 'hidden'}>
-                <label className="block text-sm font-semibold text-slate-700 mb-2">
-                  შესახებ
-                </label>
-                <textarea
-                  value={cvData.summary}
-                  onChange={(e) => handleInputChange('summary', e.target.value)}
-                  className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  rows={4}
-                  placeholder="მოკლე აღწერა თქვენი პროფესიონალური გამოცდილებისა და მიზნების შესახებ..."
-                />
+                {/* About You - now in Personal step */}
+                <div>
+                  <label className="block text-sm font-semibold text-slate-700 mb-2">
+                    შენს შესახებ
+                  </label>
+                  <textarea
+                    value={cvData.summary}
+                    onChange={(e) => handleInputChange('summary', e.target.value)}
+                    className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    rows={4}
+                    placeholder="მოკლე აღწერა თქვენი პროფესიონალური გამოცდილებისა და მიზნების შესახებ..."
+                  />
+                </div>
               </div>
 
               {/* Experience */}
-              <div className={currentStep === 2 ? '' : 'hidden'}>
+              <div className={currentStep === 1 ? '' : 'hidden'}>
                 <label className="block text-sm font-semibold text-slate-700 mb-2">
                   გამოცდილება
                 </label>
@@ -2247,7 +2276,7 @@ export default function CVGeneratorPage() {
               </div>
 
               {/* Education */}
-              <div className={currentStep === 3 ? '' : 'hidden'}>
+              <div className={currentStep === 2 ? '' : 'hidden'}>
                 <label className="block text-sm font-semibold text-slate-700 mb-2">
                   განათლება
                 </label>
@@ -2260,7 +2289,7 @@ export default function CVGeneratorPage() {
               </div>
 
               {/* Skills */}
-              <div className={currentStep === 4 ? '' : 'hidden'}>
+              <div className={currentStep === 3 ? '' : 'hidden'}>
                 <label className="block text-sm font-semibold text-slate-700 mb-2">
                   უნარები
                 </label>
@@ -2269,6 +2298,20 @@ export default function CVGeneratorPage() {
                   onAddSkill={addSkill}
                   onRemoveSkill={removeSkill}
                   skillCategories={skillCategories}
+                />
+              </div>
+
+              {/* Personal Traits */}
+              <div className={currentStep === 4 ? '' : 'hidden'}>
+                <label className="block text-sm font-semibold text-slate-700 mb-2">
+                  პიროვნული თვისებები
+                </label>
+                <SmartSkillsInput 
+                  skills={cvData.traits || []}
+                  onAddSkill={(t) => setCvData(prev => ({ ...prev, traits: [...(prev.traits || []), t] }))}
+                  onRemoveSkill={(index) => setCvData(prev => ({ ...prev, traits: (prev.traits || []).filter((_, i) => i !== index) }))}
+                  skillCategories={{ 'პიროვნული თვისებები': [ 'მიზანდასახული', 'შრომისმოყვარე', 'პასუხისმგებლობიანი', 'ინიციატორი', 'მოტივირებული', 'ორგანიზებული', 'კომუნიკაბელური', 'სტრესგამძლე', 'დისციპლინირებული', 'შემოქმედებითი', 'თანამშრომლობისუნარიანი', 'ანალიტიკური', 'ფლექსიბილური', 'ენერგიული', 'ოპტიმისტი', 'მთავარი', 'გულწრფელი', 'ჭკვიანი', 'სანდო', 'პერფექციონისტი', 'ამბიციური', 'ინოვაციური', 'ვიზუალური', 'სტრატეგიული', 'ლოგიკური', 'ემპათიური', 'მყარი' ] }}
+                  defaultCategoriesOpen={true}
                 />
               </div>
 
