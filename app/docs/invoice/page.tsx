@@ -474,6 +474,9 @@ export default function InvoiceGeneratorPage() {
   };
 
   const createModernInvoiceHTML = (data: InvoiceData, items: InvoiceItem[], subtotal: number, tax: number, total: number, displayBankName: string, isGeorgianVAT: boolean = false, isVatIncluded: boolean = false) => {
+    const unitValues = items.map(i => (i.unit || '').trim()).filter(Boolean);
+    const uniqueUnits = Array.from(new Set(unitValues));
+    const commonUnit = uniqueUnits.length === 1 ? uniqueUnits[0] : null;
 
     return `
       <!DOCTYPE html>
@@ -502,6 +505,11 @@ export default function InvoiceGeneratorPage() {
           tbody tr:nth-child(odd) { background:#fff; }
           tbody tr:nth-child(even) { background:#fcfdff; }
           .right { text-align:right; }
+          /* Column widths: widen description, shrink quantity */
+          thead th:nth-child(1), tbody td:nth-child(1) { width: 56%; }
+          thead th:nth-child(2), tbody td:nth-child(2) { width: 12%; }
+          thead th:nth-child(3), tbody td:nth-child(3) { width: 16%; }
+          thead th:nth-child(4), tbody td:nth-child(4) { width: 16%; }
           .totals { display:grid; grid-template-columns: 1fr 280px; gap:20px; align-items:start; margin-top:16px; }
           .totals .summary { background:var(--subtle); border:1px solid var(--border); border-radius:8px; padding:12px; }
           .row { display:flex; justify-content:space-between; padding:4px 0; font-size:14px; }
@@ -550,7 +558,7 @@ export default function InvoiceGeneratorPage() {
             <thead>
               <tr>
                 <th>აღწერა</th>
-                <th class="right">რაოდენობა</th>
+                <th class="right">რაოდენობა${commonUnit ? ` (${commonUnit})` : ''}</th>
                 <th class="right">ფასი</th>
                 <th class="right">ჯამი</th>
               </tr>
@@ -558,8 +566,8 @@ export default function InvoiceGeneratorPage() {
             <tbody>
               ${items.map(item => `
                 <tr>
-                  <td>${item.description}${item.unit ? ` (${item.unit})` : ''}</td>
-                  <td class="right">${item.quantity}</td>
+                  <td>${item.description}</td>
+                  <td class="right">${item.quantity}${!commonUnit && item.unit ? ` (${item.unit})` : ''}</td>
                   <td class="right">₾${item.price.toFixed(2)}</td>
                   <td class="right">₾${item.total.toFixed(2)}</td>
                 </tr>
@@ -614,6 +622,9 @@ export default function InvoiceGeneratorPage() {
   };
 
   const createClassicInvoiceHTML = (data: InvoiceData, items: InvoiceItem[], subtotal: number, tax: number, total: number, displayBankName: string, isGeorgianVAT: boolean = false, isVatIncluded: boolean = false) => {
+    const unitValues = items.map(i => (i.unit || '').trim()).filter(Boolean);
+    const uniqueUnits = Array.from(new Set(unitValues));
+    const commonUnit = uniqueUnits.length === 1 ? uniqueUnits[0] : null;
     return `
       <!DOCTYPE html>
       <html>
@@ -638,6 +649,11 @@ export default function InvoiceGeneratorPage() {
           thead th { font-size:12px; font-weight:bold; text-align:left; padding:10px; background:#f0f0f0; color:#000; border:1px solid #000; }
           tbody td { padding:10px; border:1px solid #000; }
           .right { text-align:right; }
+          /* Column widths: widen description, shrink quantity */
+          thead th:nth-child(1), tbody td:nth-child(1) { width: 56%; }
+          thead th:nth-child(2), tbody td:nth-child(2) { width: 12%; }
+          thead th:nth-child(3), tbody td:nth-child(3) { width: 16%; }
+          thead th:nth-child(4), tbody td:nth-child(4) { width: 16%; }
           .totals { display:grid; grid-template-columns: 1fr 300px; gap:24px; align-items:start; margin-top:18px; }
           .totals .summary { border:1px solid #000; padding:12px; }
           .row { display:flex; justify-content:space-between; padding:3px 0; font-size:13px; }
@@ -686,7 +702,7 @@ export default function InvoiceGeneratorPage() {
             <thead>
               <tr>
                 <th>აღწერა</th>
-                <th class="right">რაოდენობა</th>
+                <th class="right">რაოდენობა${commonUnit ? ` (${commonUnit})` : ''}</th>
                 <th class="right">ფასი</th>
                 <th class="right">ჯამი</th>
               </tr>
@@ -694,8 +710,8 @@ export default function InvoiceGeneratorPage() {
             <tbody>
               ${items.map(item => `
                 <tr>
-                  <td>${item.description}${item.unit ? ` (${item.unit})` : ''}</td>
-                  <td class="right">${item.quantity}</td>
+                  <td>${item.description}</td>
+                  <td class="right">${item.quantity}${!commonUnit && item.unit ? ` (${item.unit})` : ''}</td>
                   <td class="right">₾${item.price.toFixed(2)}</td>
                   <td class="right">₾${item.total.toFixed(2)}</td>
                 </tr>
