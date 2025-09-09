@@ -427,13 +427,18 @@ export default function InvoiceGeneratorPage() {
       return;
     }
 
-    setIsGenerating(true);
-    
-    setTimeout(() => {
+    try {
+      setIsGenerating(true);
+      console.log('Generating PDF directly from form data...');
+      
       const invoiceHTML = createInvoiceHTML(invoiceData, validItems, templateStyle, useGeorgianVAT, vatIncluded);
-      setGeneratedInvoice(invoiceHTML);
+      await downloadPDFViaAPI(invoiceHTML, `Invoice-${invoiceData.invoiceNumber || 'Document'}`);
       setIsGenerating(false);
-    }, 2000);
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      alert('შეცდომა PDF-ის გენერაციისას. გთხოვთ სცადოთ კვლავ.');
+      setIsGenerating(false);
+    }
   };
 
   const createInvoiceHTML = (data: InvoiceData, items: InvoiceItem[], style: 'modern' | 'classic' = 'modern', isGeorgianVAT: boolean = false, isVatIncluded: boolean = false) => {
@@ -1567,7 +1572,8 @@ export default function InvoiceGeneratorPage() {
                   </button>
                 ) : (
                   <button
-                    type="submit"
+                    type="button"
+                    onClick={generateInvoice}
                     disabled={isGenerating}
                     className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-all duration-200 shadow-lg hover:shadow-xl flex items-center space-x-2"
                   >
