@@ -2095,8 +2095,8 @@ export default function CVGeneratorPage() {
         </div>
 
         <div className={`mx-auto ${showLivePreview ? 'max-w-7xl' : 'max-w-4xl'}`}>
-          <div className={`${showLivePreview ? 'grid grid-cols-1 lg:grid-cols-2 gap-8 items-start' : ''}`}>
-            <div className={`bg-white rounded-xl shadow-lg p-8 pt-16 sm:pt-20 ${showLivePreview ? 'max-h-[800px] overflow-y-auto' : ''}`}>
+          <div className={`${showLivePreview ? 'grid grid-cols-1 lg:grid-cols-5 gap-8 items-start' : ''}`}>
+            <div className={`bg-white rounded-xl shadow-lg p-8 pt-16 sm:pt-20 ${showLivePreview ? 'lg:col-span-3 max-h-[800px] overflow-y-auto' : ''}`}>
             <form onSubmit={(e) => { e.preventDefault(); generateCV(); }} className="space-y-6">
 
               {/* Step 0: Personal */}
@@ -2336,7 +2336,7 @@ export default function CVGeneratorPage() {
             
             {/* Live Preview Panel */}
             {showLivePreview && (
-              <div className="bg-white rounded-xl shadow-lg p-8 max-h-[800px] flex flex-col lg:sticky lg:top-4">
+              <div className={`bg-white rounded-xl shadow-lg p-8 max-h-[800px] flex flex-col lg:sticky lg:top-4 ${showLivePreview ? 'lg:col-span-2' : ''}`}>
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-xl font-semibold text-slate-800">ცოცხალი გადახედვა</h3>
                   <div className="flex items-center space-x-2">
