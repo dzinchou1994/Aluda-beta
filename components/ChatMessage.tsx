@@ -7,13 +7,9 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import remarkBreaks from 'remark-breaks';
 import rehypeRaw from 'rehype-raw';
-import DOMPurify from 'dompurify';
 import FeedbackButtons from './FeedbackButtons';
 
-// Simple check: contains typical HTML tags
-function looksLikeHtml(text: string): boolean {
-  return /<\s*(p|br|h[1-6]|ul|ol|li|strong|em|b|i|a)[^>]*>/i.test(text);
-}
+// Removed HTML detection function since we no longer render raw HTML
 
 // Render markdown headings as bold, and ensure <strong> is emphasized
 const mdComponents = {
@@ -75,43 +71,7 @@ function preprocessForMarkdown(raw: string | undefined | null): string {
   return processed.join('\n\n');
 }
 
-function normalizeHeadingHashesInHtml(html: string): string {
-  // Remove a single literal "# " immediately after an opening heading tag
-  return html.replace(/<(h[1-6])(\b[^>]*)>\s*#\s+/gi, '<$1$2>');
-}
-
-// Bold list item titles of the form "Title: description" or "Title — description"
-function emphasizeListTitlesInHtml(html: string): string {
-  // Replace each <li>...</li> if it doesn't already contain <strong> in the first segment
-  return html.replace(/<li>([\s\S]*?)<\/li>/gi, (full, inner) => {
-    // If already bold anywhere in the first paragraph/line, keep as-is
-    if (/^\s*(?:<p[^>]*>)?\s*<\s*strong\b/i.test(inner)) return full;
-
-    // Case 1: The first text is within a <p>...
-    const pRe = /^(\s*<p[^>]*>)([\s\S]*?)(<\/p>[\s\S]*)$/i;
-    const pMatch = inner.match(pRe);
-    if (pMatch) {
-      const lead = pMatch[1];
-      const firstPara = pMatch[2];
-      const tail = pMatch[3];
-      // Bold up to first separator -|–|—|:
-      const tRe = /^(\s*)([^<]{2,160}?)(\s*(?:-|–|—|:)\s+)/;
-      if (tRe.test(firstPara)) {
-        const replaced = firstPara.replace(tRe, (_m: string, sp: string, title: string, sep: string) => `${sp}<strong>${title.trim()}</strong>${sep}`);
-        return `<li>${lead}${replaced}${tail}</li>`;
-      }
-      return full;
-    }
-
-    // Case 2: Plain text directly inside <li>
-    const lineRe = /^(\s*)([^<]{2,160}?)(\s*(?:-|–|—|:)\s+)/;
-    if (lineRe.test(inner)) {
-      const replaced = inner.replace(lineRe, (_m: string, sp: string, title: string, sep: string) => `${sp}<strong>${title.trim()}</strong>${sep}`);
-      return `<li>${replaced}</li>`;
-    }
-    return full;
-  });
-}
+// Removed HTML processing functions since we no longer render raw HTML
 
 export default function ChatMessage({ message, index, shouldAnimate, chatId, chatflowId }: ChatMessageProps) {
   // FIXED: Only use typing effect for truly new AI messages
@@ -146,22 +106,21 @@ export default function ChatMessage({ message, index, shouldAnimate, chatId, cha
   // Render assistant content using Markdown for proper formatting
   const renderAssistantContent = (content: string) => {
     if (content === undefined || content === null) return null;
-    // Prefer HTML if provided (AI service can output HTML when renderHTML is true)
-    if (looksLikeHtml(content)) {
-      const clean = DOMPurify.sanitize(content, { USE_PROFILES: { html: true } });
-      const enhanced = emphasizeListTitlesInHtml(clean);
-      const normalized = normalizeHeadingHashesInHtml(enhanced);
-      return (
-        <div 
-          className="ai-html" 
-          dangerouslySetInnerHTML={{ __html: normalized }}
-        />
-      );
-    }
+    
+    // SECURITY FIX: Never render raw HTML from AI responses
+    // Always treat content as markdown/text to prevent layout breaking
     const pre = preprocessForMarkdown(content);
     return (
       <div className="prose dark:prose-invert max-w-none leading-relaxed prose-h1:text-[1.15rem] prose-h2:text-[1.1rem] prose-h3:text-[1.05rem] prose-h4:text-[1rem] prose-p:my-2 prose-ul:my-2 prose-ol:my-2">
-        <ReactMarkdown remarkPlugins={[remarkGfm, remarkBreaks]} rehypePlugins={[rehypeRaw]} components={mdComponents}>{pre}</ReactMarkdown>
+        <ReactMarkdown 
+          remarkPlugins={[remarkGfm, remarkBreaks]} 
+          rehypePlugins={[rehypeRaw]} 
+          components={mdComponents}
+          // Disable raw HTML rendering to prevent security issues
+          disallowedElements={['script', 'style', 'link', 'meta', 'html', 'head', 'body']}
+        >
+          {pre}
+        </ReactMarkdown>
       </div>
     );
   };
