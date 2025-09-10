@@ -203,7 +203,7 @@ export default function ChatMessage({ message, index, shouldAnimate, chatId, cha
           <div className="w-full text-gray-900 dark:text-white text-base leading-relaxed max-w-[92%] sm:max-w-[70ch]">
             {shouldUseTypingEffect && isTyping ? renderAssistantContent(displayedText) : renderAssistantContent(message.content)}
             {/* Feedback buttons for AI messages */}
-            {message.role === 'assistant' && chatId && chatflowId && !shouldUseTypingEffect && (
+            {message.role === 'assistant' && chatId && chatflowId && (
               <FeedbackButtons
                 messageId={message.id}
                 chatflowId={chatflowId}

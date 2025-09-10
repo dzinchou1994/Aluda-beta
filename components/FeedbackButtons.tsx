@@ -90,36 +90,36 @@ export default function FeedbackButtons({ messageId, chatflowId, chatId, message
       <div className="flex items-center gap-2">
         <button
           onClick={() => handleRatingClick('THUMBS_UP')}
-          className={`p-2 rounded-full transition-colors ${
+          className={`p-1 rounded-full transition-colors ${
             rating === 'THUMBS_UP'
               ? 'bg-green-100 text-green-600 dark:bg-green-900 dark:text-green-400'
               : 'bg-gray-100 text-gray-500 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700'
           }`}
           disabled={isSubmitting}
         >
-          <ThumbsUp size={16} />
+          <ThumbsUp size={12} />
         </button>
         <button
           onClick={() => handleRatingClick('THUMBS_DOWN')}
-          className={`p-2 rounded-full transition-colors ${
+          className={`p-1 rounded-full transition-colors ${
             rating === 'THUMBS_DOWN'
               ? 'bg-red-100 text-red-600 dark:bg-red-900 dark:text-red-400'
               : 'bg-gray-100 text-gray-500 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700'
           }`}
           disabled={isSubmitting}
         >
-          <ThumbsDown size={16} />
+          <ThumbsDown size={12} />
         </button>
         <button
           onClick={handleCopyMessage}
-          className={`p-2 rounded-full transition-colors ${
+          className={`p-1 rounded-full transition-colors ${
             isCopied
               ? 'bg-blue-100 text-blue-600 dark:bg-blue-900 dark:text-blue-400'
               : 'bg-gray-100 text-gray-500 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700'
           }`}
           title={isCopied ? 'კოპირებულია!' : 'კოპირება'}
         >
-          {isCopied ? <Check size={16} /> : <Copy size={16} />}
+          {isCopied ? <Check size={12} /> : <Copy size={12} />}
         </button>
       </div>
 
