@@ -8,8 +8,44 @@ import remarkGfm from 'remark-gfm';
 import remarkBreaks from 'remark-breaks';
 import rehypeRaw from 'rehype-raw';
 import FeedbackButtons from './FeedbackButtons';
+import { Copy, Check } from 'lucide-react';
 
 // Removed HTML detection function since we no longer render raw HTML
+
+// Copy button component for code blocks
+const CodeBlockWithCopy = ({ children, className, ...props }: any) => {
+  const [copied, setCopied] = useState(false);
+  const codeContent = children?.toString() || '';
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(codeContent);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy code:', err);
+    }
+  };
+
+  return (
+    <div className="relative group">
+      <pre className={className} {...props}>
+        <code>{children}</code>
+      </pre>
+      <button
+        onClick={handleCopy}
+        className="absolute top-2 right-2 p-2 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+        title="კოდის დაკოპირება"
+      >
+        {copied ? (
+          <Check className="w-4 h-4 text-green-600 dark:text-green-400" />
+        ) : (
+          <Copy className="w-4 h-4 text-gray-600 dark:text-gray-400" />
+        )}
+      </button>
+    </div>
+  );
+};
 
 // Render markdown headings as bold, and ensure <strong> is emphasized
 const mdComponents = {
@@ -27,6 +63,7 @@ const mdComponents = {
   h5: ({ children }: any) => <h3 className="mt-3 mb-2 font-semibold">{children}</h3>,
   h6: ({ children }: any) => <h3 className="mt-3 mb-2 font-semibold">{children}</h3>,
   strong: ({ children }: any) => <strong className="font-semibold">{children}</strong>,
+  pre: CodeBlockWithCopy,
 };
 
 interface ChatMessageProps {
