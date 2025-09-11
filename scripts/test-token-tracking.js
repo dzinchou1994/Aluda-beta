@@ -36,17 +36,7 @@ async function testTokenTracking() {
     })
     console.log(`✅ Daily token usage created: ${dailyUsage.tokens} tokens`)
     
-    // Create monthly usage
-    const monthlyUsage = await prisma.tokenUsage.create({
-      data: {
-        actorType: 'user',
-        actorId: testUser.id,
-        period: 'month',
-        periodKey: month,
-        tokens: 500
-      }
-    })
-    console.log(`✅ Monthly token usage created: ${monthlyUsage.tokens} tokens`)
+    // Monthly usage no longer used
     
     // Test reading usage
     console.log(`\n📊 Testing usage retrieval...`)
@@ -61,19 +51,10 @@ async function testTokenTracking() {
       },
     })
     
-    const retrievedMonthly = await prisma.tokenUsage.findUnique({
-      where: {
-        actorType_actorId_period_periodKey: {
-          actorType: 'user',
-          actorId: testUser.id,
-          period: 'month',
-          periodKey: month,
-        },
-      },
-    })
+    const retrievedMonthly = null
     
     console.log(`✅ Daily usage retrieved: ${retrievedDaily?.tokens || 0} tokens`)
-    console.log(`✅ Monthly usage retrieved: ${retrievedMonthly?.tokens || 0} tokens`)
+    console.log(`✅ Monthly usage skipped (daily-only policy)`) 
     
     // Test limits calculation
     console.log(`\n📏 Testing limits calculation...`)
@@ -115,28 +96,26 @@ function getPeriodKeys(date = new Date()) {
 }
 
 function getLimits(actor) {
-  if (actor.type === 'guest') {
-    return { daily: 1500, monthly: 10000, images: 2 }
-  }
-  if (actor.plan === 'PREMIUM') {
-    return { daily: 25000, monthly: 300000, images: 60 }
-  }
-  return { daily: 7500, monthly: 60000, images: 5 }
+  const DAILY_CAP = 8000
+  const make = (images) => ({ daily: DAILY_CAP, monthly: 0, images })
+  if (actor.type === 'guest') return make(2)
+  if (actor.plan === 'PREMIUM') return make(60)
+  return make(5)
 }
 
 async function checkConsumption(actor, tokens) {
   const limits = getLimits(actor)
   const usage = await getUsage(actor)
   return {
-    allowed: usage.daily + tokens <= limits.daily && usage.monthly + tokens <= limits.monthly,
+    allowed: usage.daily + tokens <= limits.daily,
     usage,
     limits,
   }
 }
 
 async function getUsage(actor) {
-  const { day, month } = getPeriodKeys()
-  const [daily, monthly] = await Promise.all([
+  const { day } = getPeriodKeys()
+  const [daily] = await Promise.all([
     prisma.tokenUsage.findUnique({
       where: {
         actorType_actorId_period_periodKey: {
@@ -147,20 +126,10 @@ async function getUsage(actor) {
         },
       },
     }),
-    prisma.tokenUsage.findUnique({
-      where: {
-        actorType_actorId_period_periodKey: {
-          actorType: actor.type,
-          actorId: actor.id,
-          period: 'month',
-          periodKey: month,
-        },
-      },
-    }),
   ])
   return { 
     daily: daily?.tokens ?? 0, 
-    monthly: monthly?.tokens ?? 0,
+    monthly: 0,
     images: 0
   }
 }

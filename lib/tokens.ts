@@ -11,13 +11,22 @@ export function getPeriodKeys(date = new Date()) {
 }
 
 export function getLimits(actor: Actor) {
+  // Daily-only token policy: one fixed daily cap across tiers
+  // Monthly token limits are not enforced anymore and set to 0.
+  const DAILY_CAP = 8000
+  const make = (images: number) => ({
+    daily: DAILY_CAP,
+    monthly: 0,
+    images,
+  })
+
   if (actor.type === 'guest') {
-    return { daily: 1500, monthly: 10000, images: 2 }
+    return make(2)
   }
   if (actor.plan === 'PREMIUM') {
-    return { daily: 25000, monthly: 300000, images: 60 }
+    return make(60)
   }
-  return { daily: 7500, monthly: 60000, images: 5 }
+  return make(5)
 }
 
 export async function getUsage(actor: Actor) {
@@ -28,7 +37,7 @@ export async function getUsage(actor: Actor) {
   }
 
   const { day, month } = getPeriodKeys()
-  const [daily, monthly, imageUsage] = await Promise.all([
+  const [daily, imageUsage] = await Promise.all([
     prisma.tokenUsage.findUnique({
       where: {
         actorType_actorId_period_periodKey: {
@@ -36,16 +45,6 @@ export async function getUsage(actor: Actor) {
           actorId: actor.id,
           period: 'day',
           periodKey: day,
-        },
-      },
-    }),
-    prisma.tokenUsage.findUnique({
-      where: {
-        actorType_actorId_period_periodKey: {
-          actorType: actor.type,
-          actorId: actor.id,
-          period: 'month',
-          periodKey: month,
         },
       },
     }),
@@ -68,10 +67,10 @@ export async function getUsage(actor: Actor) {
       }
     })(),
   ])
-  return { 
-    daily: daily?.tokens ?? 0, 
-    monthly: monthly?.tokens ?? 0,
-    images: imageUsage?.images ?? 0
+  return {
+    daily: daily?.tokens ?? 0,
+    monthly: 0,
+    images: imageUsage?.images ?? 0,
   }
 }
 
@@ -99,24 +98,6 @@ export async function addUsage(actor: Actor, tokens: number) {
         actorId: actor.id,
         period: 'day',
         periodKey: day,
-        tokens,
-      },
-    }),
-    prisma.tokenUsage.upsert({
-      where: {
-        actorType_actorId_period_periodKey: {
-          actorType: actor.type,
-          actorId: actor.id,
-          period: 'month',
-          periodKey: month,
-        },
-      },
-      update: { tokens: { increment: tokens } },
-      create: {
-        actorType: actor.type,
-        actorId: actor.id,
-        period: 'month',
-        periodKey: month,
         tokens,
       },
     }),
@@ -194,7 +175,7 @@ export async function canConsume(actor: Actor, tokens: number) {
   const limits = getLimits(actor)
   const usage = await getUsage(actor)
   return {
-    allowed: usage.daily + tokens <= limits.daily && usage.monthly + tokens <= limits.monthly,
+    allowed: usage.daily + tokens <= limits.daily,
     usage,
     limits,
   }

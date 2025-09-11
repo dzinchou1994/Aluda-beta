@@ -53,7 +53,6 @@ export default function UserSettingsModal({ open, onClose, userEmail }: Props) {
     }
   }
 
-  const monthlyPercent = useMemo(() => limits.monthly ? Math.min(100, Math.round((usage.monthly / limits.monthly) * 100)) : 0, [usage, limits])
   const dailyPercent = useMemo(() => limits.daily ? Math.min(100, Math.round((usage.daily / limits.daily) * 100)) : 0, [usage, limits])
 
   return (
@@ -103,31 +102,19 @@ export default function UserSettingsModal({ open, onClose, userEmail }: Props) {
             </div>
           </div>
 
-          {/* Tokens */}
+          {/* Tokens (daily-only) */}
           <div>
             <div className="flex items-center justify-between mb-2">
               <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">ტოკენები</h3>
-              <span className="text-xs text-gray-500">თვიური ლიმიტი</span>
+              <span className="text-xs text-gray-500">დღიური ლიმიტი</span>
             </div>
             <div className="w-full bg-gray-200 dark:bg-gray-800 rounded-full h-3 overflow-hidden">
-              <div className="bg-gradient-to-r from-blue-500 to-purple-600 h-3" style={{ width: `${monthlyPercent}%` }} />
+              <div className={`${dailyPercent >= 100 ? 'bg-red-500' : 'bg-gradient-to-r from-blue-500 to-purple-600'} h-3`} style={{ width: `${dailyPercent}%` }} />
             </div>
             <div className="mt-1 flex items-center justify-between text-xs text-gray-600 dark:text-gray-400">
-              <span>{usage.monthly} / {limits.monthly}</span>
-              <span>{monthlyPercent}%</span>
+              <span>{usage.daily} / {limits.daily}</span>
+              <span>{dailyPercent}%</span>
             </div>
-
-            <div className="mt-4 flex items-center justify-between mb-1">
-              <span className="text-xs text-gray-500">დღიური ლიმიტი</span>
-              <span className="text-xs text-gray-500">{dailyPercent}%</span>
-            </div>
-            <div className="w-full bg-gray-200 dark:bg-gray-800 rounded-full h-2 overflow-hidden">
-              <div
-                className={`${dailyPercent >= 100 ? 'bg-red-500' : 'bg-blue-400'} h-2`}
-                style={{ width: `${dailyPercent}%` }}
-              />
-            </div>
-            <div className="mt-1 text-xs text-gray-600 dark:text-gray-400">{usage.daily} / {limits.daily}</div>
           </div>
 
           {/* Generated Images */}
