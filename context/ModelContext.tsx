@@ -2,7 +2,7 @@
 
 import { createContext, useCallback, useContext, useEffect, useState } from 'react'
 
-type ModelType = 'aluda2' | 'test' | 'aluda_test'
+type ModelType = 'plus' | 'free' | 'aluda_test'
 
 type ModelContextValue = {
   model: ModelType
@@ -12,19 +12,25 @@ type ModelContextValue = {
 const ModelContext = createContext<ModelContextValue | null>(null)
 
 export function ModelProvider({ children }: { children: React.ReactNode }) {
-  const [model, setModelState] = useState<ModelType>('test')
+  const [model, setModelState] = useState<ModelType>('free')
   const [initialized, setInitialized] = useState(false)
 
   useEffect(() => {
     try {
-      const saved = localStorage.getItem('aluda_model') as ModelType | null
-      if (saved === 'aluda2' || saved === 'test' || saved === 'aluda_test') setModelState(saved)
+      const saved = localStorage.getItem('aluda_model') as string | null
+      if (saved === 'plus' || saved === 'free' || saved === 'aluda_test') {
+        setModelState(saved as ModelType)
+      } else if (saved === 'aluda2') {
+        setModelState('plus')
+      } else if (saved === 'test') {
+        setModelState('free')
+      }
     } catch {}
     setInitialized(true)
   }, [])
 
   const setModel = useCallback((m: ModelType) => {
-    // Guard: prevent non-premium/guest persisting aluda2 without server confirmation.
+    // Guard: prevent non-premium/guest persisting plus without server confirmation.
     // The server will also enforce, but we keep UI consistent. We allow setting here;
     // ModelSwitcher will route guests/users without premium to upgrade.
     setModelState(m)

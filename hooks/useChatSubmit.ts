@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTokens } from '@/context/TokensContext';
 import { Message } from '@/hooks/useChats';
 import { compressImageIfNeeded, fileToBase64 } from '@/lib/chatUtils';
 import { suggestTitleWithAI } from '@/lib/flowise';
@@ -30,6 +31,7 @@ export function useChatSubmit({
 }: UseChatSubmitProps) {
   const [isLoading, setIsLoading] = useState(false);
   const useFlowiseProxy = process.env.NEXT_PUBLIC_USE_FLOWISE === 'true';
+  const { refresh: refreshTokens } = useTokens();
 
   const forceScrollBottom = () => {
     const scrollOnce = () => {
@@ -89,7 +91,7 @@ export function useChatSubmit({
     setAttachedPreviewUrls([]);
 
     // OPTIMIZATION: Reduce image preparation delay
-    if (model === 'aluda2' && (sendAttachedImage || (sendAttachedImages && sendAttachedImages.length > 0)) && !sendPreviewUrl) {
+    if (model === 'plus' && (sendAttachedImage || (sendAttachedImages && sendAttachedImages.length > 0)) && !sendPreviewUrl) {
       await new Promise((r) => setTimeout(r, 25)); // Reduced from 50ms to 25ms
     }
     
@@ -195,7 +197,7 @@ export function useChatSubmit({
     setMessage("");
     
     try {
-      const useMultipart = (sendAttachedImage || (sendAttachedImages && sendAttachedImages.length > 0)) && (model === 'aluda2' || model === 'test');
+      const useMultipart = (sendAttachedImage || (sendAttachedImages && sendAttachedImages.length > 0)) && (model === 'plus' || model === 'free');
       let responsePromise: Promise<Response>;
       
       if (useMultipart) {
@@ -534,6 +536,10 @@ export function useChatSubmit({
     } finally {
       // Reset loading state only (input was already cleared on send)
       setIsLoading(false);
+      try {
+        // Refresh token usage/limits in the background so Settings reflects latest counts
+        void refreshTokens();
+      } catch {}
     }
   };
 

@@ -14,18 +14,18 @@ function normalizeHost(host?: string | null) {
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
-    const model = (searchParams.get('model') || 'test').toLowerCase()
+    const model = (searchParams.get('model') || 'free').toLowerCase()
 
     const host = normalizeHost(process.env.ALUDAAI_FLOWISE_HOST || process.env.FLOWISE_HOST)
     const envMini = process.env.ALUDAAI_FLOWISE_CHATFLOW_ID || process.env.FLOWISE_CHATFLOW_ID || null
     const envA2 = process.env.ALUDAAI_FLOWISE_CHATFLOW_ID_ALUDAA2 || process.env.FLOWISE_CHATFLOW_ID_ALUDAA2 || null
     const envTest = process.env.ALUDAAI_FLOWISE_CHATFLOW_ID_TEST || process.env.FLOWISE_CHATFLOW_ID_TEST || null
 
-    const selectedModel = model === 'aluda2' ? 'aluda2' : model === 'test' ? 'test' : model === 'aluda_test' ? 'aluda_test' : 'test'
+    const selectedModel = model === 'plus' || model === 'aluda2' ? 'plus' : model === 'free' || model === 'test' ? 'free' : model === 'aluda_test' ? 'aluda_test' : 'free'
 
-    const chatflowId = selectedModel === 'aluda2'
+    const chatflowId = selectedModel === 'plus'
       ? (envA2 || '')
-      : (selectedModel === 'test' || selectedModel === 'aluda_test')
+      : (selectedModel === 'free' || selectedModel === 'aluda_test')
       ? (envTest || '')
       : (envMini || '')
 

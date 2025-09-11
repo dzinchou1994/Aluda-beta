@@ -97,26 +97,30 @@ export async function POST(request: NextRequest) {
       actor = { type: 'guest' as const, id: cookieSess.guestId || cookieSess.sessionId }
     }
 
-    // Model handling: 'aluda2', 'test' (free), or 'aluda_test' (internal)
-    const selectedModel = (model === 'aluda2') ? 'aluda2' : (model === 'test') ? 'test' : (model === 'aluda_test') ? 'aluda_test' : 'test'
-    // Premium users default to aluda2 without extra token multiplier
+    // Model handling: 'plus', 'free', or 'aluda_test' (internal)
+    const selectedModel = (model === 'plus' || model === 'aluda2')
+      ? 'plus'
+      : (model === 'free' || model === 'test')
+      ? 'free'
+      : (model === 'aluda_test')
+      ? 'aluda_test'
+      : 'free'
+    // Premium users default to plus without extra token multiplier
     const isPremium = actor.type === 'user' && actor.plan === 'PREMIUM'
-    // Test model is free and unlimited for everyone
-    const tokenMultiplier = (selectedModel === 'test' || selectedModel === 'aluda_test') ? 0 : (selectedModel === 'aluda2' && !isPremium && actor.type !== 'guest' ? 5 : 1)
-    // Guests cannot use aluda2, but can use test model
-    if (actor.type === 'guest' && selectedModel === 'aluda2') {
-      return NextResponse.json({ error: 'გაიარეთ ავტორიზაცია Aluda 2.0-ისთვის', redirect: '/auth/signin' }, { status: 402 })
+    // Free model consumes tokens; internal 'aluda_test' remains free
+    const tokenMultiplier = selectedModel === 'aluda_test' ? 0 : 1
+    // Guests cannot use plus, but can use free model
+    if (actor.type === 'guest' && selectedModel === 'plus') {
+      return NextResponse.json({ error: 'გაიარეთ ავტორიზაცია Aluda Plus-ისთვის', redirect: '/auth/signin' }, { status: 402 })
     }
-    // Enforce premium for Aluda 2.0: non-premium logged-in users must upgrade
-    if (actor.type === 'user' && selectedModel === 'aluda2' && !isPremium) {
-      return NextResponse.json({ error: 'Aluda 2.0 ხელმისაწვდომია მხოლოდ PREMIUM მომხმარებლებისთვის', redirect: '/buy' }, { status: 402 })
+    // Enforce premium for Aluda Plus: non-premium logged-in users must upgrade
+    if (actor.type === 'user' && selectedModel === 'plus' && !isPremium) {
+      return NextResponse.json({ error: 'Aluda Plus ხელმისაწვდომია მხოლოდ PREMIUM მომხმარებლებისთვის', redirect: '/buy' }, { status: 402 })
     }
 
-    // For test model, skip token consumption check
-    let estimatedTokens = 0
-    if (selectedModel !== 'test' && selectedModel !== 'aluda_test') {
-      // Rough token estimate (chars/4)
-      estimatedTokens = Math.ceil((message?.length || 0) / 4) * tokenMultiplier
+    // Rough token estimate (chars/4) and consumption check (skip only for internal test)
+    let estimatedTokens = Math.ceil((message?.length || 0) / 4) * tokenMultiplier
+    if (selectedModel !== 'aluda_test') {
       const { allowed, limits, usage } = await canConsume(actor, estimatedTokens)
       if (!allowed) {
         const target = actor.type === 'guest' ? '/auth/signin' : '/buy'
@@ -155,18 +159,18 @@ export async function POST(request: NextRequest) {
         // Implement streaming proxy to AI internal-prediction endpoint
         try {
           // Choose chatflow by model (streaming)
-          const chatflowIdOverride = selectedModel === 'aluda2'
+          const chatflowIdOverride = selectedModel === 'plus'
             ? (process.env.ALUDAAI_FLOWISE_CHATFLOW_ID_ALUDAA2
               || process.env.FLOWISE_CHATFLOW_ID_ALUDAA2
               || (process.env as any).ALUDAAI_FLOWISE_CHATFLOW_ID_ALUDA2)
-            : selectedModel === 'test'
+            : selectedModel === 'free'
             ? (process.env.ALUDAAI_FLOWISE_CHATFLOW_ID_FREE || process.env.FLOWISE_CHATFLOW_ID_FREE || '286c3991-be03-47f3-aa47-56a6b65c5d00')
             : selectedModel === 'aluda_test'
             ? (process.env.ALUDAAI_FLOWISE_CHATFLOW_ID_TEST || process.env.FLOWISE_CHATFLOW_ID_TEST || '286c3991-be03-47f3-aa47-56a6b65c5d00')
             : (process.env.ALUDAAI_FLOWISE_CHATFLOW_ID || process.env.FLOWISE_CHATFLOW_ID)
 
-          if (selectedModel === 'aluda2' && !chatflowIdOverride) {
-            return new Response(JSON.stringify({ error: 'Aluda 2.0 disabled: set ALUDAAI_FLOWISE_CHATFLOW_ID_ALUDAA2 in Vercel envs' }), { status: 500, headers: { 'Content-Type': 'application/json' } })
+          if (selectedModel === 'plus' && !chatflowIdOverride) {
+            return new Response(JSON.stringify({ error: 'Aluda Plus disabled: set ALUDAAI_FLOWISE_CHATFLOW_ID_ALUDAA2 in Vercel envs' }), { status: 500, headers: { 'Content-Type': 'application/json' } })
           }
 
           // Prepare AI service host and endpoint
@@ -176,100 +180,48 @@ export async function POST(request: NextRequest) {
           }
           const hostWithProtocol = /^(http|https):\/\//i.test(flowiseHost) ? flowiseHost : `https://${flowiseHost}`
           const normalizedHost = hostWithProtocol.replace(/\/+$/, '')
-          const predictionBaseUrl = `${normalizedHost}/api/v1/prediction/${chatflowIdOverride}`
-          const internalPredictionUrl = `${normalizedHost}/api/v1/internal-prediction/${chatflowIdOverride}`
+          const predictionUrl = `${normalizedHost}/api/v1/prediction/${chatflowIdOverride}`
           const apiKey = process.env.ALUDAAI_FLOWISE_API_KEY || process.env.FLOWISE_API_KEY
 
           // Use the provided chatId as session for Flowise memory
           const flowiseSessionId = chatId || `${actor.type}_${actor.id}_${selectedModel}_${Date.now()}`
-          
-          // Prefer internal-prediction (usually SSE), then stream endpoint, then standard prediction
-          const candidates = [
-            internalPredictionUrl,
-            `${predictionBaseUrl}/stream`,
-            `${predictionBaseUrl}`,
-          ]
 
-          let upstream: Response | null = null
-          for (const url of candidates) {
-            const res = await fetch(url, {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'text/event-stream',
-                ...(apiKey ? { Authorization: `Bearer ${apiKey}`, 'x-api-key': apiKey } : {}),
-              },
-              body: JSON.stringify({
-                question: message,
-                history: historyFromRequest.map((msg: any) => ({
-                  role: (msg.role === 'user' ? 'user' : 'assistant') as 'user' | 'assistant',
-                  content: msg.content || ''
-                })).slice(-10),
-                overrideConfig: {
-                  renderHTML: true,
-                  sessionId: flowiseSessionId,
-                  enableDetailedStreaming: true,
-                  enableStreaming: true,
-                  streaming: true,
-                  isStreaming: true,
-                },
-              }),
-            })
-            upstream = res
-            try {
-              console.log('Upstream candidate result:', {
-                url,
-                status: res.status,
-                ok: res.ok,
-                contentType: res.headers.get('content-type') || null,
-              })
-            } catch {}
-            // If server says OK and returns SSE with a body, use it; otherwise try next candidate
-            const resCt = res.headers.get('content-type') || ''
-            if (res.ok && resCt.includes('text/event-stream') && res.body) {
-              break
-            }
-            // If not ok, try next candidate
-            if (!res.ok) continue
-            // If ok but not SSE, still break so we can forward body as-is below
-            break
-          }
+          const upstream = await fetch(predictionUrl, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'text/event-stream',
+              ...(apiKey ? { Authorization: `Bearer ${apiKey}`, 'x-api-key': apiKey } : {}),
+            },
+            body: JSON.stringify({
+              question: message,
+              history: historyFromRequest.map((msg: any) => ({
+                role: (msg.role === 'user' ? 'user' : 'assistant') as 'user' | 'assistant',
+                content: msg.content || ''
+              })).slice(-10), // Keep only last 10 messages for performance
+              overrideConfig: { renderHTML: true, sessionId: flowiseSessionId },
+            }),
+          })
 
-          if (!upstream) {
-            return new Response('Upstream not reachable', { status: 502 })
+          if (!upstream.ok) {
+            const text = await upstream.text().catch(() => '')
+            return new Response(text || 'Upstream error', { status: upstream.status, headers: { 'Content-Type': upstream.headers.get('content-type') || 'text/plain' } })
           }
 
           const ct = upstream.headers.get('content-type') || ''
           if (!ct.includes('text/event-stream') || !upstream.body) {
-            // If upstream is JSON, forward as-is; if it's HTML or plain text, fall back to non-stream JSON
-            const contentType = (upstream.headers.get('content-type') || 'text/plain')
-            if (contentType.includes('application/json')) {
-              const text = await upstream.text().catch(() => '')
-              return new Response(text, { status: upstream.status, headers: { 'Content-Type': contentType } })
-            }
-            // Fallback: call non-stream Flowise API to get clean JSON response
+            const text = await upstream.text().catch(() => '')
+            // Best-effort token accounting even when upstream didn't stream
             try {
-              const flowiseHistory = historyFromRequest.map((msg: any) => ({
-                role: (msg.role === 'user' ? 'user' : 'assistant') as 'user' | 'assistant',
-                content: msg.content || ''
-              })).slice(-10)
-              const result = await sendToFlowiseWithRetry({
-                message,
-                history: flowiseHistory,
-                sessionId: flowiseSessionId,
-                chatflowIdOverride,
-              })
-              return NextResponse.json({
-                text: cleanAIResponse(result.text),
-                sources: result.sources,
-                chatId: currentChatId,
-                __meta: { ...(result.__meta || {}), selectedModel, usedOverride: chatflowIdOverride || null },
-                debug: { endpoint: (result as any)?.__meta?.endpoint || 'prediction', fallbackFrom: contentType }
-              })
-            } catch (e: any) {
-              const txt = await upstream.text().catch(() => '')
-              return new Response(txt || 'Upstream error', { status: upstream.status, headers: { 'Content-Type': contentType } })
-            }
+              const tm = selectedModel === 'aluda_test' ? 0 : 1
+              const assistantTokens = Math.ceil((text.length || 0) / 4) * tm
+              const promptTokens = Math.ceil((message?.length || 0) / 4) * tm
+              if (selectedModel !== 'aluda_test') {
+                await addUsage(actor, promptTokens + assistantTokens)
+              }
+            } catch {}
+            const contentType = (upstream.headers.get('content-type') || 'text/plain')
+            return new Response(text, { status: upstream.status, headers: { 'Content-Type': contentType } })
           }
 
           // Stream SSE back to client while accumulating tokens for usage accounting
@@ -334,10 +286,10 @@ export async function POST(request: NextRequest) {
               try {
                 // Clean up any remaining [DONE] markers from the final content
                 fullContent = fullContent.replace(/\[DONE\]/g, '').trim();
-                const tokenMultiplier = (selectedModel === 'test') ? 0 : (selectedModel === 'aluda2' && !(actor.type === 'user' && actor.plan === 'PREMIUM') && actor.type !== 'guest' ? 5 : 1)
+                const tokenMultiplier = selectedModel === 'aluda_test' ? 0 : 1
                 const assistantTokens = Math.ceil((fullContent.length || 0) / 4) * tokenMultiplier
                 const promptTokens = Math.ceil((message?.length || 0) / 4) * tokenMultiplier
-                if (selectedModel !== 'test') {
+                if (selectedModel !== 'aluda_test') {
                   await addUsage(actor, promptTokens + assistantTokens)
                 }
               } catch (e) {
@@ -370,11 +322,11 @@ export async function POST(request: NextRequest) {
     
     try {
       // Choose chatflow by model (force explicit IDs for all models)
-      const chatflowIdOverride = selectedModel === 'aluda2'
+      const chatflowIdOverride = selectedModel === 'plus'
         ? (process.env.ALUDAAI_FLOWISE_CHATFLOW_ID_ALUDAA2
           || process.env.FLOWISE_CHATFLOW_ID_ALUDAA2
           || (process.env as any).ALUDAAI_FLOWISE_CHATFLOW_ID_ALUDA2)
-        : selectedModel === 'test'
+        : selectedModel === 'free'
         ? (process.env.ALUDAAI_FLOWISE_CHATFLOW_ID_FREE || process.env.FLOWISE_CHATFLOW_ID_FREE || '286c3991-be03-47f3-aa47-56a6b65c5d00')
         : selectedModel === 'aluda_test'
         ? (process.env.ALUDAAI_FLOWISE_CHATFLOW_ID_TEST || process.env.FLOWISE_CHATFLOW_ID_TEST || '286c3991-be03-47f3-aa47-56a6b65c5d00')
@@ -382,9 +334,9 @@ export async function POST(request: NextRequest) {
       // Flowise often ignores image-only requests if the 'question' is empty.
       // Provide a concise default in ka-GE when an image is sent without text for both models.
       const effectiveMessage = (uploadedFile && (!message || message.trim().length === 0))
-        ? (selectedModel === 'aluda2' 
+        ? (selectedModel === 'plus' 
             ? 'გაანალიზე ეს სურათი და განმიმარტე ქართულად რა არის მასზე ნაჩვენები.'
-            : selectedModel === 'test'
+            : selectedModel === 'free'
             ? 'გაანალიზე ეს სურათი და განმიმარტე ქართულად რა არის მასზე ნაჩვენები.'
             : '')
         : (message || '')
@@ -397,10 +349,10 @@ export async function POST(request: NextRequest) {
         testModel: process.env.ALUDAAI_FLOWISE_CHATFLOW_ID_FREE || process.env.FLOWISE_CHATFLOW_ID_FREE || '286c3991-be03-47f3-aa47-56a6b65c5d00',
       })
 
-      // If Aluda2 chosen but no override configured, fail early instead of silently falling back to test
-      if (selectedModel === 'aluda2' && !chatflowIdOverride) {
+      // If Plus chosen but no override configured, fail early instead of silently falling back
+      if (selectedModel === 'plus' && !chatflowIdOverride) {
         return NextResponse.json({
-          error: 'Aluda 2.0 disabled: set ALUDAAI_FLOWISE_CHATFLOW_ID_ALUDAA2 in Vercel envs',
+          error: 'Aluda Plus disabled: set ALUDAAI_FLOWISE_CHATFLOW_ID_ALUDAA2 in Vercel envs',
           debug: {
             selectedModel,
             envA2: process.env.ALUDAAI_FLOWISE_CHATFLOW_ID_ALUDAA2 || process.env.FLOWISE_CHATFLOW_ID_ALUDAA2 || (process.env as any).ALUDAAI_FLOWISE_CHATFLOW_ID_ALUDA2 || null,
@@ -432,7 +384,7 @@ export async function POST(request: NextRequest) {
         history: flowiseHistory,
         sessionId: flowiseSessionId,
         chatflowIdOverride,
-        file: uploadedFile && (selectedModel === 'aluda2' || selectedModel === 'test') ? uploadedFile : undefined,
+        file: uploadedFile && (selectedModel === 'plus' || selectedModel === 'free') ? uploadedFile : undefined,
       })
     } catch (error: any) {
       console.error("Flowise API error:", error)
@@ -469,8 +421,8 @@ export async function POST(request: NextRequest) {
 
     // Estimate assistant tokens as well
     const assistantTokens = Math.ceil((flowiseResponse.text?.length || 0) / 4) * tokenMultiplier
-    // Only track token usage for non-test models
-    if (selectedModel !== 'test') {
+    // Only skip usage for internal test model
+    if (selectedModel !== 'aluda_test') {
       await addUsage(actor, estimatedTokens + assistantTokens)
     }
 

@@ -28,8 +28,8 @@ export default function ModelSwitcher() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const handleModelSelect = (newModel: 'aluda2' | 'test' | 'aluda_test') => {
-    if (newModel === 'aluda2' && !hasPremium) {
+  const handleModelSelect = (newModel: 'plus' | 'free' | 'aluda_test') => {
+    if (newModel === 'plus' && !hasPremium) {
       handleUpgrade();
       return;
     }
@@ -42,11 +42,11 @@ export default function ModelSwitcher() {
     setIsOpen(false);
   };
 
-  const getModelDisplayName = (modelName: 'aluda2' | 'test' | 'aluda_test') => {
+  const getModelDisplayName = (modelName: 'plus' | 'free' | 'aluda_test') => {
     switch (modelName) {
-      case 'aluda2':
+      case 'plus':
         return 'Aluda Plus';
-      case 'test':
+      case 'free':
         return 'Aluda Free';
       case 'aluda_test':
         return 'Aluda Test';
@@ -55,24 +55,24 @@ export default function ModelSwitcher() {
     }
   };
 
-  const getModelDescription = (modelName: 'aluda2' | 'test' | 'aluda_test') => {
+  const getModelDescription = (modelName: 'plus' | 'free' | 'aluda_test') => {
     switch (modelName) {
-      case 'aluda2':
+      case 'plus':
         return 'Our smartest model & more';
-      case 'test':
-        return 'Free unlimited model';
+      case 'free':
+        return 'Free model with limits';
       case 'aluda_test':
         return 'Internal testing flow';
       default:
-        return 'Free unlimited model';
+        return 'Free model with limits';
     }
   };
 
-  const getModelIcon = (modelName: 'aluda2' | 'test' | 'aluda_test') => {
+  const getModelIcon = (modelName: 'plus' | 'free' | 'aluda_test') => {
     switch (modelName) {
-      case 'aluda2':
+      case 'plus':
         return <Sparkles className="h-4 w-4 text-purple-500" />;
-      case 'test':
+      case 'free':
         return <Zap className="h-4 w-4" />;
       case 'aluda_test':
         return <Sparkles className="h-4 w-4 text-blue-500" />;
@@ -96,26 +96,26 @@ export default function ModelSwitcher() {
       {/* Dropdown Menu - Always opens downward */}
       {isOpen && (
         <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-gray-900/95 backdrop-blur rounded-xl border border-gray-200/60 dark:border-white/10 shadow-xl z-50 min-w-[320px] max-w-[380px] overflow-hidden">
-          {/* Aluda Free Option (Free & Unlimited) */}
-          <div className="p-3 border-b border-gray-200/60 dark:border-white/10 cursor-pointer hover:bg-gray-50 dark:hover:bg-white/5 transition-colors duration-200" onClick={() => handleModelSelect('test')}>
+          {/* Aluda Free Option (Free with Limits) */}
+          <div className="p-3 border-b border-gray-200/60 dark:border-white/10 cursor-pointer hover:bg-gray-50 dark:hover:bg-white/5 transition-colors duration-200" onClick={() => handleModelSelect('free')}>
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-3">
-                {getModelIcon('test')}
+                {getModelIcon('free')}
                 <div>
                   <div className="text-gray-900 dark:text-white font-medium text-sm">Aluda Free</div>
-                  <div className="text-gray-600 dark:text-gray-400 text-xs">უფასო და ულიმიტო მოდელი</div>
+                  <div className="text-gray-600 dark:text-gray-400 text-xs">უფასო მოდელი ლიმიტებით</div>
                 </div>
               </div>
-              {model === 'test' && <Check className="h-4 w-4 text-green-600 dark:text-green-400" />}
+              {model === 'free' && <Check className="h-4 w-4 text-green-600 dark:text-green-400" />}
             </div>
           </div>
 
 
           {/* Aluda Plus Option (Premium) - Last and most prominent */}
-          <div className="p-3 cursor-pointer hover:bg-gray-50 dark:hover:bg-white/5 transition-colors duration-200" onClick={() => handleModelSelect('aluda2')}>
+          <div className="p-3 cursor-pointer hover:bg-gray-50 dark:hover:bg-white/5 transition-colors duration-200" onClick={() => handleModelSelect('plus')}>
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-3">
-                {getModelIcon('aluda2')}
+                {getModelIcon('plus')}
                 <div>
                   <div className="text-gray-900 dark:text-white font-medium text-sm">Aluda Plus</div>
                   <div className="text-gray-600 dark:text-gray-400 text-xs">ჩვენი ყველაზე ჭკვიანი მოდელი</div>
@@ -132,7 +132,7 @@ export default function ModelSwitcher() {
                   გაუმჯობესება
                 </button>
               ) : (
-                model === 'aluda2' && <Check className="h-4 w-4 text-green-600 dark:text-green-400" />
+                model === 'plus' && <Check className="h-4 w-4 text-green-600 dark:text-green-400" />
               )}
             </div>
           </div>

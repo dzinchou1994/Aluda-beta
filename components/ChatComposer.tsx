@@ -151,9 +151,9 @@ export default function ChatComposer({ currentChatId: propCurrentChatId, session
   // Get chatflowId based on current model
   const getChatflowId = () => {
     switch (model) {
-      case 'aluda2':
+      case 'plus':
         return process.env.NEXT_PUBLIC_ALUDAAI_FLOWISE_CHATFLOW_ID_ALUDAA2 || 'ed45f6f4-88bd-4f11-9fa5-019103b542d2';
-      case 'test':
+      case 'free':
         return process.env.NEXT_PUBLIC_ALUDAAI_FLOWISE_CHATFLOW_ID_FREE || '286c3991-be03-47f3-aa47-56a6b65c5d00';
       case 'aluda_test':
         return process.env.NEXT_PUBLIC_ALUDAAI_FLOWISE_CHATFLOW_ID_TEST || 'c8e5dba7-3b90-4025-9432-7cb08b8027b8';
