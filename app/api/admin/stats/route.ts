@@ -15,9 +15,15 @@ export async function GET() {
     prisma.user.count({ where: { plan: 'PREMIUM' } })
   ])
 
-  // Online users (approx): active sessions not expired
+  // Online users (Option A): users with token usage updated in the last 5 minutes
   const now = new Date()
-  const online = await prisma.session.count({ where: { expires: { gt: now } } })
+  const fiveMinAgo = new Date(now.getTime() - 5 * 60 * 1000)
+  const recentActors = await prisma.tokenUsage.groupBy({
+    by: ['actorId'],
+    where: { actorType: 'user', updatedAt: { gt: fiveMinAgo } },
+    _max: { updatedAt: true },
+  })
+  const online = recentActors.length
 
   // 24h token activity
   const dayKey = new Date().toISOString().slice(0,10)
