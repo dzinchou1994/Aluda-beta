@@ -23,7 +23,23 @@ export async function middleware(req: NextRequest) {
   const email = (token?.email as string | undefined) || null
   const allowed = isAdminEmail(email)
 
-  if (allowed) return NextResponse.next()
+  // If user has admin email, optionally require secondary password if ADMIN_SECRET is set
+  if (allowed) {
+    const adminSecret = process.env.ADMIN_SECRET
+    if (!adminSecret) return NextResponse.next()
+    const ok = req.cookies.get('admin_ok')?.value === '1'
+    if (ok || pathname.startsWith('/admin/login')) return NextResponse.next()
+    if (pathname.startsWith('/api/')) {
+      return new NextResponse(JSON.stringify({ error: 'Admin secondary auth required' }), {
+        status: 401,
+        headers: { 'content-type': 'application/json' },
+      })
+    }
+    const url = req.nextUrl.clone()
+    url.pathname = '/admin/login'
+    url.searchParams.set('callbackUrl', req.nextUrl.pathname)
+    return NextResponse.redirect(url)
+  }
 
   if (pathname.startsWith('/api/')) {
     return new NextResponse(JSON.stringify({ error: 'Forbidden' }), {
