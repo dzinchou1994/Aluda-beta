@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { signIn, useSession } from "next-auth/react"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { FcGoogle } from "react-icons/fc"
 import { FaApple } from "react-icons/fa"
 import { Eye, EyeOff, Mail, Lock, User } from "lucide-react"
@@ -19,13 +19,16 @@ export default function SignInPage() {
   const [error, setError] = useState("")
   const [providers, setProviders] = useState<Record<string, any> | null>(null)
   const router = useRouter()
+  const params = useSearchParams()
+  const callbackUrlParam = params?.get('callbackUrl') || ''
 
-  // If already authenticated, redirect to chat
+  // If already authenticated, redirect to callbackUrl if present, else chat
   useEffect(() => {
     if (status === "authenticated") {
-      router.replace("/chat")
+      const cb = callbackUrlParam || "/chat"
+      router.replace(cb)
     }
-  }, [status, router])
+  }, [status, router, callbackUrlParam])
 
   // Load configured OAuth providers so we render only enabled ones
   useEffect(() => {
@@ -66,7 +69,8 @@ export default function SignInPage() {
       if (result?.error) {
         setError("არასწორი ელ-ფოსტა ან პაროლი")
       } else {
-        router.push("/chat")
+        const cb = callbackUrlParam || "/chat"
+        router.push(cb)
       }
     } catch (err: any) {
       setError(err.message || "შეცდომა მოხდა")
@@ -75,8 +79,8 @@ export default function SignInPage() {
     }
   }
 
-  const handleGoogleSignIn = () => signIn("google", { callbackUrl: "/chat" })
-  const handleAppleSignIn = () => signIn("apple", { callbackUrl: "/chat" })
+  const handleGoogleSignIn = () => signIn("google", { callbackUrl: callbackUrlParam || "/chat" })
+  const handleAppleSignIn = () => signIn("apple", { callbackUrl: callbackUrlParam || "/chat" })
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center p-4">
