@@ -57,21 +57,46 @@ export function useChatSubmit({
     message: string,
     attachedImage: File | null,
     attachedPreviewUrl: string | null,
+    attachedImages: File[],
+    attachedPreviewUrls: string[],
     setAttachedImage: (file: File | null) => void,
     setAttachedPreviewUrl: (url: string | null) => void,
+    setAttachedImages: (files: File[]) => void,
+    setAttachedPreviewUrls: (urls: string[]) => void,
     setMessage: (message: string) => void
   ) => {
     e.preventDefault();
     
+    // Capture attachments for sending, then immediately clear UI state so
+    // thumbnails disappear right after user hits send
+    const sendAttachedImage: File | null = attachedImage;
+    const sendAttachedImages: File[] = (attachedImages || []).slice();
+    const sendPreviewUrl: string | null = attachedPreviewUrl;
+    const sendPreviewUrls: string[] = (attachedPreviewUrls || []).slice();
+
+    try {
+      if (sendPreviewUrl) {
+        try { URL.revokeObjectURL(sendPreviewUrl); } catch {}
+      }
+      if (sendPreviewUrls && sendPreviewUrls.length > 0) {
+        try { sendPreviewUrls.forEach(u => { try { URL.revokeObjectURL(u); } catch {} }); } catch {}
+      }
+    } catch {}
+    // Clear UI state (safe because we kept local copies above)
+    setAttachedImage(null);
+    setAttachedPreviewUrl(null);
+    setAttachedImages([]);
+    setAttachedPreviewUrls([]);
+
     // OPTIMIZATION: Reduce image preparation delay
-    if (model === 'aluda2' && attachedImage && !attachedPreviewUrl) {
+    if (model === 'aluda2' && (sendAttachedImage || (sendAttachedImages && sendAttachedImages.length > 0)) && !sendPreviewUrl) {
       await new Promise((r) => setTimeout(r, 25)); // Reduced from 50ms to 25ms
     }
     
     // Allow image-only request for both Aluda 2.0 and test model
-    if (!(message.trim().length > 0 || attachedImage)) return;
+    if (!(message.trim().length > 0 || sendAttachedImage || (sendAttachedImages && sendAttachedImages.length > 0))) return;
 
-    const isImageOnly = attachedImage && message.trim().length === 0;
+    const isImageOnly = (sendAttachedImage || (sendAttachedImages && sendAttachedImages.length > 0)) && message.trim().length === 0;
     const messageToSend = isImageOnly ? '' : message.trim();
 
     // Determine if foreign scripts should be allowed based on explicit user intent
@@ -142,12 +167,17 @@ export function useChatSubmit({
 
     // Convert image to base64 for persistent storage
     let imageBase64: string | undefined;
-    if (attachedImage) {
-      try {
-        imageBase64 = await fileToBase64(attachedImage);
-      } catch (error) {
-        console.error('Failed to convert image to base64:', error);
+    let imageBase64List: string[] = [];
+    const filesToConvert = sendAttachedImages && sendAttachedImages.length > 0 ? sendAttachedImages : (sendAttachedImage ? [sendAttachedImage] : []);
+    if (filesToConvert.length > 0) {
+      for (const f of filesToConvert) {
+        try {
+          imageBase64List.push(await fileToBase64(f));
+        } catch (error) {
+          console.error('Failed to convert image to base64:', error);
+        }
       }
+      imageBase64 = imageBase64List[0];
     }
 
     // Prepare to send and only add message to UI after the request is started
@@ -155,7 +185,8 @@ export function useChatSubmit({
       id: `user_${Date.now()}`,
       role: "user",
       content: messageToSend,
-      imageUrl: imageBase64 || attachedPreviewUrl || undefined,
+      imageUrl: imageBase64 || sendPreviewUrl || (sendPreviewUrls && sendPreviewUrls[0]) || undefined,
+      imageUrls: imageBase64List.length > 0 ? imageBase64List : (sendPreviewUrls && sendPreviewUrls.length > 0 ? sendPreviewUrls : undefined),
     };
     
     setIsLoading(true);
@@ -164,7 +195,7 @@ export function useChatSubmit({
     setMessage("");
     
     try {
-      const useMultipart = attachedImage && (model === 'aluda2' || model === 'test');
+      const useMultipart = (sendAttachedImage || (sendAttachedImages && sendAttachedImages.length > 0)) && (model === 'aluda2' || model === 'test');
       let responsePromise: Promise<Response>;
       
       if (useMultipart) {
@@ -173,16 +204,16 @@ export function useChatSubmit({
         form.append('chatId', activeChatId!);
         form.append('model', model);
         
-        // Compress large images to prevent 413 and reduce latency
-        const blobToSend = await compressImageIfNeeded(attachedImage as File);
-        const filename = (attachedImage as File).name || 'upload.jpg';
-        
-        // Add multiple aliases to maximize compatibility with Flowise prediction endpoints
-        form.append('files', blobToSend, filename);
-        form.append('file', blobToSend, filename);
-        form.append('files[]', blobToSend, filename);
-        form.append('image', blobToSend, filename);
-        form.append('images', blobToSend, filename);
+        const files = filesToConvert;
+        for (const f of files) {
+          const blobToSend = await compressImageIfNeeded(f);
+          const filename = f.name || 'upload.jpg';
+          form.append('files', blobToSend, filename);
+          form.append('file', blobToSend, filename);
+          form.append('files[]', blobToSend, filename);
+          form.append('image', blobToSend, filename);
+          form.append('images', blobToSend, filename);
+        }
         
         responsePromise = fetch("/api/chat", { 
           method: "POST",
@@ -486,13 +517,7 @@ export function useChatSubmit({
       // Note: For streaming responses, we skip auto-renaming for now
 
       // Clear attached image after successful send
-      if (attachedImage) {
-        setAttachedImage(null);
-        if (attachedPreviewUrl) {
-          URL.revokeObjectURL(attachedPreviewUrl);
-          setAttachedPreviewUrl("");
-        }
-      }
+      // No-op: attachments were already cleared at send time
     } catch (error: any) {
       console.error("Chat error:", error);
       setError(error.message || "შეცდომა მოხდა შეტყობინების გაგზავნისას.");

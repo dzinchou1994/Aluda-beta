@@ -177,7 +177,19 @@ export default function ChatMessage({ message, index, shouldAnimate, chatId, cha
           // User message with bubble
           <div className="px-4 py-3 inline-block w-auto max-w-[90%] sm:max-w-[70ch] shadow-sm transition-all duration-200 hover:shadow-md chat-bubble chat-bubble-user text-left">
             <div className="space-y-2">
-              {message.imageUrl && (
+              {(message.imageUrls && message.imageUrls.length > 0) ? (
+                <div className="flex items-center gap-2 flex-wrap">
+                  {message.imageUrls.map((src, idx) => (
+                    <img
+                      key={idx}
+                      src={src}
+                      alt={`attachment ${idx+1}`}
+                      className="rounded-md border border-gray-200 dark:border-gray-700 max-w-[200px] max-h-[200px] object-cover"
+                      onError={() => setImageError(true)}
+                    />
+                  ))}
+                </div>
+              ) : (message.imageUrl && (
                 imageError ? (
                   <span className="text-red-500 text-sm">სურათის ანალიზი ვერ მოხერხდა. გთხოვთ სცადოთ ხელახლა.</span>
                 ) : (
@@ -188,7 +200,7 @@ export default function ChatMessage({ message, index, shouldAnimate, chatId, cha
                     onError={() => setImageError(true)}
                   />
                 )
-              )}
+              ))}
               {message.content && (
                 <span className="inline-block text-[0.9rem] leading-[1.5] whitespace-pre-wrap text-left" style={{ wordBreak: 'normal', overflowWrap: 'break-word' }}>{message.content}</span>
               )}

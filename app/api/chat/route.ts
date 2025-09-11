@@ -176,39 +176,100 @@ export async function POST(request: NextRequest) {
           }
           const hostWithProtocol = /^(http|https):\/\//i.test(flowiseHost) ? flowiseHost : `https://${flowiseHost}`
           const normalizedHost = hostWithProtocol.replace(/\/+$/, '')
-          const predictionUrl = `${normalizedHost}/api/v1/prediction/${chatflowIdOverride}`
+          const predictionBaseUrl = `${normalizedHost}/api/v1/prediction/${chatflowIdOverride}`
+          const internalPredictionUrl = `${normalizedHost}/api/v1/internal-prediction/${chatflowIdOverride}`
           const apiKey = process.env.ALUDAAI_FLOWISE_API_KEY || process.env.FLOWISE_API_KEY
 
           // Use the provided chatId as session for Flowise memory
           const flowiseSessionId = chatId || `${actor.type}_${actor.id}_${selectedModel}_${Date.now()}`
+          
+          // Prefer internal-prediction (usually SSE), then stream endpoint, then standard prediction
+          const candidates = [
+            internalPredictionUrl,
+            `${predictionBaseUrl}/stream`,
+            `${predictionBaseUrl}`,
+          ]
 
-          const upstream = await fetch(predictionUrl, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Accept': 'text/event-stream',
-              ...(apiKey ? { Authorization: `Bearer ${apiKey}`, 'x-api-key': apiKey } : {}),
-            },
-            body: JSON.stringify({
-              question: message,
-              history: historyFromRequest.map((msg: any) => ({
-                role: (msg.role === 'user' ? 'user' : 'assistant') as 'user' | 'assistant',
-                content: msg.content || ''
-              })).slice(-10), // Keep only last 10 messages for performance
-              overrideConfig: { renderHTML: true, sessionId: flowiseSessionId },
-            }),
-          })
+          let upstream: Response | null = null
+          for (const url of candidates) {
+            const res = await fetch(url, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'text/event-stream',
+                ...(apiKey ? { Authorization: `Bearer ${apiKey}`, 'x-api-key': apiKey } : {}),
+              },
+              body: JSON.stringify({
+                question: message,
+                history: historyFromRequest.map((msg: any) => ({
+                  role: (msg.role === 'user' ? 'user' : 'assistant') as 'user' | 'assistant',
+                  content: msg.content || ''
+                })).slice(-10),
+                overrideConfig: {
+                  renderHTML: true,
+                  sessionId: flowiseSessionId,
+                  enableDetailedStreaming: true,
+                  enableStreaming: true,
+                  streaming: true,
+                  isStreaming: true,
+                },
+              }),
+            })
+            upstream = res
+            try {
+              console.log('Upstream candidate result:', {
+                url,
+                status: res.status,
+                ok: res.ok,
+                contentType: res.headers.get('content-type') || null,
+              })
+            } catch {}
+            // If server says OK and returns SSE with a body, use it; otherwise try next candidate
+            const resCt = res.headers.get('content-type') || ''
+            if (res.ok && resCt.includes('text/event-stream') && res.body) {
+              break
+            }
+            // If not ok, try next candidate
+            if (!res.ok) continue
+            // If ok but not SSE, still break so we can forward body as-is below
+            break
+          }
 
-          if (!upstream.ok) {
-            const text = await upstream.text().catch(() => '')
-            return new Response(text || 'Upstream error', { status: upstream.status, headers: { 'Content-Type': upstream.headers.get('content-type') || 'text/plain' } })
+          if (!upstream) {
+            return new Response('Upstream not reachable', { status: 502 })
           }
 
           const ct = upstream.headers.get('content-type') || ''
           if (!ct.includes('text/event-stream') || !upstream.body) {
-            const text = await upstream.text().catch(() => '')
+            // If upstream is JSON, forward as-is; if it's HTML or plain text, fall back to non-stream JSON
             const contentType = (upstream.headers.get('content-type') || 'text/plain')
-            return new Response(text, { status: upstream.status, headers: { 'Content-Type': contentType } })
+            if (contentType.includes('application/json')) {
+              const text = await upstream.text().catch(() => '')
+              return new Response(text, { status: upstream.status, headers: { 'Content-Type': contentType } })
+            }
+            // Fallback: call non-stream Flowise API to get clean JSON response
+            try {
+              const flowiseHistory = historyFromRequest.map((msg: any) => ({
+                role: (msg.role === 'user' ? 'user' : 'assistant') as 'user' | 'assistant',
+                content: msg.content || ''
+              })).slice(-10)
+              const result = await sendToFlowiseWithRetry({
+                message,
+                history: flowiseHistory,
+                sessionId: flowiseSessionId,
+                chatflowIdOverride,
+              })
+              return NextResponse.json({
+                text: cleanAIResponse(result.text),
+                sources: result.sources,
+                chatId: currentChatId,
+                __meta: { ...(result.__meta || {}), selectedModel, usedOverride: chatflowIdOverride || null },
+                debug: { endpoint: (result as any)?.__meta?.endpoint || 'prediction', fallbackFrom: contentType }
+              })
+            } catch (e: any) {
+              const txt = await upstream.text().catch(() => '')
+              return new Response(txt || 'Upstream error', { status: upstream.status, headers: { 'Content-Type': contentType } })
+            }
           }
 
           // Stream SSE back to client while accumulating tokens for usage accounting

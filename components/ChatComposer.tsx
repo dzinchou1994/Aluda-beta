@@ -44,6 +44,9 @@ export default function ChatComposer({ currentChatId: propCurrentChatId, session
   const [message, setMessage] = useState('');
   const [attachedImage, setAttachedImage] = useState<File | null>(null);
   const [attachedPreviewUrl, setAttachedPreviewUrl] = useState<string | null>(null);
+  // Multi-attach state
+  const [attachedImages, setAttachedImages] = useState<File[]>([]);
+  const [attachedPreviewUrls, setAttachedPreviewUrls] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [openMenuChatId, setOpenMenuChatId] = useState<string | null>(null);
 
@@ -80,8 +83,12 @@ export default function ChatComposer({ currentChatId: propCurrentChatId, session
       message,
       attachedImage,
       attachedPreviewUrl,
+      attachedImages,
+      attachedPreviewUrls,
       setAttachedImage,
       setAttachedPreviewUrl,
+      setAttachedImages,
+      setAttachedPreviewUrls,
       setMessage
     );
 
@@ -280,6 +287,10 @@ export default function ChatComposer({ currentChatId: propCurrentChatId, session
         setAttachedImage={setAttachedImage}
         attachedPreviewUrl={attachedPreviewUrl}
         setAttachedPreviewUrl={setAttachedPreviewUrl}
+        attachedImages={attachedImages}
+        setAttachedImages={setAttachedImages}
+        attachedPreviewUrls={attachedPreviewUrls}
+        setAttachedPreviewUrls={setAttachedPreviewUrls}
         isLoading={isLoading}
         onSubmit={handleSubmitWrapper}
         onKeyDown={handleKeyDown}

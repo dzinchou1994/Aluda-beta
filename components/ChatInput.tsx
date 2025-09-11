@@ -11,6 +11,11 @@ interface ChatInputProps {
   setAttachedImage: (file: File | null) => void;
   attachedPreviewUrl: string | null;
   setAttachedPreviewUrl: (url: string | null) => void;
+  // Optional multi-attach support
+  attachedImages?: File[];
+  setAttachedImages?: (files: File[]) => void;
+  attachedPreviewUrls?: string[];
+  setAttachedPreviewUrls?: (urls: string[]) => void;
   isLoading: boolean;
   onSubmit: (e: React.FormEvent) => void;
   onKeyDown: (e: React.KeyboardEvent) => void;
@@ -25,6 +30,10 @@ export default function ChatInput({
   setAttachedImage,
   attachedPreviewUrl,
   setAttachedPreviewUrl,
+  attachedImages = [],
+  setAttachedImages,
+  attachedPreviewUrls = [],
+  setAttachedPreviewUrls,
   isLoading,
   onSubmit,
   onKeyDown,
@@ -95,8 +104,8 @@ export default function ChatInput({
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
     
     // Allow photo uploads for both aluda2 and test (free) models
     if (model !== 'aluda2' && model !== 'test') {
@@ -105,9 +114,18 @@ export default function ChatInput({
       return;
     }
     
-    setAttachedImage(file);
-    const url = URL.createObjectURL(file);
+    // Single (backward compatible)
+    const first = files[0];
+    setAttachedImage(first);
+    const url = URL.createObjectURL(first);
     setAttachedPreviewUrl(url);
+
+    // Multi if provided
+    if (setAttachedImages && setAttachedPreviewUrls) {
+      setAttachedImages(files);
+      const urls = files.map(f => URL.createObjectURL(f));
+      setAttachedPreviewUrls(urls);
+    }
   };
 
   const removeImage = () => {
@@ -115,6 +133,11 @@ export default function ChatInput({
     if (attachedPreviewUrl) {
       URL.revokeObjectURL(attachedPreviewUrl);
       setAttachedPreviewUrl(null);
+    }
+    if (setAttachedImages && setAttachedPreviewUrls) {
+      try { (attachedPreviewUrls || []).forEach(u => URL.revokeObjectURL(u)); } catch {}
+      setAttachedImages([]);
+      setAttachedPreviewUrls([]);
     }
   };
 
@@ -129,6 +152,7 @@ export default function ChatInput({
               ref={fileInputRef}
               type="file"
               accept="image/*"
+              multiple
               className="hidden"
               onChange={handleFileChange}
             />
@@ -171,7 +195,7 @@ export default function ChatInput({
             
             <button
               type="submit"
-              disabled={!(message.trim().length > 0 || ((model === 'aluda2' || model === 'test') && attachedImage)) || isLoading}
+              disabled={!(message.trim().length > 0 || ((model === 'aluda2' || model === 'test') && (attachedImage || (attachedImages && attachedImages.length > 0)))) || isLoading}
               className="ml-2 sm:ml-3 w-10 h-10 sm:w-12 sm:h-12 send-button bg-blue-500 dark:bg-blue-600 text-white rounded-full hover:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-gray-800 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center shadow-lg hover:shadow-xl hover:scale-105"
             >
               {isLoading ? (
@@ -182,12 +206,22 @@ export default function ChatInput({
             </button>
           </div>
 
-          {/* Image preview chip */}
-          {attachedPreviewUrl && (
+          {/* Image preview chip (supports multiple) */}
+          {(attachedPreviewUrl || (attachedPreviewUrls && attachedPreviewUrls.length > 0)) && (
             <div className="mt-2 flex items-center gap-2">
-              <div className="w-12 h-12 rounded-md overflow-hidden border border-gray-200 dark:border-gray-700 shadow-sm">
-                <img src={attachedPreviewUrl} alt="attachment preview" className="w-full h-full object-cover" />
-              </div>
+              {attachedPreviewUrls && attachedPreviewUrls.length > 0 ? (
+                <div className="flex items-center gap-2 overflow-x-auto max-w-full">
+                  {attachedPreviewUrls.map((p, i) => (
+                    <div key={i} className="w-12 h-12 rounded-md overflow-hidden border border-gray-200 dark:border-gray-700 shadow-sm shrink-0">
+                      <img src={p} alt={`attachment ${i+1}`} className="w-full h-full object-cover" />
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="w-12 h-12 rounded-md overflow-hidden border border-gray-200 dark:border-gray-700 shadow-sm">
+                  <img src={attachedPreviewUrl as string} alt="attachment preview" className="w-full h-full object-cover" />
+                </div>
+              )}
               <button
                 type="button"
                 onClick={removeImage}
