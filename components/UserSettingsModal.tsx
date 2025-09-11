@@ -66,39 +66,38 @@ export default function UserSettingsModal({ open, onClose, userEmail }: Props) {
           <div>
             <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">ანგარიშის ინფორმაცია</h3>
             <div className="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700 rounded-xl p-4 border border-gray-200 dark:border-gray-600">
-              <div className="space-y-3">
-                {/* Email */}
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-2 h-2 rounded-full bg-blue-500"></div>
-                    <span className="text-xs font-medium text-gray-600 dark:text-gray-400 uppercase tracking-wide">ელფოსტა</span>
-                  </div>
-                  <span className="text-sm text-gray-900 dark:text-white font-medium">
-                    {userEmail || 'ელფოსტა არ არის მითითებული'}
-                  </span>
+              {/* Email only */}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+                  <span className="text-xs font-medium text-gray-600 dark:text-gray-400 uppercase tracking-wide">ელფოსტა</span>
                 </div>
-                
-                {/* Plan */}
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
-                    <span className={`w-2 h-2 rounded-full ${actor?.plan === 'PREMIUM' ? 'bg-purple-500' : 'bg-gray-400'}`}></span>
-                    <span className="text-xs font-medium text-gray-600 dark:text-gray-400 uppercase tracking-wide">გეგმა</span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <span className="text-sm text-gray-900 dark:text-white font-medium">
-                      {actor?.plan === 'PREMIUM' ? 'პრემიუმ' : 'უფასო'}
-                    </span>
-                    {actor?.plan !== 'PREMIUM' && (
-                      <button
-                        onClick={() => window.open('/buy', '_blank')}
-                        className="px-2 py-1 bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white text-xs rounded-md transition-all duration-200 transform hover:scale-105"
-                      >
-                        გახდი პრემიუმ
-                      </button>
-                    )}
-                  </div>
+                <span className="text-sm text-gray-900 dark:text-white font-medium">
+                  {userEmail || 'ელფოსტა არ არის მითითებული'}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Plan (separate card) */}
+          <div>
+            <h3 className="sr-only">გეგმა</h3>
+            <div className="flex items-center justify-between bg-gradient-to-r from-gray-50 to-white dark:from-gray-800 dark:to-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700">
+              <div className="flex items-center gap-3">
+                <span className={`w-2 h-2 rounded-full ${actor?.plan === 'PREMIUM' ? 'bg-purple-500' : 'bg-gray-400'}`}></span>
+                <div className="text-sm">
+                  <div className="text-xs text-gray-600 dark:text-gray-400 uppercase tracking-wide">გეგმა</div>
+                  <div className="text-gray-900 dark:text-white font-medium">{actor?.plan === 'PREMIUM' ? 'პრემიუმ' : 'უფასო'}</div>
                 </div>
               </div>
+              {actor?.plan !== 'PREMIUM' && (
+                <button
+                  onClick={() => window.open('/buy', '_blank')}
+                  className="px-3 py-1.5 text-sm bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white rounded-md transition-all duration-200"
+                >
+                  გახდი პრემიუმ
+                </button>
+              )}
             </div>
           </div>
 
@@ -106,14 +105,14 @@ export default function UserSettingsModal({ open, onClose, userEmail }: Props) {
           <div>
             <div className="flex items-center justify-between mb-2">
               <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">ტოკენები</h3>
-              <span className="text-xs text-gray-500">დღიური ლიმიტი</span>
+              <span className="text-[11px] px-2 py-0.5 rounded-full border border-blue-200 bg-blue-50 text-blue-700 dark:border-blue-800 dark:bg-blue-900/30 dark:text-blue-300">დღიური ლიმიტი</span>
             </div>
-            <div className="w-full bg-gray-200 dark:bg-gray-800 rounded-full h-3 overflow-hidden">
-              <div className={`${dailyPercent >= 100 ? 'bg-red-500' : 'bg-gradient-to-r from-blue-500 to-purple-600'} h-3`} style={{ width: `${dailyPercent}%` }} />
+            <div className="relative w-full h-3 rounded-full bg-gradient-to-r from-gray-200 to-gray-100 dark:from-gray-800 dark:to-gray-700 ring-1 ring-black/5 dark:ring-white/10 overflow-hidden">
+              <div className={`absolute inset-y-0 left-0 ${dailyPercent >= 100 ? 'bg-red-500' : 'bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-600'} shadow-[0_0_8px_rgba(99,102,241,0.35)]`} style={{ width: `${dailyPercent}%` }} />
             </div>
             <div className="mt-1 flex items-center justify-between text-xs text-gray-600 dark:text-gray-400">
-              <span>{usage.daily} / {limits.daily}</span>
-              <span>{dailyPercent}%</span>
+              <span className="tabular-nums">{usage.daily} / {limits.daily}</span>
+              <span className={`tabular-nums px-1.5 py-0.5 rounded-md border ${dailyPercent >= 100 ? 'border-red-200 bg-red-50 text-red-700 dark:border-red-800 dark:bg-red-900/30 dark:text-red-300' : 'border-gray-200 bg-gray-100 text-gray-700 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300'}`}>{dailyPercent}%</span>
             </div>
           </div>
 
@@ -141,9 +140,9 @@ export default function UserSettingsModal({ open, onClose, userEmail }: Props) {
                 </div>
               </div>
               {/* Progress bar for images */}
-              <div className="mt-3 w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 overflow-hidden">
+              <div className="mt-3 relative w-full h-2 rounded-full bg-gradient-to-r from-gray-200 to-gray-100 dark:from-gray-700 dark:to-gray-800 ring-1 ring-black/5 dark:ring-white/10 overflow-hidden">
                 <div 
-                  className="bg-gradient-to-r from-purple-500 to-pink-500 h-2" 
+                  className="absolute inset-y-0 left-0 bg-gradient-to-r from-purple-500 via-fuchsia-500 to-pink-500 h-2 shadow-[0_0_8px_rgba(236,72,153,0.35)]" 
                   style={{ width: `${limits.images ? Math.min(100, Math.round((usage.images / limits.images) * 100)) : 0}%` }} 
                 />
               </div>
