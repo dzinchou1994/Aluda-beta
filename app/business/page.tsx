@@ -115,35 +115,38 @@ export default function BusinessPage() {
             </div>
           </div>
 
-          {/* Additional Features - Icon Strip */}
-          <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-8 border border-white/40">
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-8">
-              <div className="flex items-center space-x-4">
-                <div className="w-12 h-12 bg-gradient-to-br from-red-500 to-red-600 rounded-xl flex items-center justify-center">
-                  <Clock className="w-6 h-6 text-white" />
+          {/* Additional Features - Enhanced Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* 24/7 Support */}
+            <div className="group bg-gradient-to-br from-red-50 to-red-100/50 rounded-2xl p-6 border border-red-200/30 hover:border-red-300/50 transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
+              <div className="flex flex-col items-center text-center">
+                <div className="w-16 h-16 bg-gradient-to-br from-red-500 to-red-600 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300 shadow-lg">
+                  <Clock className="w-8 h-8 text-white" />
                 </div>
-                <div>
-                  <h5 className="font-semibold text-gray-900">24/7 მხარდაჭერა</h5>
-                  <p className="text-sm text-gray-600">მუდმივი ხელმისაწვდომობა</p>
-                </div>
+                <h5 className="font-bold text-gray-900 mb-2 group-hover:text-red-600 transition-colors">24/7 მხარდაჭერა</h5>
+                <p className="text-sm text-gray-600 group-hover:text-gray-700 transition-colors">მუდმივი ხელმისაწვდომობა</p>
               </div>
-              <div className="flex items-center space-x-4">
-                <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl flex items-center justify-center">
-                  <BarChart3 className="w-6 h-6 text-white" />
+            </div>
+
+            {/* Analytics */}
+            <div className="group bg-gradient-to-br from-orange-50 to-orange-100/50 rounded-2xl p-6 border border-orange-200/30 hover:border-orange-300/50 transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
+              <div className="flex flex-col items-center text-center">
+                <div className="w-16 h-16 bg-gradient-to-br from-orange-500 to-orange-600 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300 shadow-lg">
+                  <BarChart3 className="w-8 h-8 text-white" />
                 </div>
-                <div>
-                  <h5 className="font-semibold text-gray-900">ანალიტიკა</h5>
-                  <p className="text-sm text-gray-600">რეალური დროის მონაცემები</p>
-                </div>
+                <h5 className="font-bold text-gray-900 mb-2 group-hover:text-orange-600 transition-colors">ანალიტიკა</h5>
+                <p className="text-sm text-gray-600 group-hover:text-gray-700 transition-colors">რეალური დროის მონაცემები</p>
               </div>
-              <div className="flex items-center space-x-4">
-                <div className="w-12 h-12 bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-xl flex items-center justify-center">
-                  <Shield className="w-6 h-6 text-white" />
+            </div>
+
+            {/* Security */}
+            <div className="group bg-gradient-to-br from-indigo-50 to-indigo-100/50 rounded-2xl p-6 border border-indigo-200/30 hover:border-indigo-300/50 transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
+              <div className="flex flex-col items-center text-center">
+                <div className="w-16 h-16 bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300 shadow-lg">
+                  <Shield className="w-8 h-8 text-white" />
                 </div>
-                <div>
-                  <h5 className="font-semibold text-gray-900">უსაფრთხოება</h5>
-                  <p className="text-sm text-gray-600">დაცული მონაცემები</p>
-                </div>
+                <h5 className="font-bold text-gray-900 mb-2 group-hover:text-indigo-600 transition-colors">უსაფრთხოება</h5>
+                <p className="text-sm text-gray-600 group-hover:text-gray-700 transition-colors">დაცული მონაცემები</p>
               </div>
             </div>
           </div>
