@@ -86,9 +86,9 @@ export default function BusinessPage() {
               <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-blue-600 rounded-3xl flex items-center justify-center mb-8 group-hover:scale-110 transition-transform duration-300 shadow-lg">
                 <Globe className="w-10 h-10 text-white" />
               </div>
-              <h4 className="text-xl font-bold text-gray-900 mb-6 group-hover:text-blue-600 transition-colors">ერთიანი პლატფორმა</h4>
+              <h4 className="text-xl font-bold text-gray-900 mb-6 group-hover:text-blue-600 transition-colors">ყველა არხი ერთ ადგილას</h4>
               <p className="text-gray-600 leading-relaxed group-hover:text-gray-700 transition-colors">
-                მიიღეთ და უპასუხეთ ყველა შეტყობინებას - Facebook, Instagram, WhatsApp, საიტის ჩათი, ელფოსტა და სატელეფონო ზარები - ერთ ადგილზე.
+                მიიღეთ და უპასუხეთ ყველა შეტყობინებას - Facebook, Instagram, WhatsApp, საიტის ჩათი, ელფოსტა და სატელეფონო ზარები - ერთ სივრცეში.
               </p>
             </div>
 
@@ -97,7 +97,7 @@ export default function BusinessPage() {
               <div className="w-20 h-20 bg-gradient-to-br from-purple-500 to-purple-600 rounded-3xl flex items-center justify-center mb-8 group-hover:scale-110 transition-transform duration-300 shadow-lg">
                 <Brain className="w-10 h-10 text-white" />
               </div>
-              <h4 className="text-xl font-bold text-gray-900 mb-6 group-hover:text-purple-600 transition-colors">ავტომატური პასუხები</h4>
+              <h4 className="text-xl font-bold text-gray-900 mb-6 group-hover:text-purple-600 transition-colors">მყისიერი პასუხები მომხმარებელს</h4>
               <p className="text-gray-600 leading-relaxed group-hover:text-gray-700 transition-colors">
                 Aluda ამუშავებს შემოსულ კითხვებს და მომხმარებელს აწვდის ზუსტ ინფორმაციას მაშინვე.
               </p>
@@ -108,9 +108,9 @@ export default function BusinessPage() {
               <div className="w-20 h-20 bg-gradient-to-br from-green-500 to-green-600 rounded-3xl flex items-center justify-center mb-8 group-hover:scale-110 transition-transform duration-300 shadow-lg">
                 <Users className="w-10 h-10 text-white" />
               </div>
-              <h4 className="text-xl font-bold text-gray-900 mb-6 group-hover:text-green-600 transition-colors">პიროვნული შეთავაზებები</h4>
+              <h4 className="text-xl font-bold text-gray-900 mb-6 group-hover:text-green-600 transition-colors">გონივრული რეკომენდაციები</h4>
               <p className="text-gray-600 leading-relaxed group-hover:text-gray-700 transition-colors">
-                სისტემა მომხმარებლის ინტერესებზე დაყრდნობით სთავაზობს პროდუქციასა თუ მომსახურებას.
+                სისტემა მომხმარებლის ინტერესებზე დაყრდნობით სთავაზობს შესაბამის პროდუქტსა თუ მომსახურებას.
               </p>
             </div>
           </div>
