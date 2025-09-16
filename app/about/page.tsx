@@ -1,7 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import { MessageSquare, Brain, Zap, Shield, Users, Globe } from 'lucide-react';
+import { MessageSquare, Brain, Zap, Shield, Users, Globe, Building2 } from 'lucide-react';
+
 
 export default function AboutPage() {
   return (
@@ -18,13 +19,21 @@ export default function AboutPage() {
                 AludaAI
               </h1>
             </div>
-            <Link 
-              href="/"
-              className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-medium rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all duration-200 shadow-lg hover:shadow-xl"
-            >
-              <MessageSquare className="w-4 h-4 mr-2" />
-              დაწყება
-            </Link>
+            <div className="flex items-center space-x-3">
+                     <Link
+                       href="/business"
+                       className="inline-flex items-center px-4 py-2 border border-gray-300 text-gray-700 font-medium rounded-lg hover:border-gray-400 hover:bg-gray-50 transition-all duration-200"
+                     >
+                       ბიზნესისთვის
+                     </Link>
+              <Link 
+                href="/chat"
+                className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-medium rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all duration-200 shadow-lg hover:shadow-xl"
+              >
+                <MessageSquare className="w-4 h-4 mr-2" />
+                დაწყება
+              </Link>
+            </div>
           </div>
         </div>
       </header>
@@ -44,15 +53,15 @@ export default function AboutPage() {
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link 
-              href="/"
+              href="/chat"
               className="inline-flex items-center px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all duration-200 shadow-lg hover:shadow-xl text-lg"
             >
               <MessageSquare className="w-5 h-5 mr-2" />
               დაიწყეთ საუბარი
             </Link>
-            <Link href="/buy" className="inline-flex items-center px-8 py-4 border-2 border-gray-300 text-gray-700 font-semibold rounded-xl hover:border-gray-400 hover:bg-gray-50 transition-all duration-200 text-lg">
-              <Zap className="w-5 h-5 mr-2" />
-              ფუნქციები
+            <Link href="/business" className="inline-flex items-center px-8 py-4 border-2 border-gray-300 text-gray-700 font-semibold rounded-xl hover:border-gray-400 hover:bg-gray-50 transition-all duration-200 text-lg">
+              <Building2 className="w-5 h-5 mr-2" />
+              ბიზნესისთვის
             </Link>
           </div>
         </div>
@@ -149,7 +158,7 @@ export default function AboutPage() {
             შეუერთდით ათასობით ქართველ მომხმარებელს, რომლებიც უკვე იყენებენ AludaAI-ს
           </p>
           <Link 
-            href="/"
+            href="/chat"
             className="inline-flex items-center px-10 py-5 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-bold rounded-2xl hover:from-blue-700 hover:to-purple-700 transition-all duration-200 shadow-2xl hover:shadow-3xl text-xl"
           >
             <MessageSquare className="w-6 h-6 mr-3" />

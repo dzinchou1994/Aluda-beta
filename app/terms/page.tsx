@@ -1,7 +1,31 @@
-'use client';
-
 import Link from 'next/link';
 import { ArrowLeft, Shield, Users, Brain, Zap, AlertTriangle, CheckCircle } from 'lucide-react';
+import { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'წესები და პირობები - AludaAI | მომხმარებლის უფლებები და ვალდებულებები',
+  description: 'AludaAI-ის წესები და პირობები. მომხმარებლის უფლებები, ვალდებულებები, მონაცემთა დაცვა და სერვისის გამოყენების წესები.',
+  keywords: 'AludaAI, წესები, პირობები, მომხმარებელი, უფლებები, ვალდებულებები, მონაცემთა დაცვა, პირადი მონაცემები, საქართველო',
+  openGraph: {
+    title: 'წესები და პირობები - AludaAI',
+    description: 'AludaAI-ის წესები და პირობები. მომხმარებლის უფლებები და ვალდებულებები.',
+    type: 'website',
+    locale: 'ka_GE',
+    siteName: 'AludaAI',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'წესები და პირობები - AludaAI',
+    description: 'AludaAI-ის წესები და პირობები. მომხმარებლის უფლებები და ვალდებულებები.',
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
+  alternates: {
+    canonical: 'https://aluda.app/terms',
+  },
+};
 
 export default function TermsPage() {
   return (
