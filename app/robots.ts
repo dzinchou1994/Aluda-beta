@@ -7,6 +7,6 @@ export default function robots(): MetadataRoute.Robots {
       allow: '/',
       disallow: ['/api/', '/admin/', '/_next/'],
     },
-    sitemap: 'https://aluda.app/sitemap.xml',
+    sitemap: 'https://aluda.ge/sitemap.xml',
   }
 }

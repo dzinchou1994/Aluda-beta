@@ -1,7 +1,7 @@
 import { MetadataRoute } from 'next'
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = 'https://aluda.app'
+  const baseUrl = 'https://aluda.ge'
   
   return [
     {
