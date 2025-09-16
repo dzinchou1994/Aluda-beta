@@ -166,24 +166,20 @@ export default function BusinessPage() {
 
           {/* Smart Grid Layout */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {/* Hotel & Tourism - Large Card */}
-            <div className="lg:col-span-2 group">
-              <div className="bg-gradient-to-br from-blue-50 to-blue-100/50 rounded-3xl p-10 shadow-xl hover:shadow-2xl transition-all duration-500 border border-blue-200/30 hover:border-blue-300/50 h-full">
-                <div className="flex items-start space-x-6">
-                  <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-blue-600 rounded-3xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
-                    <Building2 className="w-10 h-10 text-white" />
-                  </div>
-                  <div className="flex-1">
-                    <h4 className="text-xl font-bold text-gray-900 mb-4 group-hover:text-blue-600 transition-colors">სასტუმროები და ტურიზმი</h4>
-                    <p className="text-gray-600 leading-relaxed mb-6">
-                      მომხმარებელს სთავაზობს თავისუფალ ნომრებს, აფიქსირებს ჯავშანს, აწვდის ინფორმაციას ფასებზე და დამატებით სერვისებზე.
-                    </p>
-                    <div className="flex flex-wrap gap-3">
-                      <span className="px-4 py-2 bg-blue-100 text-blue-700 rounded-full text-sm font-medium">ჯავშანი</span>
-                      <span className="px-4 py-2 bg-blue-100 text-blue-700 rounded-full text-sm font-medium">ფასები</span>
-                      <span className="px-4 py-2 bg-blue-100 text-blue-700 rounded-full text-sm font-medium">სერვისები</span>
-                    </div>
-                  </div>
+            {/* Hotel & Tourism */}
+            <div className="group">
+              <div className="bg-gradient-to-br from-blue-50 to-blue-100/50 rounded-3xl p-8 shadow-xl hover:shadow-2xl transition-all duration-500 border border-blue-200/30 hover:border-blue-300/50 h-full">
+                <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center mb-6 shadow-lg group-hover:scale-110 transition-transform duration-300">
+                  <Building2 className="w-8 h-8 text-white" />
+                </div>
+                <h4 className="text-xl font-bold text-gray-900 mb-4 group-hover:text-blue-600 transition-colors">სასტუმროები და ტურიზმი</h4>
+                <p className="text-gray-600 leading-relaxed mb-4">
+                  მომხმარებელს სთავაზობს თავისუფალ ნომრებს, აფიქსირებს ჯავშანს, აწვდის ინფორმაციას ფასებზე და დამატებით სერვისებზე.
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-medium">ჯავშანი</span>
+                  <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-medium">ფასები</span>
+                  <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-medium">სერვისები</span>
                 </div>
               </div>
             </div>
@@ -225,24 +221,20 @@ export default function BusinessPage() {
               </div>
             </div>
 
-            {/* Service Sector - Large Card */}
-            <div className="lg:col-span-2 group">
-              <div className="bg-gradient-to-br from-purple-50 to-purple-100/50 rounded-3xl p-10 shadow-xl hover:shadow-2xl transition-all duration-500 border border-purple-200/30 hover:border-purple-300/50 h-full">
-                <div className="flex items-start space-x-6">
-                  <div className="w-20 h-20 bg-gradient-to-br from-purple-500 to-purple-600 rounded-3xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
-                    <Calendar className="w-10 h-10 text-white" />
-                  </div>
-                  <div className="flex-1">
-                    <h4 className="text-xl font-bold text-gray-900 mb-4 group-hover:text-purple-600 transition-colors">მომსახურების სფერო</h4>
-                    <p className="text-gray-600 leading-relaxed text-lg mb-6">
-                      სილამაზის სალონები, ფიტნეს ცენტრები - ამოწმებს თავისუფალ დროს კალენდარში და აფიქსირებს შეხვედრას.
-                    </p>
-                    <div className="flex flex-wrap gap-3">
-                      <span className="px-4 py-2 bg-purple-100 text-purple-700 rounded-full text-sm font-medium">კალენდარი</span>
-                      <span className="px-4 py-2 bg-purple-100 text-purple-700 rounded-full text-sm font-medium">შეხვედრა</span>
-                      <span className="px-4 py-2 bg-purple-100 text-purple-700 rounded-full text-sm font-medium">სალონი</span>
-                    </div>
-                  </div>
+            {/* Service Sector */}
+            <div className="group">
+              <div className="bg-gradient-to-br from-purple-50 to-purple-100/50 rounded-3xl p-8 shadow-xl hover:shadow-2xl transition-all duration-500 border border-purple-200/30 hover:border-purple-300/50 h-full">
+                <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl flex items-center justify-center mb-6 shadow-lg group-hover:scale-110 transition-transform duration-300">
+                  <Calendar className="w-8 h-8 text-white" />
+                </div>
+                <h4 className="text-xl font-bold text-gray-900 mb-4 group-hover:text-purple-600 transition-colors">მომსახურების სფერო</h4>
+                <p className="text-gray-600 leading-relaxed mb-4">
+                  სილამაზის სალონები, ფიტნეს ცენტრები - ამოწმებს თავისუფალ დროს კალენდარში და აფიქსირებს შეხვედრას.
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  <span className="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-xs font-medium">კალენდარი</span>
+                  <span className="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-xs font-medium">შეხვედრა</span>
+                  <span className="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-xs font-medium">სალონი</span>
                 </div>
               </div>
             </div>
