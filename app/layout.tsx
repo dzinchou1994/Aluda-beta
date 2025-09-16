@@ -22,19 +22,19 @@ const pacifico = Pacifico({
 })
 
 export const metadata: Metadata = {
-  title: "Aluda.ge - პირველი ქართული AI პლატფორმა",
+  title: "Aluda - პირველი ქართული AI პლატფორმა",
   description: "AludaAI არის ქართული AI ჩათ-ასისტენტი, რომელიც ეხმარება ქართველ მომხმარებლებს ყოველდღიურ ამოცანებში. უფასო, უსაფრთხო და მარტივი გამოყენების AI ასისტენტი.",
   keywords: "AludaAI, ხელოვნური ინტელექტი, AI, ჩათ-ბოტი, ქართული, საქართველო, უფასო, AI ასისტენტი, ქართული AI, ChatGPT ქართულად",
   openGraph: {
-    title: "Aluda.ge - პირველი ქართული AI პლატფორმა",
+    title: "Aluda - პირველი ქართული AI პლატფორმა",
     description: "უფასო ქართული AI ჩათ-ასისტენტი ყველა ქართველი მომხმარებლისთვის. უსაფრთხო და მარტივი გამოყენების AI ასისტენტი.",
     type: "website",
     locale: "ka_GE",
-    siteName: "Aluda.ge",
+    siteName: "Aluda",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Aluda.ge - პირველი ქართული AI პლატფორმა",
+    title: "Aluda - პირველი ქართული AI პლატფორმა",
     description: "უფასო ქართული AI ჩათ-ასისტენტი ყველა ქართველი მომხმარებლისთვის.",
   },
   robots: {
