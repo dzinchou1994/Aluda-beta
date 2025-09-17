@@ -143,40 +143,6 @@ export default function ChatPage() {
     )
   }
 
-  // Load TOP.GE counter script (only once)
-  useEffect(() => {
-    // Check if counter is already loaded
-    if (document.getElementById('top-ge-counter-container') || document.querySelector('script[src*="counter.top.ge"]')) {
-      return
-    }
-
-    // Create the counter container
-    const container = document.createElement('div')
-    container.id = 'top-ge-counter-container'
-    container.setAttribute('data-site-id', '118284')
-    container.style.display = 'none' // Hide the counter visually
-    document.body.appendChild(container)
-
-    // Load the counter script
-    const script = document.createElement('script')
-    script.src = '//counter.top.ge/counter.js'
-    script.async = true
-    script.id = 'top-ge-counter-script'
-    document.head.appendChild(script)
-
-    // Cleanup function
-    return () => {
-      const existingContainer = document.getElementById('top-ge-counter-container')
-      const existingScript = document.getElementById('top-ge-counter-script')
-      
-      if (existingContainer && existingContainer.parentNode) {
-        existingContainer.parentNode.removeChild(existingContainer)
-      }
-      if (existingScript && existingScript.parentNode) {
-        existingScript.parentNode.removeChild(existingScript)
-      }
-    }
-  }, [])
 
   return (
     <div className="flex h-screen min-h-[100dvh] bg-white dark:bg-chat-bg">
