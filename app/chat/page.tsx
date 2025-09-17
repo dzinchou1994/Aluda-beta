@@ -143,6 +143,32 @@ export default function ChatPage() {
     )
   }
 
+  // Load TOP.GE counter script
+  useEffect(() => {
+    // Create the counter container
+    const container = document.createElement('div')
+    container.id = 'top-ge-counter-container'
+    container.setAttribute('data-site-id', '118284')
+    container.style.display = 'none' // Hide the counter visually
+    document.body.appendChild(container)
+
+    // Load the counter script
+    const script = document.createElement('script')
+    script.src = '//counter.top.ge/counter.js'
+    script.async = true
+    document.head.appendChild(script)
+
+    // Cleanup function
+    return () => {
+      if (container.parentNode) {
+        container.parentNode.removeChild(container)
+      }
+      if (script.parentNode) {
+        script.parentNode.removeChild(script)
+      }
+    }
+  }, [])
+
   return (
     <div className="flex h-screen min-h-[100dvh] bg-white dark:bg-chat-bg">
       {/* Mobile Sidebar Overlay */}
