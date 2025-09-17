@@ -126,3 +126,16 @@ model Presence {
 
   @@index([userId])
 }
+
+model Feedback {
+  id         String   @id @default(cuid())
+  messageId  String
+  chatflowId String
+  chatId     String
+  rating     String
+  content    String?
+  createdAt  DateTime @default(now())
+
+  @@index([messageId])
+  @@index([chatId])
+}

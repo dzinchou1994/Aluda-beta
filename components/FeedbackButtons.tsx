@@ -18,6 +18,7 @@ export default function FeedbackButtons({ messageId, chatflowId, chatId, message
   const [showCommentInput, setShowCommentInput] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   const handleCopyMessage = async () => {
     try {
@@ -40,6 +41,7 @@ export default function FeedbackButtons({ messageId, chatflowId, chatId, message
     if (!rating || isSubmitting || isSubmitted) return;
 
     setIsSubmitting(true);
+    setSubmitError(null);
     
     try {
       const response = await fetch('/api/feedback', {
@@ -60,9 +62,12 @@ export default function FeedbackButtons({ messageId, chatflowId, chatId, message
         setIsSubmitted(true);
         onFeedbackSent?.();
       } else {
-        console.error('Failed to submit feedback');
+        const errorData = await response.json().catch(() => ({}));
+        setSubmitError('შეცდომა გამოხმაურების გაგზავნისას. გთხოვთ, სცადოთ თავიდან.');
+        console.error('Failed to submit feedback:', errorData);
       }
     } catch (error) {
+      setSubmitError('შეცდომა გამოხმაურების გაგზავნისას. გთხოვთ, სცადოთ თავიდან.');
       console.error('Error submitting feedback:', error);
     } finally {
       setIsSubmitting(false);
@@ -78,8 +83,11 @@ export default function FeedbackButtons({ messageId, chatflowId, chatId, message
 
   if (isSubmitted) {
     return (
-      <div className="flex items-center gap-2 mt-3 text-sm text-gray-500 dark:text-gray-400">
-        <span>მადლობა თქვენი გამოხმაურებისთვის!</span>
+      <div className="flex items-center gap-2 mt-3 p-3 bg-green-50 border border-green-200 rounded-lg dark:bg-green-900/20 dark:border-green-800">
+        <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+        <span className="text-sm font-medium text-green-700 dark:text-green-400">
+          თქვენი გამოხმაურება გაიგზავნა, მადლობა!
+        </span>
       </div>
     );
   }
@@ -135,12 +143,18 @@ export default function FeedbackButtons({ messageId, chatflowId, chatId, message
             rows={2}
             disabled={isSubmitting}
           />
+          {submitError && (
+            <div className="p-2 text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg dark:text-red-400 dark:bg-red-900/20 dark:border-red-800">
+              {submitError}
+            </div>
+          )}
           <div className="flex justify-end gap-2">
             <button
               onClick={() => {
                 setShowCommentInput(false);
                 setRating(null);
                 setComment('');
+                setSubmitError(null);
               }}
               className="px-3 py-1 text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
               disabled={isSubmitting}
