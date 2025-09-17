@@ -143,8 +143,13 @@ export default function ChatPage() {
     )
   }
 
-  // Load TOP.GE counter script
+  // Load TOP.GE counter script (only once)
   useEffect(() => {
+    // Check if counter is already loaded
+    if (document.getElementById('top-ge-counter-container') || document.querySelector('script[src*="counter.top.ge"]')) {
+      return
+    }
+
     // Create the counter container
     const container = document.createElement('div')
     container.id = 'top-ge-counter-container'
@@ -156,15 +161,19 @@ export default function ChatPage() {
     const script = document.createElement('script')
     script.src = '//counter.top.ge/counter.js'
     script.async = true
+    script.id = 'top-ge-counter-script'
     document.head.appendChild(script)
 
     // Cleanup function
     return () => {
-      if (container.parentNode) {
-        container.parentNode.removeChild(container)
+      const existingContainer = document.getElementById('top-ge-counter-container')
+      const existingScript = document.getElementById('top-ge-counter-script')
+      
+      if (existingContainer && existingContainer.parentNode) {
+        existingContainer.parentNode.removeChild(existingContainer)
       }
-      if (script.parentNode) {
-        script.parentNode.removeChild(script)
+      if (existingScript && existingScript.parentNode) {
+        existingScript.parentNode.removeChild(existingScript)
       }
     }
   }, [])
