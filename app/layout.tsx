@@ -3,6 +3,7 @@ import { Inter, Caveat, Dancing_Script, Pacifico } from "next/font/google"
 import "./globals.css"
 import Providers from "@/components/Providers"
 import { Toaster } from "@/components/ui/toaster"
+import { Analytics } from "@vercel/analytics/next"
 
 const inter = Inter({ subsets: ["latin"] })
 const caveat = Caveat({ 
@@ -72,6 +73,7 @@ export default function RootLayout({
           {children}
         </Providers>
         <Toaster />
+        <Analytics />
       </body>
     </html>
   )
