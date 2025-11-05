@@ -4,6 +4,7 @@ import "./globals.css"
 import Providers from "@/components/Providers"
 import { Toaster } from "@/components/ui/toaster"
 import { Analytics } from "@vercel/analytics/next"
+import GoogleTagManager from "@/components/GoogleTagManager"
 
 const inter = Inter({ subsets: ["latin"] })
 const caveat = Caveat({ 
@@ -69,6 +70,19 @@ export default function RootLayout({
   return (
     <html lang="ka">
       <body className={`${inter.className} ${caveat.variable} ${dancingScript.variable} ${pacifico.variable}`}>
+        <GoogleTagManager />
+        
+        {/* Google Tag Manager (noscript) */}
+        <noscript>
+          <iframe
+            src="https://www.googletagmanager.com/ns.html?id=GTM-MS32GDR6"
+            height="0"
+            width="0"
+            style={{ display: 'none', visibility: 'hidden' }}
+          />
+        </noscript>
+        {/* End Google Tag Manager (noscript) */}
+        
         <Providers>
           {children}
         </Providers>
