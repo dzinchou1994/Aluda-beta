@@ -71,18 +71,14 @@ export default function RootLayout({
     <html lang="ka">
       <body className={`${inter.className} ${caveat.variable} ${dancingScript.variable} ${pacifico.variable}`}>
         <GoogleTagManager />
-        
-        {/* Google Tag Manager (noscript) */}
         <noscript>
           <iframe
             src="https://www.googletagmanager.com/ns.html?id=GTM-MS32GDR6"
             height="0"
             width="0"
-            style={{ display: 'none', visibility: 'hidden' }}
+            style={{ display: "none", visibility: "hidden" }}
           />
         </noscript>
-        {/* End Google Tag Manager (noscript) */}
-        
         <Providers>
           {children}
         </Providers>
