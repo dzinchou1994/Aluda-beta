@@ -11,10 +11,10 @@ export default function GoogleTagManager() {
     if (typeof window !== 'undefined') {
       (window as any).dataLayer = (window as any).dataLayer || []
       
-      // Inject GTM script into head as early as possible
-      if (!document.getElementById('google-tag-manager')) {
+      // Inject GTM script into head as early as possible (backup in case Script component doesn't load)
+      if (!document.getElementById('google-tag-manager') && !document.getElementById('google-tag-manager-script')) {
         const script = document.createElement('script')
-        script.id = 'google-tag-manager'
+        script.id = 'google-tag-manager-script'
         script.innerHTML = `(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
 new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
 j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
