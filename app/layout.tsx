@@ -76,7 +76,7 @@ export default function RootLayout({
             src="https://www.googletagmanager.com/ns.html?id=GTM-MS32GDR6"
             height="0"
             width="0"
-            style={{ display: "none", visibility: "hidden" }}
+            style={{ display: 'none', visibility: 'hidden' }}
           />
         </noscript>
         <Providers>
