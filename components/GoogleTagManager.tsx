@@ -1,8 +1,11 @@
 'use client'
 
 import { useEffect } from 'react'
+import { usePathname } from 'next/navigation'
 
 export default function GoogleTagManager() {
+  const pathname = usePathname()
+
   useEffect(() => {
     // Initialize dataLayer immediately
     if (typeof window !== 'undefined') {
@@ -22,6 +25,18 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
       }
     }
   }, [])
+
+  // Track page views on route changes (client-side navigation)
+  useEffect(() => {
+    if (typeof window !== 'undefined' && pathname && (window as any).dataLayer) {
+      // Push page view event for client-side navigation
+      (window as any).dataLayer.push({
+        event: 'page_view',
+        page_path: pathname,
+        page_location: window.location.href,
+      })
+    }
+  }, [pathname])
 
   return null
 }

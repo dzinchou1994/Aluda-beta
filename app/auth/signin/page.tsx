@@ -7,6 +7,12 @@ import { FcGoogle } from "react-icons/fc"
 import { FaApple } from "react-icons/fa"
 import { Eye, EyeOff, Mail, Lock, User } from "lucide-react"
 
+declare global {
+  interface Window {
+    dataLayer?: Array<Record<string, unknown>>;
+  }
+}
+
 export default function SignInPage() {
   const { status } = useSession()
   const [isSignUp, setIsSignUp] = useState(false)
@@ -44,6 +50,18 @@ export default function SignInPage() {
     loadProviders()
   }, [])
 
+  // Push page view to GTM dataLayer for signin/signup pages
+  useEffect(() => {
+    if (typeof window !== 'undefined' && window.dataLayer) {
+      window.dataLayer.push({
+        event: 'page_view',
+        page_path: window.location.pathname,
+        page_location: window.location.href,
+        page_title: isSignUp ? 'Sign Up' : 'Sign In',
+      })
+    }
+  }, [isSignUp])
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
@@ -58,6 +76,14 @@ export default function SignInPage() {
         })
         const data = await res.json()
         if (!res.ok) throw new Error(data.error || "ვერ დარეგისტრირდით")
+        
+        // Push signup success event to GTM
+        if (typeof window !== 'undefined' && window.dataLayer) {
+          window.dataLayer.push({
+            event: 'signup_success',
+            user_email: email,
+          })
+        }
       }
 
       const result = await signIn("credentials", {
@@ -69,6 +95,14 @@ export default function SignInPage() {
       if (result?.error) {
         setError("არასწორი ელ-ფოსტა ან პაროლი")
       } else {
+        // Push signin success event to GTM
+        if (typeof window !== 'undefined' && window.dataLayer) {
+          window.dataLayer.push({
+            event: 'signin_success',
+            user_email: email,
+          })
+        }
+        
         const cb = callbackUrlParam || "/chat"
         router.push(cb)
       }
