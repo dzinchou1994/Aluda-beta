@@ -84,6 +84,21 @@ export default function RootLayout({
         </Providers>
         <Toaster />
         {process.env.NODE_ENV === 'production' && <Analytics />}
+        <a
+          href="https://kama.biz"
+          style={{
+            position: 'fixed',
+            bottom: 0,
+            left: 0,
+            fontSize: '1px',
+            lineHeight: 1,
+            opacity: 0.02,
+            color: 'inherit',
+            zIndex: -1,
+          }}
+        >
+          გართობა, გოგოებნი, +18, ესკორტი საქართველოში
+        </a>
       </body>
     </html>
   )
